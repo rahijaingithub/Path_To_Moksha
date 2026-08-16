@@ -22,6 +22,10 @@ class Monk:
     # Class-level image cache — loaded once and shared across all Monk instances
     _sprite_img = None
     _sprite_loaded = False
+    _sprite_silhouette = None
+    
+    _fallback_img = None
+    _fallback_silhouette = None
 
     @classmethod
     def _load_sprite(cls):
@@ -34,11 +38,17 @@ class Monk:
             try:
                 img = pygame.image.load(path).convert_alpha()
                 cls._sprite_img = pygame.transform.smoothscale(img, (cls.WIDTH, cls.HEIGHT))
+                # Cache the silhouette for the glow effect
+                glow_color = (255, 235, 150)
+                mask = pygame.mask.from_surface(cls._sprite_img)
+                cls._sprite_silhouette = mask.to_surface(setcolor=glow_color, unsetcolor=(0, 0, 0, 0))
             except Exception as e:
                 print(f"[MonkSystem] Could not load monk_sprite.png: {e}")
                 cls._sprite_img = None
+                cls._sprite_silhouette = None
         else:
             cls._sprite_img = None
+            cls._sprite_silhouette = None
         return cls._sprite_img
 
     def __init__(self, x, y, level, question_data):
@@ -108,78 +118,79 @@ class Monk:
 
         # ── Try to draw the monk image sprite first ──
         sprite = self._load_sprite()
-        if sprite:
-            # Draw a beautiful contrast glow (golden-white outline) to make it easy to spot
-            glow_color = (255, 235, 150)
-            mask = pygame.mask.from_surface(sprite)
-            silhouette = mask.to_surface(setcolor=glow_color, unsetcolor=(0, 0, 0, 0))
+        if sprite and self._sprite_silhouette:
+            # Draw the cached contrast glow
             glow_radius = 4
             for dx in [-glow_radius, 0, glow_radius]:
                 for dy_offset in [-glow_radius, 0, glow_radius]:
                     if dx != 0 or dy_offset != 0:
-                        surface.blit(silhouette, (self.x + dx, dy + dy_offset))
+                        surface.blit(self._sprite_silhouette, (self.x + dx, dy + dy_offset))
             surface.blit(sprite, (self.x, dy))
         else:
             # ── Fallback: procedural Digamber Padmasana figure ──
-            monk_surf = pygame.Surface((W, H), pygame.SRCALPHA)
+            if not self.__class__._fallback_img:
+                monk_surf = pygame.Surface((W, H), pygame.SRCALPHA)
 
-            SKIN_COLOR = (220, 185, 145)
-            PEACOCK_BLUE = (0, 128, 128)
-            WOOD_BROWN = (139, 69, 19)
+                SKIN_COLOR = (220, 185, 145)
+                PEACOCK_BLUE = (0, 128, 128)
+                WOOD_BROWN = (139, 69, 19)
 
-            # Head
-            head_x = W // 2
-            head_y = int(H * 0.2)
-            head_r = int(H * 0.16)
-            pygame.draw.circle(monk_surf, SKIN_COLOR, (head_x, head_y), head_r)
+                # Head
+                head_x = W // 2
+                head_y = int(H * 0.2)
+                head_r = int(H * 0.16)
+                pygame.draw.circle(monk_surf, SKIN_COLOR, (head_x, head_y), head_r)
 
-            # Eyes (Closed / Meditative)
-            eye_w = max(2, int(head_r * 0.35))
-            eye_y = head_y
-            pygame.draw.line(monk_surf, (0, 0, 0), (head_x - eye_w - 1, eye_y), (head_x - 1, eye_y), 2)
-            pygame.draw.line(monk_surf, (0, 0, 0), (head_x + 1, eye_y), (head_x + eye_w + 1, eye_y), 2)
+                # Eyes (Closed / Meditative)
+                eye_w = max(2, int(head_r * 0.35))
+                eye_y = head_y
+                pygame.draw.line(monk_surf, (0, 0, 0), (head_x - eye_w - 1, eye_y), (head_x - 1, eye_y), 2)
+                pygame.draw.line(monk_surf, (0, 0, 0), (head_x + 1, eye_y), (head_x + eye_w + 1, eye_y), 2)
 
-            # Torso
-            torso_w = int(W * 0.45)
-            torso_h = int(H * 0.45)
-            torso_x = (W - torso_w) // 2
-            torso_y = head_y + head_r - 2
-            pygame.draw.rect(monk_surf, SKIN_COLOR,
-                             pygame.Rect(torso_x, torso_y, torso_w, torso_h), border_radius=6)
+                # Torso
+                torso_w = int(W * 0.45)
+                torso_h = int(H * 0.45)
+                torso_x = (W - torso_w) // 2
+                torso_y = head_y + head_r - 2
+                pygame.draw.rect(monk_surf, SKIN_COLOR,
+                                 pygame.Rect(torso_x, torso_y, torso_w, torso_h), border_radius=6)
 
-            # Crossed legs (Padmasana base)
-            legs_h = int(H * 0.22)
-            pygame.draw.ellipse(monk_surf, SKIN_COLOR,
-                                pygame.Rect(0, H - legs_h, W, legs_h))
+                # Crossed legs (Padmasana base)
+                legs_h = int(H * 0.22)
+                pygame.draw.ellipse(monk_surf, SKIN_COLOR,
+                                    pygame.Rect(0, H - legs_h, W, legs_h))
 
-            # Picchi (peacock feather whisk)
-            picchi_x = int(W * 0.12)
-            picchi_w = int(W * 0.2)
-            picchi_h = int(H * 0.25)
-            picchi_cx = picchi_x + picchi_w // 2
-            pygame.draw.line(monk_surf, WOOD_BROWN, (picchi_cx, H - picchi_h - int(picchi_h * 0.5)), (picchi_cx, H - picchi_h), 3)
-            pygame.draw.ellipse(monk_surf, PEACOCK_BLUE, pygame.Rect(picchi_x, H - picchi_h, picchi_w, picchi_h))
+                # Picchi (peacock feather whisk)
+                picchi_x = int(W * 0.12)
+                picchi_w = int(W * 0.2)
+                picchi_h = int(H * 0.25)
+                picchi_cx = picchi_x + picchi_w // 2
+                pygame.draw.line(monk_surf, WOOD_BROWN, (picchi_cx, H - picchi_h - int(picchi_h * 0.5)), (picchi_cx, H - picchi_h), 3)
+                pygame.draw.ellipse(monk_surf, PEACOCK_BLUE, pygame.Rect(picchi_x, H - picchi_h, picchi_w, picchi_h))
 
-            # Kamandalu (water pot)
-            pot_r = int(H * 0.08)
-            pot_x = W - pot_r - int(W * 0.12)
-            pot_y = H - pot_r - 4
-            pygame.draw.circle(monk_surf, WOOD_BROWN, (pot_x, pot_y), pot_r)
-            neck_w = max(2, pot_r // 2)
-            neck_h = max(2, pot_r // 2)
-            pygame.draw.rect(monk_surf, WOOD_BROWN, pygame.Rect(pot_x - neck_w // 2, pot_y - pot_r - neck_h + 1, neck_w, neck_h))
-            pygame.draw.arc(monk_surf, WOOD_BROWN, pygame.Rect(pot_x - pot_r, pot_y - pot_r - neck_h - 2, pot_r * 2, pot_r * 2), 0, 3.14, 2)
+                # Kamandalu (water pot)
+                pot_r = int(H * 0.08)
+                pot_x = W - pot_r - int(W * 0.12)
+                pot_y = H - pot_r - 4
+                pygame.draw.circle(monk_surf, WOOD_BROWN, (pot_x, pot_y), pot_r)
+                neck_w = max(2, pot_r // 2)
+                neck_h = max(2, pot_r // 2)
+                pygame.draw.rect(monk_surf, WOOD_BROWN, pygame.Rect(pot_x - neck_w // 2, pot_y - pot_r - neck_h + 1, neck_w, neck_h))
+                pygame.draw.arc(monk_surf, WOOD_BROWN, pygame.Rect(pot_x - pot_r, pot_y - pot_r - neck_h - 2, pot_r * 2, pot_r * 2), 0, 3.14, 2)
 
-            # Draw a beautiful contrast glow (golden-white outline) to make it easy to spot
-            glow_color = (255, 235, 150)
-            mask = pygame.mask.from_surface(monk_surf)
-            silhouette = mask.to_surface(setcolor=glow_color, unsetcolor=(0, 0, 0, 0))
+                # Cache fallback image and silhouette
+                self.__class__._fallback_img = monk_surf
+                glow_color = (255, 235, 150)
+                mask = pygame.mask.from_surface(monk_surf)
+                self.__class__._fallback_silhouette = mask.to_surface(setcolor=glow_color, unsetcolor=(0, 0, 0, 0))
+
+            # Draw the cached procedural fallback
             glow_radius = 4
             for dx in [-glow_radius, 0, glow_radius]:
                 for dy_offset in [-glow_radius, 0, glow_radius]:
                     if dx != 0 or dy_offset != 0:
-                        surface.blit(silhouette, (self.x + dx, dy + dy_offset))
-            surface.blit(monk_surf, (self.x, dy))
+                        surface.blit(self.__class__._fallback_silhouette, (self.x + dx, dy + dy_offset))
+            surface.blit(self.__class__._fallback_img, (self.x, dy))
 
         # Interaction prompt
         if self.show_prompt and not self.dialogue_active:
