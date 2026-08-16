@@ -32,4 +32,3 @@ data/profiles.json
 data/high_scores.json
 data/controller_audit_txt.txt
 data/controller_map_txt.txt
-*.spec
