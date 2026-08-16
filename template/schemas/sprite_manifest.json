@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "backgrounds": {
+      "type": "object",
+      "description": "Mapping of background keys to filenames in /images/bg/",
+      "additionalProperties": { "type": "string" }
+    },
+    "characters": {
+      "type": "object",
+      "description": "Mapping of character keys to filenames in /images/chars/",
+      "additionalProperties": { "type": "string" }
+    },
+    "items": {
+      "type": "object",
+      "description": "Mapping of item keys to filenames in /images/items/",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "1": [
+    {
+      "question": "To feel happy and peaceful inside, we should share and stop being:",
+      "choices": ["Greedy and proud", "Buying new toys"],
+      "correct": 0
+    },
+    {
+      "question": "What makes us repeat our mistakes over and over?",
+      "choices": ["Anger and greed", "Not having money"],
+      "correct": 0
+    },
+    {
+      "question": "Which good habit teaches us not to ask for too many toys?",
+      "choices": ["Limiting our desires (Aparigraha)", "Always running fast"],
+      "correct": 0
+    },
+    {
+      "question": "What does being gentle and kind to all living things mean?",
+      "choices": ["Ahimsa (Non-violence)", "Being very strong"],
+      "correct": 0
+    }
+  ],
+  "2": [
+    {
+      "question": "Who protected the Lord from the heavy rain and storm?",
+      "choices": ["Dharanendra (Snake King)", "A giant umbrella"],
+      "correct": 0
+    },
+    {
+      "question": "Which kind Lord stayed calm and quiet during the stone storm?",
+      "choices": ["Lord Parshvanath", "Lord Mahavir"],
+      "correct": 0
+    },
+    {
+      "question": "When someone is mean to us, what is the best way to act?",
+      "choices": ["Forgive them and stay calm", "Shout back at them"],
+      "correct": 0
+    },
+    {
+      "question": "Being patient and forgiving is called:",
+      "choices": ["Uttam Kshama", "Uttam Arjav"],
+      "correct": 0
+    }
+  ],
+  "3": [
+    {
+      "question": "What is the best way to win a fight?",
+      "choices": ["Through kindness and peace", "Using a toy sword"],
+      "correct": 0
+    },
+    {
+      "question": "Our biggest fight is against our own:",
+      "choices": ["Anger and bad habits", "School friends"],
+      "correct": 0
+    },
+    {
+      "question": "Which vow teaches us to always tell the truth?",
+      "choices": ["Satya (Truth)", "Asteya (No stealing)"],
+      "correct": 0
+    },
+    {
+      "question": "What does the open hand symbol in Jainism show?",
+      "choices": ["Be kind and do not fear", "Stop and don't move"],
+      "correct": 0
+    }
+  ],
+  "4": [
+    {
+      "question": "Who was the very first Tirthankara (spiritual teacher)?",
+      "choices": ["Lord Adinath", "Lord Bahubali"],
+      "correct": 0
+    },
+    {
+      "question": "What is the happy place where pure, free souls live forever?",
+      "choices": ["Siddhashila", "The clouds"],
+      "correct": 0
+    },
+    {
+      "question": "Which of these is the correct way to learn and grow?",
+      "choices": ["Right Knowledge (Samyak Gyan)", "Having lots of toys"],
+      "correct": 0
+    },
+    {
+      "question": "A soul that is completely free from all bad karma is called a:",
+      "choices": ["Siddha", "Samsari"],
+      "correct": 0
+    }
+  ]
+}

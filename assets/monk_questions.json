@@ -1,0 +1,90 @@
+{
+  "1": [
+    {
+      "question": "To find peace, what must one leave behind?",
+      "choices": ["Ego and pride", "Physical car"],
+      "correct": 0
+    },
+    {
+      "question": "What is the primary cause of Samsara (cycle of rebirth)?",
+      "choices": ["Attachment and aversion", "Lack of wealth"],
+      "correct": 0
+    },
+    {
+      "question": "Which virtue focuses on limiting one's possessions and desires?",
+      "choices": ["Aparigraha", "Ahimsa"],
+      "correct": 0
+    },
+    {
+      "question": "What does the word 'Samsara' literally mean?",
+      "choices": ["Continuous flow or cycle", "Eternal liberation"],
+      "correct": 0
+    }
+  ],
+  "2": [
+    {
+      "question": "Who shielded the Lord from the storm?",
+      "choices": ["Dharanendra", "Kamatha"],
+      "correct": 0
+    },
+    {
+      "question": "Which Tirthankara remained unmoved under Kamatha's heavy stone rain?",
+      "choices": ["Lord Parshvanath", "Lord Mahavir"],
+      "correct": 0
+    },
+    {
+      "question": "In Jainism, what is the ultimate way to face obstacles (Parishaha)?",
+      "choices": ["Equanimity of mind", "Fighting back physically"],
+      "correct": 0
+    },
+    {
+      "question": "Resilience is closest to which of the ten supreme virtues (Das Dharma)?",
+      "choices": ["Uttam Kshama (Patience/Forgiveness)", "Uttam Arjav (Straightforwardness)"],
+      "correct": 0
+    }
+  ],
+  "3": [
+    {
+      "question": "What is the supreme weapon of a Tirthankara?",
+      "choices": ["Ahimsa (Non-violence)", "A steel sword"],
+      "correct": 0
+    },
+    {
+      "question": "True spiritual valor (Veerya) is used to defeat which enemy?",
+      "choices": ["Inner passions (Kashayas)", "External competitors"],
+      "correct": 0
+    },
+    {
+      "question": "Which Jain vow demands complete honesty in all situations?",
+      "choices": ["Satya", "Asteya"],
+      "correct": 0
+    },
+    {
+      "question": "What does the symbol of the raised palm (Abhaya) in Jainism represent?",
+      "choices": ["Fearlessness and peace", "Commanding power"],
+      "correct": 0
+    }
+  ],
+  "4": [
+    {
+      "question": "Who was the first Tirthankara to show the path of liberation?",
+      "choices": ["Lord Adinath", "Lord Bahubali"],
+      "correct": 0
+    },
+    {
+      "question": "What is the pure state of a liberated soul (Moksha) called?",
+      "choices": ["Siddha", "Samsari"],
+      "correct": 0
+    },
+    {
+      "question": "Which of these is NOT one of the Three Jewels (Ratnatraya) to Moksha?",
+      "choices": ["Samyak Dhana (Right Wealth)", "Samyak Darshana (Right Faith)"],
+      "correct": 0
+    },
+    {
+      "question": "Where do liberated souls reside eternally at the summit of the universe?",
+      "choices": ["Siddhashila", "Swarga"],
+      "correct": 0
+    }
+  ]
+}
