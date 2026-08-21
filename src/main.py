@@ -29,7 +29,12 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+        try:
+            if pygame.mixer.get_init() is None:
+                pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+        except pygame.error as exc:
+            # A missing audio device should not prevent the game from starting.
+            print(f"[Game] Audio disabled: {exc}")
         pygame.display.set_caption(GAME_TITLE)
 
         # Window state
@@ -87,9 +92,10 @@ class Game:
         self.offset_x = (sw - scaled_w) // 2
         self.offset_y = (sh - scaled_h) // 2
 
-    def run(self):
+    def run(self, max_frames=None):
         """Main game loop."""
         running = True
+        frame_count = 0
         while running:
             dt = self.clock.tick(FPS) / 1000.0
             # Cap dt to prevent spiral of death
@@ -132,10 +138,20 @@ class Game:
             self.screen.blit(scaled, (self.offset_x, self.offset_y))
             pygame.display.flip()
 
+            frame_count += 1
+            if max_frames is not None and frame_count >= max_frames:
+                running = False
+
         pygame.quit()
-        sys.exit()
+
+
+def main(argv=None):
+    """Start the game, or briefly initialize it for a packaging smoke test."""
+    argv = sys.argv[1:] if argv is None else argv
+    max_frames = 2 if "--smoke-test" in argv else None
+    Game().run(max_frames=max_frames)
+    return 0
 
 
 if __name__ == "__main__":
-    game = Game()
-    game.run()
+    raise SystemExit(main())

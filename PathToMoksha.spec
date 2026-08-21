@@ -1,52 +1,61 @@
 # -*- mode: python ; coding: utf-8 -*-
+"""Portable PyInstaller configuration for the Windows executable."""
+
 import os
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT   = os.path.abspath(".")
-SRC    = os.path.join(ROOT, "src")
+
+ROOT = os.path.abspath(SPECPATH)
+SRC = os.path.join(ROOT, "src")
 ASSETS = os.path.join(ROOT, "assets")
-DATA   = os.path.join(ROOT, "data")
+DATA = os.path.join(ROOT, "data")
 
-# Anaconda DLL paths to prevent pyexpat / DLL load failures
-ANACONDA_DIR = r"D:\Installation\Anaconda"
-pyexpat_pyd  = os.path.join(ANACONDA_DIR, "DLLs", "pyexpat.pyd")
-libexpat_dll = os.path.join(ANACONDA_DIR, "Library", "bin", "libexpat.dll")
-ffi_dll      = os.path.join(ANACONDA_DIR, "Library", "bin", "ffi.dll")
-libssl_dll   = os.path.join(ANACONDA_DIR, "Library", "bin", "libssl-3-x64.dll")
-libcrypto_dll= os.path.join(ANACONDA_DIR, "Library", "bin", "libcrypto-3-x64.dll")
+ICON_PATH = os.path.join(ASSETS, "images", "icon.ico")
+ICON = ICON_PATH if os.path.exists(ICON_PATH) else None
 
-binaries_list = []
-for dll_path in [pyexpat_pyd, libexpat_dll, ffi_dll, libssl_dll, libcrypto_dll]:
-    if os.path.exists(dll_path):
-        binaries_list.append((dll_path, '.'))
 
-# ── Analysis ──────────────────────────────────────────────────────────────────
 a = Analysis(
     [os.path.join(SRC, "main.py")],
     pathex=[SRC],
-    binaries=binaries_list,
+    binaries=[],
     datas=[
         (ASSETS, "assets"),
         (DATA, "data"),
     ],
     hiddenimports=[
-        "pyexpat",
-        "_ctypes",
         "pygame",
-        "pygame.mixer",
         "pygame.font",
         "pygame.image",
         "pygame.joystick",
         "pygame.locals",
+        "pygame.mixer",
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        "numpy", "scipy", "pandas", "matplotlib", "PIL", "tkinter",
-        "notebook", "IPython", "tornado", "zmq", "cv2", "sklearn",
-        "cryptography", "lxml", "h5py", "sqlalchemy", "sphinx",
-        "babel", "docutils", "jinja2", "boto3", "botocore", "skia"
+        "IPython",
+        "PIL",
+        "babel",
+        "boto3",
+        "botocore",
+        "cryptography",
+        "cv2",
+        "docutils",
+        "h5py",
+        "jinja2",
+        "lxml",
+        "matplotlib",
+        "notebook",
+        "numpy",
+        "pandas",
+        "scipy",
+        "skia",
+        "sklearn",
+        "sphinx",
+        "sqlalchemy",
+        "tkinter",
+        "tornado",
+        "zmq",
     ],
     noarchive=False,
     optimize=0,
@@ -64,13 +73,12 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=ICON,
 )

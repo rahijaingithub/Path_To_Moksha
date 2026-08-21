@@ -5,6 +5,10 @@ import os
 import sys
 import platform
 
+_DATA_DIR_OVERRIDE = os.environ.get("PATH_TO_MOKSHA_DATA_DIR")
+if _DATA_DIR_OVERRIDE:
+    _DATA_DIR_OVERRIDE = os.path.abspath(os.path.expanduser(_DATA_DIR_OVERRIDE))
+
 # ─── Paths ────────────────────────────────────────────────────────────────────
 # sys._MEIPASS  = PyInstaller temp extraction dir (read-only assets)
 # sys.executable = path to the .exe (writable data lives next to it)
@@ -19,24 +23,39 @@ if getattr(sys, "frozen", False):
     # On Linux, use ~/.local/share/PathToMoksha (XDG standard).
     _os = platform.system()
     if _os == "Darwin":   # macOS
-        BASE_DIR = os.path.join(
+        _DEFAULT_DATA_DIR = os.path.join(
             os.path.expanduser("~"), "Library", "Application Support", "PathToMoksha"
         )
     elif _os == "Windows":
-        BASE_DIR = _EXE_DIR
+        _DEFAULT_DATA_DIR = _EXE_DIR
     else:   # Linux / other
-        BASE_DIR = os.path.join(
-            os.path.expanduser("~"), ".local", "share", "PathToMoksha"
+        _DEFAULT_DATA_DIR = os.path.join(
+            os.environ.get(
+                "XDG_DATA_HOME",
+                os.path.join(os.path.expanduser("~"), ".local", "share"),
+            ),
+            "PathToMoksha",
         )
+    BASE_DIR = _DATA_DIR_OVERRIDE or _DEFAULT_DATA_DIR
     os.makedirs(BASE_DIR, exist_ok=True)          # ensure writable dir exists
 
     ASSETS_DIR = os.path.join(_BUNDLE, "assets")  # read-only assets
     BUNDLED_DATA_DIR = os.path.join(_BUNDLE, "data") # read-only bundled data
 else:
     # Normal Python run (development)
-    BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    ASSETS_DIR = os.path.join(BASE_DIR, "assets")
-    BUNDLED_DATA_DIR = os.path.join(BASE_DIR, "data")
+    _PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if _DATA_DIR_OVERRIDE:
+        BASE_DIR = _DATA_DIR_OVERRIDE
+    elif platform.system() == "Darwin":
+        # Keep source checkouts read-only just like an installed .app, and let
+        # the controller calibration tool share the same macOS configuration.
+        BASE_DIR = os.path.join(
+            os.path.expanduser("~"), "Library", "Application Support", "PathToMoksha"
+        )
+    else:
+        BASE_DIR = _PROJECT_DIR
+    ASSETS_DIR = os.path.join(_PROJECT_DIR, "assets")
+    BUNDLED_DATA_DIR = os.path.join(_PROJECT_DIR, "data")
 
 IMAGES_DIR = os.path.join(ASSETS_DIR, "images")
 AUDIO_DIR  = os.path.join(ASSETS_DIR, "audio")

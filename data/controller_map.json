@@ -1,5 +1,6 @@
 {
   "controller_name": "Controller (Dinput)",
+  "platform": "Windows",
   "updated_at": "2026-08-05 22:46:11",
   "mapping": {
     "move_left": [

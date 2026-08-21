@@ -1,6 +1,6 @@
 """
 profile_manager.py — Manages persistent player profiles and global high scores for Path to Moksha.
-Saves data to JSON files in the assets/data directory.
+Saves data to the writable platform-specific data directory from settings.py.
 """
 import os
 import json

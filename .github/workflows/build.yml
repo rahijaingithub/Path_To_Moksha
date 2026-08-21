@@ -1,122 +1,100 @@
-# ═══════════════════════════════════════════════════════════════
-#  build.yml — Auto-build PathToMoksha for Windows & macOS
-#
-#  Triggers on every push to main.
-#  Builds:
-#    - dist/PathToMoksha.exe   (Windows runner)
-#    - dist/PathToMoksha.app   (macOS runner, zipped as .zip)
-#  Then commits both back to the repo via Git LFS.
-# ═══════════════════════════════════════════════════════════════
+name: Build PathToMoksha
 
-name: Build PathToMoksha (Windows + macOS)
-
-on:
+"on":
   push:
-    branches: [ main ]
-    paths:
-      - 'src/**'
-      - 'assets/**'
-      - 'data/**'
-      - 'PathToMoksha.spec'
-      - 'build_mac.spec'
-      - '.github/workflows/build.yml'
-  workflow_dispatch:   # ← Allows manual trigger from GitHub Actions tab
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
 
-# Grant the GITHUB_TOKEN write permission to commit back to the repo
 permissions:
   contents: write
 
 jobs:
+  test:
+    name: Portable unit tests
+    runs-on: ubuntu-latest
 
-  # ─────────────────────────────────────────────────────────────
-  #  JOB 1 — Build Windows .exe
-  # ─────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run dependency-free tests
+        run: python -m unittest discover -s tests -v
+
   build-windows:
     name: Build Windows EXE
+    needs: test
     runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pygame pyinstaller
+      - name: Install build dependencies
+        run: python -m pip install -r requirements-build.txt
 
-      - name: Build EXE with PyInstaller
-        run: |
-          python -m PyInstaller PathToMoksha.spec --noconfirm
-        working-directory: ${{ github.workspace }}
+      - name: Build Windows executable
+        run: python -m PyInstaller PathToMoksha.spec --noconfirm --clean
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
           path: dist/PathToMoksha.exe
-          retention-days: 1
+          if-no-files-found: error
+          retention-days: 30
 
-  # ─────────────────────────────────────────────────────────────
-  #  JOB 2 — Build macOS .app
-  # ─────────────────────────────────────────────────────────────
   build-macos:
-    name: Build macOS App
+    name: Build macOS app
+    needs: test
     runs-on: macos-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pygame pyinstaller
-
-      - name: Build .app bundle with PyInstaller
-        run: |
-          python -m PyInstaller build_mac.spec --noconfirm
-        working-directory: ${{ github.workspace }}
-
-      - name: Zip the .app bundle for upload
-        run: |
-          cd dist
-          zip -r PathToMoksha-mac.zip PathToMoksha.app
-          cd ..
+      - name: Build and archive macOS app
+        env:
+          BUILD_VENV: ${{ runner.temp }}/path-to-moksha-build-venv
+        run: ./build_macos.sh
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-app
           path: dist/PathToMoksha-mac.zip
-          retention-days: 1
+          if-no-files-found: error
+          retention-days: 30
 
-  # ─────────────────────────────────────────────────────────────
-  #  JOB 3 — Commit both builds back to dist/ in the repo
-  # ─────────────────────────────────────────────────────────────
   commit-builds:
-    name: Commit Builds to dist/
-    needs: [ build-windows, build-macos ]
+    name: Commit builds to dist
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build-windows
+      - build-macos
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true
           fetch-depth: 0
           persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -128,22 +106,57 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-exe
-          path: dist/
+          path: dist
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: macos-app
-          path: dist/
+          path: dist
 
       - name: Configure Git
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Commit and push builds
         run: |
           git add dist/PathToMoksha.exe dist/PathToMoksha-mac.zip
-          # Only commit if there are actual changes
           git diff --cached --quiet || git commit -m "ci: auto-build Windows EXE + macOS App [skip ci]"
           git push
+
+  release:
+    name: Publish tagged release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - build-windows
+      - build-macos
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+          path: release-assets
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-app
+          path: release-assets
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" \
+            release-assets/PathToMoksha.exe \
+            release-assets/PathToMoksha-mac.zip \
+            --clobber

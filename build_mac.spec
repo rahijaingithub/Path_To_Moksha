@@ -1,52 +1,72 @@
 # -*- mode: python ; coding: utf-8 -*-
-# build_mac.spec — PyInstaller spec for macOS (.app bundle)
-# ─────────────────────────────────────────────────────────────
-# Run this on a Mac from inside the "version 1" directory:
-#   pyinstaller build_mac.spec
-#
-# Output: dist/PathToMoksha.app
-# ─────────────────────────────────────────────────────────────
+"""PyInstaller configuration for a distributable macOS .app bundle."""
+
 import os
 
-# ── Paths ─────────────────────────────────────────────────────────────────────
-ROOT   = os.path.abspath(".")
-SRC    = os.path.join(ROOT, "src")
+
+ROOT = os.path.abspath(SPECPATH)
+SRC = os.path.join(ROOT, "src")
 ASSETS = os.path.join(ROOT, "assets")
-DATA   = os.path.join(ROOT, "data")
+DATA = os.path.join(ROOT, "data")
 
-# Icon file — create a .icns from your game icon before building.
-# Use "iconutil" on Mac or an online converter.
-# Place it at: assets/images/icon.icns
 ICON_PATH = os.path.join(ASSETS, "images", "icon.icns")
-icon_arg = ICON_PATH if os.path.exists(ICON_PATH) else None
+ICON = ICON_PATH if os.path.exists(ICON_PATH) else None
 
-# ── Analysis ──────────────────────────────────────────────────────────────────
+# Native builds are the most reliable default. A python.org universal2 Python
+# plus universal dependencies can opt in with PYINSTALLER_TARGET_ARCH=universal2.
+TARGET_ARCH = os.environ.get("PYINSTALLER_TARGET_ARCH") or None
+CODESIGN_IDENTITY = os.environ.get("MACOS_CODESIGN_IDENTITY") or None
+APP_VERSION = os.environ.get("PATH_TO_MOKSHA_VERSION", "1.0.0")
+MINIMUM_MACOS = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "11.0")
+BUNDLE_IDENTIFIER = os.environ.get(
+    "MACOS_BUNDLE_IDENTIFIER", "com.jsot.pathtomoksha"
+)
+
+
 a = Analysis(
     [os.path.join(SRC, "main.py")],
     pathex=[SRC],
-    binaries=[],              # No Windows DLLs on Mac
+    binaries=[],
     datas=[
         (ASSETS, "assets"),
         (DATA, "data"),
     ],
     hiddenimports=[
         "pygame",
-        "pygame.mixer",
         "pygame.font",
         "pygame.image",
         "pygame.joystick",
         "pygame.locals",
+        "pygame.mixer",
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        "numpy", "scipy", "pandas", "matplotlib", "PIL", "tkinter",
-        "notebook", "IPython", "tornado", "zmq", "cv2", "sklearn",
-        "cryptography", "lxml", "h5py", "sqlalchemy", "sphinx",
-        "babel", "docutils", "jinja2", "boto3", "botocore", "skia",
-        # Windows-only exclusions (not present on Mac, but safe to list)
-        "winreg", "ctypes.windll",
+        "IPython",
+        "PIL",
+        "babel",
+        "boto3",
+        "botocore",
+        "cryptography",
+        "cv2",
+        "docutils",
+        "h5py",
+        "jinja2",
+        "lxml",
+        "matplotlib",
+        "notebook",
+        "numpy",
+        "pandas",
+        "scipy",
+        "skia",
+        "sklearn",
+        "sphinx",
+        "sqlalchemy",
+        "tkinter",
+        "tornado",
+        "winreg",
+        "zmq",
     ],
     noarchive=False,
     optimize=0,
@@ -54,7 +74,6 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data)
 
-# ── macOS .app bundle ─────────────────────────────────────────────────────────
 exe = EXE(
     pyz,
     a.scripts,
@@ -64,14 +83,14 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,         # UPX is unreliable on macOS — keep disabled
-    console=False,     # No terminal window
+    upx=False,
+    console=False,
     disable_windowed_traceback=False,
-    argv_emulation=True,   # Required for proper macOS .app event handling
-    target_arch=None,      # None = build for current arch (arm64 on M1/M2, x86_64 on Intel)
-    codesign_identity=None,     # Set to your Apple Developer ID for distribution
+    argv_emulation=False,
+    target_arch=TARGET_ARCH,
+    codesign_identity=CODESIGN_IDENTITY,
     entitlements_file=None,
-    icon=icon_arg,
+    icon=ICON,
 )
 
 coll = COLLECT(
@@ -84,27 +103,19 @@ coll = COLLECT(
     name="PathToMoksha",
 )
 
-# ── Bundle into .app ──────────────────────────────────────────────────────────
 app = BUNDLE(
     coll,
     name="PathToMoksha.app",
-    icon=icon_arg,
-    bundle_identifier="com.jsot.pathtomoksha",   # Reverse-DNS identifier
+    icon=ICON,
+    bundle_identifier=BUNDLE_IDENTIFIER,
     info_plist={
-        # App metadata shown in Finder & About
         "CFBundleDisplayName": "Path to Moksha",
-        "CFBundleShortVersionString": "1.0.0",
-        "CFBundleVersion": "1.0.0",
-        "NSHumanReadableCopyright": "© 2026 JSOT Digamber Pathshala. All rights reserved.",
-
-        # Allow windowed mode and fullscreen toggle to work correctly
+        "CFBundleShortVersionString": APP_VERSION,
+        "CFBundleVersion": APP_VERSION,
+        "LSMinimumSystemVersion": MINIMUM_MACOS,
         "NSHighResolutionCapable": True,
-        "LSMinimumSystemVersion": "11.0",   # macOS Big Sur minimum
-
-        # Gamepad / joystick support
-        "NSGameControllerUsageDescription": "Path to Moksha supports game controllers for gameplay.",
-
-        # Disable App Transport Security (not needed, just avoids warnings)
-        "NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True},
+        "NSHumanReadableCopyright": (
+            "© 2026 JSOT Digamber Pathshala. All rights reserved."
+        ),
     },
 )

@@ -1,61 +1,54 @@
 @echo off
 SETLOCAL
+cd /d "%~dp0"
 
-REM ═══════════════════════════════════════════════════════════════
-REM  build_exe.bat — Builds single standalone PathToMoksha.exe
-REM  Run this from "version 1" folder by double-clicking it,
-REM  or from cmd: cd /d "d:\Jain_game_workspace\Path to Moksha\version 1"
-REM                build_exe.bat
-REM ═══════════════════════════════════════════════════════════════
-
-SET PYTHON=D:\Installation\Anaconda\python.exe
-SET SPECFILE=PathToMoksha.spec
-SET ANACONDA_DIR=D:\Installation\Anaconda
+REM Set PYTHON to a specific python.exe before running this script if needed.
+IF NOT DEFINED PYTHON SET "PYTHON=python"
 
 echo.
-echo ══════════════════════════════════════════════
-echo   PATH TO MOKSHA — SINGLE EXE BUILD SCRIPT
-echo ══════════════════════════════════════════════
+echo ==============================================
+echo   PATH TO MOKSHA - WINDOWS BUILD
+echo ==============================================
 echo.
 
-REM ── Step 1: Install / upgrade PyInstaller ─────────────────────
-echo [1/3] Checking PyInstaller...
-"%PYTHON%" -m pip install pyinstaller --quiet --upgrade
+"%PYTHON%" --version >NUL 2>&1
 IF ERRORLEVEL 1 (
-    echo ERROR: Could not verify PyInstaller. Check Python installation.
+    echo ERROR: Python 3.11 or newer was not found on PATH.
+    echo Install Python from https://www.python.org/downloads/windows/
     pause
     exit /b 1
 )
-echo       Done.
-
-REM ── Step 2: Clean previous build ─────────────────────────────
-echo [2/3] Cleaning previous build files...
-IF EXIST build     RMDIR /S /Q build
-IF EXIST dist      RMDIR /S /Q dist
-echo       Done.
-
-REM ── Step 3: Run PyInstaller with Spec ─────────────────────────
-echo [3/3] Building single-file EXE (this takes ~1-3 minutes)...
-"%PYTHON%" -m PyInstaller %SPECFILE% --noconfirm
+"%PYTHON%" -c "import sys; raise SystemExit(sys.version_info ^< (3, 11))"
 IF ERRORLEVEL 1 (
-    echo ERROR: PyInstaller build failed. Check output above.
+    echo ERROR: Python 3.11 or newer is required.
     pause
     exit /b 1
 )
 
-echo.
-echo ══════════════════════════════════════════════
+echo [1/2] Installing build dependencies...
+"%PYTHON%" -m pip install --disable-pip-version-check -r requirements-build.txt
+IF ERRORLEVEL 1 (
+    echo ERROR: Could not install build dependencies.
+    pause
+    exit /b 1
+)
+
+echo [2/2] Building the standalone executable...
+"%PYTHON%" -m PyInstaller PathToMoksha.spec --noconfirm --clean
+IF ERRORLEVEL 1 (
+    echo ERROR: PyInstaller build failed. Check the output above.
+    pause
+    exit /b 1
+)
+
 IF EXIST "dist\PathToMoksha.exe" (
-    echo   BUILD SUCCESSFUL!
     echo.
-    echo   Single File Executable Created:
-    echo   dist\PathToMoksha.exe
-    echo.
-    echo   You can share dist\PathToMoksha.exe DIRECTLY!
-    echo   No zipping or extra asset folders needed.
+    echo BUILD SUCCESSFUL: dist\PathToMoksha.exe
 ) ELSE (
-    echo   BUILD FAILED — Check PyInstaller logs above.
+    echo ERROR: dist\PathToMoksha.exe was not created.
+    pause
+    exit /b 1
 )
-echo ══════════════════════════════════════════════
+
 echo.
 pause

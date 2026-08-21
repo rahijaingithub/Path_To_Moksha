@@ -1,0 +1,2 @@
+# Runtime dependency. pygame-ce is imported as `pygame` by the game.
+pygame-ce==2.5.8
