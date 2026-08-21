@@ -1,0 +1,142 @@
+# ═══════════════════════════════════════════════════════════════
+#  build.yml — Auto-build PathToMoksha for Windows & macOS
+#
+#  Triggers on every push to main.
+#  Builds:
+#    - dist/PathToMoksha.exe   (Windows runner)
+#    - dist/PathToMoksha.app   (macOS runner, zipped as .zip)
+#  Then commits both back to the repo via Git LFS.
+# ═══════════════════════════════════════════════════════════════
+
+name: Build PathToMoksha (Windows + macOS)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'data/**'
+      - 'PathToMoksha.spec'
+      - 'build_mac.spec'
+      - '.github/workflows/build.yml'
+
+jobs:
+
+  # ─────────────────────────────────────────────────────────────
+  #  JOB 1 — Build Windows .exe
+  # ─────────────────────────────────────────────────────────────
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame pyinstaller
+
+      - name: Build EXE with PyInstaller
+        run: |
+          python -m PyInstaller PathToMoksha.spec --noconfirm
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/PathToMoksha.exe
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────
+  #  JOB 2 — Build macOS .app
+  # ─────────────────────────────────────────────────────────────
+  build-macos:
+    name: Build macOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame pyinstaller
+
+      - name: Build .app bundle with PyInstaller
+        run: |
+          python -m PyInstaller build_mac.spec --noconfirm
+        working-directory: ${{ github.workspace }}
+
+      - name: Zip the .app bundle for upload
+        run: |
+          cd dist
+          zip -r PathToMoksha-mac.zip PathToMoksha.app
+          cd ..
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: dist/PathToMoksha-mac.zip
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────
+  #  JOB 3 — Commit both builds back to dist/ in the repo
+  # ─────────────────────────────────────────────────────────────
+  commit-builds:
+    name: Commit Builds to dist/
+    needs: [ build-windows, build-macos ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: git lfs install
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-app
+          path: dist/
+
+      - name: Configure Git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push builds
+        run: |
+          git add dist/PathToMoksha.exe dist/PathToMoksha-mac.zip
+          # Only commit if there are actual changes
+          git diff --cached --quiet || git commit -m "ci: auto-build Windows EXE + macOS App [skip ci]"
+          git push
