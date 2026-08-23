@@ -23,10 +23,11 @@
       {"type": "button", "index": 12}
     ],
     "action": [
-      {"type": "button", "index": 1}
+      {"type": "button", "index": 1},
+      {"type": "button", "index": 5}
     ],
     "back": [
-      {"type": "button", "index": 5}
+      {"type": "button", "index": 10}
     ],
     "menu_up": [
       {"type": "axis", "index": 1, "direction": "negative", "threshold": 0.5},
@@ -45,10 +46,11 @@
       {"type": "button", "index": 14}
     ],
     "menu_select": [
-      {"type": "button", "index": 1}
+      {"type": "button", "index": 1},
+      {"type": "button", "index": 5}
     ],
     "menu_back": [
-      {"type": "button", "index": 5}
+      {"type": "button", "index": 10}
     ]
   }
 }
