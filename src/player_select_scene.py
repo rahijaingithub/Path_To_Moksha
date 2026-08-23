@@ -73,6 +73,7 @@ class PlayerSelectScene(Scene):
 
     def on_enter(self, **kwargs):
         self.elapsed   = 0.0
+        self.prof_mgr  = ProfileManager()  # Reload latest profile data from disk
         self.profiles  = self.prof_mgr.get_profiles()
         self.input_name = ""
         self.is_typing  = True
