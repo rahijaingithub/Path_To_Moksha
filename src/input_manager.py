@@ -175,34 +175,31 @@ class InputManager:
                 elif b.get("type") == "hat":
                     max_hat = max(max_hat, b.get("index", 0))
 
-        buttons_ok = (max_button < 0) or (max_button < num_buttons)
-        axes_ok    = (max_axis < 0)   or (max_axis < num_axes)
-        hats_ok    = (max_hat < 0)    or (max_hat < num_hats)
-
-        if buttons_ok and axes_ok:
-            # Accept the mapping. If hats are unavailable, strip hat bindings.
+        if True: # We will always accept and just filter out invalid bindings
             accepted_map = {}
-            stripped_hats = 0
+            stripped_bindings = 0
             for action_key, bindings in self._pending_raw_map.items():
-                if hats_ok:
-                    accepted_map[action_key] = bindings
-                else:
-                    filtered = [b for b in bindings if b.get("type") != "hat"]
-                    if filtered:
-                        accepted_map[action_key] = filtered
-                    stripped_hats += len(bindings) - len(filtered)
+                filtered = []
+                for b in bindings:
+                    b_type = b.get("type")
+                    idx = b.get("index", -1)
+                    if b_type == "button" and idx >= num_buttons:
+                        stripped_bindings += 1
+                        continue
+                    if b_type == "axis" and idx >= num_axes:
+                        stripped_bindings += 1
+                        continue
+                    if b_type == "hat" and idx >= num_hats:
+                        stripped_bindings += 1
+                        continue
+                    filtered.append(b)
+                if filtered:
+                    accepted_map[action_key] = filtered
 
             self.custom_mappings = accepted_map
-            hat_note = f" (stripped {stripped_hats} hat bindings — controller has no hats)" if not hats_ok else ""
+            note = f" (stripped {stripped_bindings} invalid bindings)" if stripped_bindings > 0 else ""
             print(f"[InputManager] Applied custom mappings for '{connected_name}' "
-                  f"({num_buttons} buttons, {num_axes} axes, {num_hats} hats).{hat_note}")
-        else:
-            self.custom_mappings = {}
-            print(f"[InputManager] IGNORED custom mappings — connected controller "
-                  f"'{connected_name}' lacks required indices. "
-                  f"Expected: button ≤ {max_button}, axis ≤ {max_axis}. "
-                  f"Found: {num_buttons} buttons, {num_axes} axes. "
-                  f"Falling back to hardcoded defaults.")
+                  f"({num_buttons} buttons, {num_axes} axes, {num_hats} hats).{note}")
 
     # ── Gamepad helpers ───────────────────────────────────────────────────────
 
@@ -303,7 +300,7 @@ class InputManager:
             m_sel = self._check_mapping_active("menu_select", is_hold=True)
             m_back = self._check_mapping_active("menu_back", is_hold=True) or self._check_mapping_active("back", is_hold=True)
 
-            # Trigger just_pressed when state shifts to True
+            # Trigger just_pressed when state shifts from False (neutral) to True
             if m_up and not self.actions[self.MENU_UP]:
                 self.just_pressed[self.MENU_UP] = True
             if m_down and not self.actions[self.MENU_DOWN]:
@@ -317,6 +314,7 @@ class InputManager:
             if m_back and not self.actions[self.MENU_BACK]:
                 self.just_pressed[self.MENU_BACK] = True
 
+            # Explicitly update action state — clears to False when stick/button returns to neutral
             self.actions[self.MENU_UP] = m_up
             self.actions[self.MENU_DOWN] = m_down
             self.actions[self.MENU_LEFT] = m_left
@@ -325,12 +323,9 @@ class InputManager:
             self.actions[self.MENU_BACK] = m_back
 
             # Continuous action triggers via hats or analog axes
-            if self._check_mapping_active("jump", is_hold=True):
-                self.actions[self.JUMP] = True
-            if self._check_mapping_active("action", is_hold=True) or m_sel:
-                self.actions[self.ACTION] = True
-            if m_back:
-                self.actions[self.BACK] = True
+            self.actions[self.JUMP] = self._check_mapping_active("jump", is_hold=True)
+            self.actions[self.ACTION] = self._check_mapping_active("action", is_hold=True) or m_sel
+            self.actions[self.BACK] = m_back
 
             return pad_left, pad_right, pad_up
 
