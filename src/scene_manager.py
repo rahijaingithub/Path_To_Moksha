@@ -52,12 +52,16 @@ class SceneManager:
         """Register a scene by key."""
         self.scenes[key] = scene
 
-    def switch_to(self, key, **kwargs):
-        """Transition to a different scene."""
+    def switch_to(self, key, input_mgr=None, **kwargs):
+        """Transition to a different scene and purge leftover input state."""
         if self.active_scene:
             self.active_scene.on_exit()
         self.active_key = key
         self.active_scene = self.scenes[key]
+        if input_mgr and hasattr(input_mgr, "reset_states"):
+            input_mgr.reset_states()
+        elif hasattr(self.active_scene, "input_mgr") and hasattr(self.active_scene.input_mgr, "reset_states"):
+            self.active_scene.input_mgr.reset_states()
         self.active_scene.on_enter(**kwargs)
 
     def handle_events(self, events, input_mgr):

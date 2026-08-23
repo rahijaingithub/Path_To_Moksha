@@ -64,6 +64,15 @@ class InputManager:
         # One-shot events (pressed THIS frame only)
         self.just_pressed = {key: False for key in self.actions}
 
+    def reset_states(self):
+        """Completely reset all input action states, held flags, and one-shot events.
+        Guarantees that state from a previous scene or long play session never spills over."""
+        for k in self.actions:
+            self.actions[k] = False
+            self.just_pressed[k] = False
+            if k in self._touch_held:
+                self._touch_held[k] = False
+
 
 
         # Touch button rects (in logical coordinates)
