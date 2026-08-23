@@ -9,13 +9,23 @@ Run this script directly in terminal:
 import os
 import sys
 import json
+import platform
 import time
 import pygame
 
 # Find base project directory
 TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(TOOLS_DIR)
-DATA_DIR = os.path.join(BASE_DIR, "data")
+_DATA_ROOT_OVERRIDE = os.environ.get("PATH_TO_MOKSHA_DATA_DIR")
+if _DATA_ROOT_OVERRIDE:
+    CONFIG_ROOT = os.path.abspath(os.path.expanduser(_DATA_ROOT_OVERRIDE))
+elif platform.system() == "Darwin":
+    CONFIG_ROOT = os.path.join(
+        os.path.expanduser("~"), "Library", "Application Support", "PathToMoksha"
+    )
+else:
+    CONFIG_ROOT = BASE_DIR
+DATA_DIR = os.path.join(CONFIG_ROOT, "data")
 CONFIG_FILE = os.path.join(DATA_DIR, "controller_map.json")
 
 # Full list of configurable actions with direction hints
@@ -91,6 +101,17 @@ def load_existing_mapping():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
+                mapping_platform = str(data.get("platform", "")).strip()
+                if (
+                    mapping_platform
+                    and mapping_platform.casefold() != platform.system().casefold()
+                ):
+                    return {}
+                if (
+                    platform.system() == "Darwin"
+                    and "dinput" in str(data.get("controller_name", "")).casefold()
+                ):
+                    return {}
                 raw_mappings = data.get("mapping", {})
                 
                 # Normalize legacy single-dict mappings into lists
@@ -110,6 +131,7 @@ def save_mapping(controller_name, mappings):
     os.makedirs(DATA_DIR, exist_ok=True)
     payload = {
         "controller_name": controller_name,
+        "platform": platform.system(),
         "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "mapping": mappings
     }

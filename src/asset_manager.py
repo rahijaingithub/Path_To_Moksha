@@ -50,15 +50,25 @@ class AssetManager:
 
     # ── Sounds ────────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _audio_available():
+        return pygame.mixer.get_init() is not None
+
     def load_sound(self, name, subfolder="sfx"):
         """Load a sound effect. Cached after first load."""
+        if not self._audio_available():
+            return None
         key = os.path.join(subfolder, name)
         if key not in self._sounds:
             path = os.path.join(AUDIO_DIR, subfolder, name)
             if not os.path.exists(path):
                 print(f"[AssetManager] WARNING: Missing sound: {path}")
                 return None
-            self._sounds[key] = pygame.mixer.Sound(path)
+            try:
+                self._sounds[key] = pygame.mixer.Sound(path)
+            except pygame.error as exc:
+                print(f"[AssetManager] WARNING: Could not load sound '{path}': {exc}")
+                return None
         return self._sounds[key]
 
     def play_sound(self, name, subfolder="sfx", volume=0.5):
@@ -70,6 +80,9 @@ class AssetManager:
 
     def play_music(self, name, subfolder="bgm", volume=0.3, loops=-1):
         """Stream background music. Automatically checks for .mp3, .ogg, or .wav extensions if requested file doesn't exist."""
+        if not self._audio_available():
+            return
+
         path = os.path.join(AUDIO_DIR, subfolder, name)
         
         # If exact path doesn't exist, try alternative extensions (.mp3, .ogg, .wav)
@@ -85,23 +98,23 @@ class AssetManager:
             print(f"[AssetManager] WARNING: Missing music: {os.path.join(AUDIO_DIR, subfolder, name)}")
             return
 
-        if self._music_loaded != path:
-            try:
+        try:
+            if self._music_loaded != path:
                 pygame.mixer.music.load(path)
                 self._music_loaded = path
-            except Exception as e:
-                print(f"[AssetManager] ERROR: Could not load music file '{path}': {e}")
-                return
-
-        pygame.mixer.music.set_volume(volume)
-        pygame.mixer.music.play(loops)
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(loops)
+        except Exception as exc:
+            print(f"[AssetManager] WARNING: Could not play music '{path}': {exc}")
 
     def set_music_volume(self, volume):
         """Update music playback volume."""
-        pygame.mixer.music.set_volume(volume)
+        if self._audio_available():
+            pygame.mixer.music.set_volume(volume)
 
     def stop_music(self):
-        pygame.mixer.music.stop()
+        if self._audio_available():
+            pygame.mixer.music.stop()
 
 
     # ── Fonts ─────────────────────────────────────────────────────────────────

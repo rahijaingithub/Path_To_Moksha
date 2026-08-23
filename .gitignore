@@ -19,6 +19,7 @@ wheels/
 *.egg
 .env
 .venv
+.venv-build/
 env/
 venv/
 ENV/
@@ -27,6 +28,7 @@ venv.bak/
 .vscode/
 .idea/
 *.log
+dist/*.app/
 data/profiles.json
 data/high_scores.json
 data/controller_audit_txt.txt

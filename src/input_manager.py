@@ -12,6 +12,8 @@ Gamepad button mapping (standard layout — works for Xbox, PlayStation, Logitec
   Button 6 (Back/Select)     →  BACK
   Button 8 (Guide/Home)      →  FULLSCREEN toggle
 """
+import platform
+
 import pygame
 from settings import (
     TOUCH_BUTTON_SIZE, TOUCH_BUTTON_MARGIN, TOUCH_BUTTON_ALPHA,
@@ -21,6 +23,8 @@ from settings import (
 
 # ── Gamepad axis dead-zone: ignore tiny stick drift ───────────────────────────
 AXIS_DEADZONE = 0.25
+CURRENT_PLATFORM = platform.system()
+IS_MACOS = CURRENT_PLATFORM == "Darwin"
 
 
 class InputManager:
@@ -78,7 +82,7 @@ class InputManager:
 
         # ── Gamepad / Controller setup ────────────────────────────────────────
         pygame.joystick.init()
-        self.joysticks = {}   # device_index → Joystick object
+        self.joysticks = {}   # SDL instance_id → Joystick object
         self.gamepad_name = None   # name of first connected controller (for HUD)
         self.custom_mappings = {}   # loaded from controller_map.json
         self._load_custom_mappings()
@@ -99,6 +103,31 @@ class InputManager:
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
+
+                    # Controller indices are platform-specific. Do not apply a
+                    # mapping captured on another OS, and never apply a legacy
+                    # Windows DirectInput map on macOS.
+                    mapping_platform = str(data.get("platform", "")).strip()
+                    controller_name = str(data.get("controller_name", ""))
+                    platform_mismatch = (
+                        mapping_platform
+                        and mapping_platform.casefold() != CURRENT_PLATFORM.casefold()
+                    )
+                    legacy_dinput_on_macos = (
+                        IS_MACOS and "dinput" in controller_name.casefold()
+                    )
+                    if platform_mismatch or legacy_dinput_on_macos:
+                        reason = (
+                            f"map is for {mapping_platform}"
+                            if platform_mismatch
+                            else "legacy Windows DirectInput map"
+                        )
+                        print(
+                            f"[InputManager] Ignoring controller mappings from "
+                            f"'{config_path}' on {CURRENT_PLATFORM}: {reason}"
+                        )
+                        return
+
                     raw_map = data.get("mapping", {})
                     normalized = {}
                     for key, val in raw_map.items():
@@ -171,7 +200,7 @@ class InputManager:
             try:
                 js = pygame.joystick.Joystick(i)
                 js.init()
-                self.joysticks[i] = js
+                self.joysticks[js.get_instance_id()] = js
                 name = js.get_name()
                 if self.gamepad_name is None:
                     self.gamepad_name = name
@@ -283,7 +312,7 @@ class InputManager:
 
 
         # Default fallback if no custom map file present
-        pad_left = pad_right = pad_up = False
+        pad_left = pad_right = pad_up = pad_down = False
         for js in self.joysticks.values():
             if js.get_numaxes() > 1:
                 ax = js.get_axis(0)
@@ -294,6 +323,8 @@ class InputManager:
                     pad_right = True
                 if ay < -AXIS_DEADZONE:
                     pad_up = True
+                if ay > AXIS_DEADZONE:
+                    pad_down = True
 
             if js.get_numhats() > 0:
                 hx, hy = js.get_hat(0)
@@ -303,6 +334,21 @@ class InputManager:
                     pad_right = True
                 if hy > 0:
                     pad_up = True
+                if hy < 0:
+                    pad_down = True
+
+        # Generic SDL mappings must also drive menus. Custom mappings perform
+        # the same edge detection in the branch above.
+        menu_directions = {
+            self.MENU_LEFT: pad_left,
+            self.MENU_RIGHT: pad_right,
+            self.MENU_UP: pad_up,
+            self.MENU_DOWN: pad_down,
+        }
+        for action_key, is_active in menu_directions.items():
+            if is_active and not self.actions[action_key]:
+                self.just_pressed[action_key] = True
+            self.actions[action_key] = is_active
 
         return pad_left, pad_right, pad_up
 
@@ -316,7 +362,7 @@ class InputManager:
             try:
                 js = pygame.joystick.Joystick(idx)
                 js.init()
-                self.joysticks[idx] = js
+                self.joysticks[js.get_instance_id()] = js
                 self.gamepad_name = js.get_name()
                 print(f"[InputManager] Controller connected: '{js.get_name()}'")
                 self._validate_and_apply_mappings()  # re-check saved map against this device
@@ -324,12 +370,14 @@ class InputManager:
                 print(f"[InputManager] Hot-plug init error: {e}")
 
         elif event.type == pygame.JOYDEVICEREMOVED:
-            idx = event.instance_id
-            removed = self.joysticks.pop(idx, None)
+            instance_id = event.instance_id
+            removed = self.joysticks.pop(instance_id, None)
             if removed:
                 print(f"[InputManager] Controller disconnected: '{removed.get_name()}'")
-            if not self.joysticks:
-                self.gamepad_name = None
+            self.gamepad_name = (
+                next(iter(self.joysticks.values())).get_name()
+                if self.joysticks else None
+            )
 
         elif event.type == pygame.JOYBUTTONDOWN:
             if self.custom_mappings:
@@ -477,7 +525,13 @@ class InputManager:
                 if event.key == pygame.K_ESCAPE:
                     self.just_pressed[self.BACK] = True
                     self.actions[self.BACK] = True
-                if event.key == pygame.K_F11:
+                macos_fullscreen_shortcut = (
+                    IS_MACOS
+                    and event.key == pygame.K_f
+                    and bool(event.mod & pygame.KMOD_CTRL)
+                    and bool(event.mod & pygame.KMOD_META)
+                )
+                if event.key == pygame.K_F11 or macos_fullscreen_shortcut:
                     self.just_pressed[self.FULLSCREEN] = True
                     self.actions[self.FULLSCREEN] = True
 
