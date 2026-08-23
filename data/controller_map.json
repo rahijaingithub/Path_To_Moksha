@@ -1,12 +1,13 @@
 {
   "controller_name": "Retro-bit Controller",
   "platform": "Windows",
-  "updated_at": "2026-08-22 21:36:47",
+  "updated_at": "2026-08-22 21:38:30",
   "mapping": {
     "move_left": [
       {
-        "type": "button",
-        "index": 13
+        "type": "hat",
+        "index": 0,
+        "value": [-1, 0]
       },
       {
         "type": "axis",
@@ -16,10 +17,15 @@
       },
       {
         "type": "button",
-        "index": 2
+        "index": 3
       }
     ],
     "move_right": [
+      {
+        "type": "hat",
+        "index": 0,
+        "value": [1, 0]
+      },
       {
         "type": "axis",
         "index": 0,
@@ -28,20 +34,20 @@
       },
       {
         "type": "button",
-        "index": 14
-      },
-      {
-        "type": "button",
-        "index": 4
+        "index": 8
       }
     ],
     "jump": [
       {
         "type": "button",
-        "index": 0
+        "index": 2
       }
     ],
     "fly_up": [
+      {
+        "type": "button",
+        "index": 9
+      },
       {
         "type": "axis",
         "index": 1,
@@ -49,15 +55,16 @@
         "threshold": 0.5
       },
       {
-        "type": "button",
-        "index": 11
-      },
-      {
-        "type": "button",
-        "index": 6
+        "type": "hat",
+        "index": 0,
+        "value": [0, 1]
       }
     ],
     "fly_down": [
+      {
+        "type": "button",
+        "index": 0
+      },
       {
         "type": "axis",
         "index": 1,
@@ -65,12 +72,9 @@
         "threshold": 0.5
       },
       {
-        "type": "button",
-        "index": 12
-      },
-      {
-        "type": "button",
-        "index": 3
+        "type": "hat",
+        "index": 0,
+        "value": [0, -1]
       }
     ],
     "action": [
@@ -80,14 +84,14 @@
       },
       {
         "type": "button",
-        "index": 5
+        "index": 2
+      },
+      {
+        "type": "button",
+        "index": 12
       }
     ],
     "back": [
-      {
-        "type": "button",
-        "index": 1
-      },
       {
         "type": "button",
         "index": 5
@@ -95,22 +99,28 @@
     ],
     "menu_up": [
       {
+        "type": "hat",
+        "index": 0,
+        "value": [0, 1]
+      },
+      {
+        "type": "button",
+        "index": 9
+      },
+      {
         "type": "axis",
         "index": 1,
         "direction": "negative",
         "threshold": 0.5
-      },
-      {
-        "type": "button",
-        "index": 11
-      },
-      {
-        "type": "button",
-        "index": 6
       }
     ],
     "menu_down": [
       {
+        "type": "hat",
+        "index": 0,
+        "value": [0, -1]
+      },
+      {
         "type": "axis",
         "index": 1,
         "direction": "positive",
@@ -118,10 +128,15 @@
       },
       {
         "type": "button",
-        "index": 12
+        "index": 0
       }
     ],
     "menu_left": [
+      {
+        "type": "hat",
+        "index": 0,
+        "value": [-1, 0]
+      },
       {
         "type": "axis",
         "index": 0,
@@ -130,14 +145,15 @@
       },
       {
         "type": "button",
-        "index": 13
-      },
-      {
-        "type": "button",
-        "index": 2
+        "index": 3
       }
     ],
     "menu_right": [
+      {
+        "type": "hat",
+        "index": 0,
+        "value": [1, 0]
+      },
       {
         "type": "axis",
         "index": 0,
@@ -146,17 +162,17 @@
       },
       {
         "type": "button",
-        "index": 14
-      },
-      {
-        "type": "button",
-        "index": 4
+        "index": 8
       }
     ],
     "menu_select": [
       {
         "type": "button",
-        "index": 5
+        "index": 12
+      },
+      {
+        "type": "button",
+        "index": 2
       },
       {
         "type": "button",
@@ -166,7 +182,7 @@
     "menu_back": [
       {
         "type": "button",
-        "index": 10
+        "index": 5
       }
     ]
   }
