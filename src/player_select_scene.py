@@ -129,7 +129,12 @@ class PlayerSelectScene(Scene):
 
         # ── Controller navigation ──
         if self.focus == "back":
-            if input_mgr.just_pressed[input_mgr.MENU_DOWN] or input_mgr.just_pressed[input_mgr.MENU_RIGHT]:
+            if input_mgr.just_pressed[input_mgr.MENU_DOWN]:
+                self.focus = "vkb"
+                self.vkb_row = 0
+                self.vkb_col = 0
+                self.assets.play_sound("jump.wav", volume=0.06)
+            elif input_mgr.just_pressed[input_mgr.MENU_RIGHT]:
                 self.focus = "vkb"
                 self.vkb_row = 0
                 self.vkb_col = 0
@@ -505,6 +510,6 @@ class PlayerSelectScene(Scene):
         pygame.draw.rect(b_surf, border_back, b_surf.get_rect(), width=3 if highlight_back else 2, border_radius=8)
         surface.blit(b_surf, self.back_btn_rect)
 
-        bk_label = "◄ BACK" if not is_ctrl_back else "► ◄ BACK ◄"
+        bk_label = "< BACK" if not is_ctrl_back else "[ BACK ]"
         bk_txt = self.font_small.render(bk_label, True, COLOR_GOLD_BRIGHT if highlight_back else COLOR_WHITE)
         surface.blit(bk_txt, bk_txt.get_rect(center=self.back_btn_rect.center))
