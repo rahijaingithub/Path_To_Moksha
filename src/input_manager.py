@@ -161,7 +161,10 @@ class InputManager:
         num_axes = js.get_numaxes()
         num_hats = js.get_numhats()
 
-        # Capability check: every referenced index must exist on this device.
+        # Capability check: every referenced button and axis index must exist.
+        # Hat bindings are optional — if the controller has no hats (common when
+        # the same physical D-pad is reported as axes by a different SDL/driver),
+        # we strip the hat bindings rather than rejecting the entire map.
         max_button = max_axis = max_hat = -1
         for bindings in self._pending_raw_map.values():
             for b in bindings:
@@ -172,22 +175,33 @@ class InputManager:
                 elif b.get("type") == "hat":
                     max_hat = max(max_hat, b.get("index", 0))
 
-        capability_ok = (
-            max_button < num_buttons and
-            max_axis < num_axes and
-            max_hat < num_hats
-        )
+        buttons_ok = (max_button < 0) or (max_button < num_buttons)
+        axes_ok    = (max_axis < 0)   or (max_axis < num_axes)
+        hats_ok    = (max_hat < 0)    or (max_hat < num_hats)
 
-        if capability_ok:
-            self.custom_mappings = self._pending_raw_map
+        if buttons_ok and axes_ok:
+            # Accept the mapping. If hats are unavailable, strip hat bindings.
+            accepted_map = {}
+            stripped_hats = 0
+            for action_key, bindings in self._pending_raw_map.items():
+                if hats_ok:
+                    accepted_map[action_key] = bindings
+                else:
+                    filtered = [b for b in bindings if b.get("type") != "hat"]
+                    if filtered:
+                        accepted_map[action_key] = filtered
+                    stripped_hats += len(bindings) - len(filtered)
+
+            self.custom_mappings = accepted_map
+            hat_note = f" (stripped {stripped_hats} hat bindings — controller has no hats)" if not hats_ok else ""
             print(f"[InputManager] Applied custom mappings for '{connected_name}' "
-                  f"({num_buttons} buttons, {num_axes} axes, {num_hats} hats).")
+                  f"({num_buttons} buttons, {num_axes} axes, {num_hats} hats).{hat_note}")
         else:
             self.custom_mappings = {}
             print(f"[InputManager] IGNORED custom mappings — connected controller "
                   f"'{connected_name}' lacks required indices. "
-                  f"Expected: button ≤ {max_button}, axis ≤ {max_axis}, hat ≤ {max_hat}. "
-                  f"Found: {num_buttons} buttons, {num_axes} axes, {num_hats} hats. "
+                  f"Expected: button ≤ {max_button}, axis ≤ {max_axis}. "
+                  f"Found: {num_buttons} buttons, {num_axes} axes. "
                   f"Falling back to hardcoded defaults.")
 
     # ── Gamepad helpers ───────────────────────────────────────────────────────
@@ -255,6 +269,16 @@ class InputManager:
                         hx, hy = js.get_hat(h_idx)
                         if (hx, hy) == tuple(target_val):
                             return True
+                    elif js.get_numhats() == 0 and js.get_numaxes() >= 2:
+                        # Fallback: On pygame-ce or DInput drivers reporting 0 hats,
+                        # map hat directions to standard analog axes 0 (X) and 1 (Y)
+                        tx, ty = target_val
+                        ax0 = js.get_axis(0)
+                        ax1 = js.get_axis(1)
+                        if tx < 0 and ax0 < -AXIS_DEADZONE: return True
+                        if tx > 0 and ax0 > AXIS_DEADZONE: return True
+                        if ty > 0 and ax1 < -AXIS_DEADZONE: return True
+                        if ty < 0 and ax1 > AXIS_DEADZONE: return True
 
         return False
 
