@@ -18,7 +18,7 @@ IF ERRORLEVEL 1 (
     pause
     exit /b 1
 )
-"%PYTHON%" -c "import sys; raise SystemExit(sys.version_info ^< (3, 11))"
+"%PYTHON%" -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
 IF ERRORLEVEL 1 (
     echo ERROR: Python 3.11 or newer is required.
     pause
