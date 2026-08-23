@@ -32,13 +32,15 @@ class Game:
         try:
             if pygame.mixer.get_init() is None:
                 try:
-                    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+                    pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=1024)
                 except pygame.error:
-                    # Fallback to Pygame default driver settings if custom parameters fail on laptop audio card
                     pygame.mixer.init()
+            # Ensure enough sound channels are allocated for SFX & BGM
+            pygame.mixer.set_num_channels(16)
+            info = pygame.mixer.get_init()
+            print(f"[Game] Audio initialized successfully: freq={info[0]}, format={info[1]}, channels={info[2]}")
         except pygame.error as exc:
-            # A missing audio device should not prevent the game from starting.
-            print(f"[Game] Audio disabled: {exc}")
+            print(f"[Game] Audio disabled/unavailable: {exc}")
         pygame.display.set_caption(GAME_TITLE)
 
         # Window state

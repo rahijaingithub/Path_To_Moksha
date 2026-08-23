@@ -83,12 +83,10 @@ class AssetManager:
         if not self._audio_available():
             return
 
-        path = os.path.join(AUDIO_DIR, subfolder, name)
-        
-        # If exact path doesn't exist, try alternative extensions (.mp3, .ogg, .wav)
+        # Try requested path first, then fall back to .ogg, .mp3, .wav extensions
         if not os.path.exists(path):
             base_name, _ = os.path.splitext(name)
-            for ext in [".mp3", ".ogg", ".wav"]:
+            for ext in [".ogg", ".mp3", ".wav"]:
                 alt_path = os.path.join(AUDIO_DIR, subfolder, base_name + ext)
                 if os.path.exists(alt_path):
                     path = alt_path
@@ -104,6 +102,7 @@ class AssetManager:
                 self._music_loaded = path
             pygame.mixer.music.set_volume(volume)
             pygame.mixer.music.play(loops)
+            print(f"[AssetManager] Playing music successfully: {os.path.basename(path)} (vol={volume})")
         except Exception as exc:
             print(f"[AssetManager] WARNING: Could not play music '{path}': {exc}")
 
