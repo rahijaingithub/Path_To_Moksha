@@ -63,6 +63,8 @@ class InputManager:
         }
         # One-shot events (pressed THIS frame only)
         self.just_pressed = {key: False for key in self.actions}
+        # Track which buttons are being held by mouse/touch
+        self._touch_held = {key: False for key in self.actions}
 
     def reset_states(self):
         """Completely reset all input action states, held flags, and one-shot events.
@@ -70,16 +72,12 @@ class InputManager:
         for k in self.actions:
             self.actions[k] = False
             self.just_pressed[k] = False
-            if k in self._touch_held:
+        if hasattr(self, "_touch_held"):
+            for k in self._touch_held:
                 self._touch_held[k] = False
-
-
 
         # Touch button rects (in logical coordinates)
         self._build_touch_buttons()
-
-        # Track which buttons are being held by mouse/touch
-        self._touch_held = {key: False for key in self.actions}
 
         # Scale and offset for mouse translation
         self.scale_x = 1.0
