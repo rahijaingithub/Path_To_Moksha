@@ -83,6 +83,8 @@ class AssetManager:
         if not self._audio_available():
             return
 
+        path = os.path.join(AUDIO_DIR, subfolder, name)
+
         # Try requested path first, then fall back to .ogg, .mp3, .wav extensions
         if not os.path.exists(path):
             base_name, _ = os.path.splitext(name)
