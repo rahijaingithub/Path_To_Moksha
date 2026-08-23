@@ -55,6 +55,8 @@ class PlayerSelectScene(Scene):
         self.vkb_col = 0
         # Selected profile index (for controller navigation)
         self.selected_profile_idx = 0
+        self.scroll_offset = 0
+        self.max_visible_profiles = 4  # Display 4 profiles at a time with clean spacing
 
         # UI Layout
         self.input_rect       = pygame.Rect(LOGICAL_WIDTH // 2 - 290, 230, 580, 56)
@@ -78,6 +80,7 @@ class PlayerSelectScene(Scene):
         self.vkb_row    = 0
         self.vkb_col    = 0
         self.selected_profile_idx = 0
+        self.scroll_offset = 0
 
         self.bg = self.assets.load_image(
             "title_background.png", "backgrounds",
@@ -192,15 +195,18 @@ class PlayerSelectScene(Scene):
                     self.assets.play_sound("jump.wav", volume=0.12)
                 else:
                     self.selected_profile_idx -= 1
+                    if self.selected_profile_idx < self.scroll_offset:
+                        self.scroll_offset = self.selected_profile_idx
                     self.assets.play_sound("jump.wav", volume=0.06)
 
             elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
-                max_shown = min(len(self.profiles), 6)
-                if self.selected_profile_idx >= max_shown - 1:
+                if self.selected_profile_idx >= len(self.profiles) - 1:
                     self.focus = "confirm"
                     self.assets.play_sound("jump.wav", volume=0.06)
                 else:
                     self.selected_profile_idx += 1
+                    if self.selected_profile_idx >= self.scroll_offset + self.max_visible_profiles:
+                        self.scroll_offset = self.selected_profile_idx - self.max_visible_profiles + 1
                     self.assets.play_sound("jump.wav", volume=0.06)
 
             # Launch selected profile
@@ -218,7 +224,8 @@ class PlayerSelectScene(Scene):
             if input_mgr.just_pressed[input_mgr.MENU_UP]:
                 if self.profiles:
                     self.focus = "profile"
-                    self.selected_profile_idx = min(len(self.profiles), 6) - 1
+                    self.selected_profile_idx = len(self.profiles) - 1
+                    self.scroll_offset = max(0, len(self.profiles) - self.max_visible_profiles)
                 else:
                     self.focus = "vkb"
                     self.vkb_row = len(VKB_ROWS) - 1
@@ -231,9 +238,15 @@ class PlayerSelectScene(Scene):
             if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
                 self._confirm_selection()
 
-        # ── Keyboard (physical) events ─────────────────────────────────────────
+        # ── Keyboard & Mouse Events ─────────────────────────────────────────
         for event in events:
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.MOUSEWHEEL:
+                # Scroll up/down through profiles
+                if self.profiles:
+                    max_offset = max(0, len(self.profiles) - self.max_visible_profiles)
+                    self.scroll_offset = max(0, min(max_offset, self.scroll_offset - event.y))
+
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     self._confirm_selection()
                 elif event.key == pygame.K_BACKSPACE:
@@ -272,10 +285,13 @@ class PlayerSelectScene(Scene):
                                 self.focus = "vkb"
                                 self._vkb_activate()
 
-                    # Check profile click
-                    for i, r in enumerate(self.profile_rects):
-                        if r.collidepoint(mx, my) and i < len(self.profiles):
-                            prof = self.profiles[i]
+                    # Check profile click (taking scroll_offset into account)
+                    for vis_i, r in enumerate(self.profile_rects):
+                        actual_idx = self.scroll_offset + vis_i
+                        if r.collidepoint(mx, my) and actual_idx < len(self.profiles):
+                            prof = self.profiles[actual_idx]
+                            self.selected_profile_idx = actual_idx
+                            self.focus = "profile"
                             self.input_name = prof["name"]
                             self.manager.shared["player_name"] = prof["name"]
                             self.manager.shared["character"]   = prof.get("character", "boy")
@@ -401,7 +417,7 @@ class PlayerSelectScene(Scene):
 
         # ── Existing Profiles ──────────────────────────────────────────────────
         profiles_y = hint_y + 36
-        lbl = self.font_body.render("Saved Profiles:  (D-Pad to select, A to launch)", True, COLOR_GOLD)
+        lbl = self.font_body.render("Saved Profiles:  (D-Pad / Scroll Wheel to view all)", True, COLOR_GOLD)
         surface.blit(lbl, (LOGICAL_WIDTH // 2 - 290, profiles_y))
 
         self.profile_rects = []
@@ -411,11 +427,13 @@ class PlayerSelectScene(Scene):
             empty_txt = self.font_small.render("No saved profiles found. Enter a name above to begin!", True, COLOR_CREAM)
             surface.blit(empty_txt, (LOGICAL_WIDTH // 2 - 290, start_y))
         else:
-            for i, p in enumerate(self.profiles[:6]):
-                r = pygame.Rect(LOGICAL_WIDTH // 2 - 290, start_y + i * 64, 580, 54)
+            visible_profiles = self.profiles[self.scroll_offset : self.scroll_offset + self.max_visible_profiles]
+            for vis_i, p in enumerate(visible_profiles):
+                actual_idx = self.scroll_offset + vis_i
+                r = pygame.Rect(LOGICAL_WIDTH // 2 - 290, start_y + vis_i * 60, 580, 50)
                 self.profile_rects.append(r)
 
-                is_ctrl_sel = (self.focus == "profile" and i == self.selected_profile_idx)
+                is_ctrl_sel = (self.focus == "profile" and actual_idx == self.selected_profile_idx)
                 mouse_hover = r.collidepoint(mx, my)
                 highlighted = is_ctrl_sel or mouse_hover
 
@@ -434,6 +452,31 @@ class PlayerSelectScene(Scene):
                 txt_col = COLOR_BG_DARK if highlighted else COLOR_WHITE
                 ts = self.font_small.render(p_text, True, txt_col)
                 surface.blit(ts, ts.get_rect(midleft=(r.left + 20, r.centery)))
+
+            # ── Scroll Indicators & Scrollbar ──
+            if len(self.profiles) > self.max_visible_profiles:
+                # Scrollbar track
+                track_x = LOGICAL_WIDTH // 2 + 302
+                track_y = start_y
+                track_h = self.max_visible_profiles * 60 - 10
+                track_rect = pygame.Rect(track_x, track_y, 8, track_h)
+                pygame.draw.rect(surface, (20, 30, 50, 200), track_rect, border_radius=4)
+                pygame.draw.rect(surface, COLOR_GOLD_DIM, track_rect, width=1, border_radius=4)
+
+                # Scrollbar thumb
+                thumb_h = max(20, int(track_h * (self.max_visible_profiles / len(self.profiles))))
+                max_scroll = len(self.profiles) - self.max_visible_profiles
+                thumb_y = track_y + int((track_h - thumb_h) * (self.scroll_offset / max_scroll)) if max_scroll > 0 else track_y
+                thumb_rect = pygame.Rect(track_x, thumb_y, 8, thumb_h)
+                pygame.draw.rect(surface, COLOR_GOLD_BRIGHT, thumb_rect, border_radius=4)
+
+                # Up / Down arrow indicators
+                if self.scroll_offset > 0:
+                    up_txt = self.font_small.render("▲", True, COLOR_GOLD_BRIGHT)
+                    surface.blit(up_txt, up_txt.get_rect(center=(LOGICAL_WIDTH // 2, profiles_y + 16)))
+                if self.scroll_offset + self.max_visible_profiles < len(self.profiles):
+                    dn_txt = self.font_small.render("▼", True, COLOR_GOLD_BRIGHT)
+                    surface.blit(dn_txt, dn_txt.get_rect(center=(LOGICAL_WIDTH // 2, start_y + track_h + 10)))
 
         # Confirm Button
         is_ctrl_confirm = (self.focus == "confirm")

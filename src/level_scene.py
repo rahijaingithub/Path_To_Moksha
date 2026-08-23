@@ -77,10 +77,11 @@ class Player:
                 self.frozen = False
                 self.freeze_timer = 0
             # Still apply gravity while frozen, but no player input
-            self.vy += GRAVITY
+            # Scaled by dt*60 so physics are frame-rate independent (same at 36fps or 60fps)
+            self.vy += GRAVITY * dt * 60
             if self.vy > PLAYER_MAX_FALL_SPEED:
                 self.vy = PLAYER_MAX_FALL_SPEED
-            self.y += self.vy
+            self.y += self.vy * dt * 60
             
             # Resolve vertical collisions
             pr = self.rect
@@ -109,13 +110,14 @@ class Player:
             return
 
         # Apply gravity (skip if flying)
+        # Scaled by dt*60 so physics are frame-rate independent (same at 36fps or 60fps)
         if not self.can_fly:
-            self.vy += GRAVITY
+            self.vy += GRAVITY * dt * 60
             if self.vy > PLAYER_MAX_FALL_SPEED:
                 self.vy = PLAYER_MAX_FALL_SPEED
 
-        # Move horizontally
-        self.x += self.vx
+        # Move horizontally (scaled by dt*60 for frame-rate independence)
+        self.x += self.vx * dt * 60
         pr = self.rect
         for plat in platforms:
             if pr.colliderect(plat):
@@ -125,8 +127,8 @@ class Player:
                     self.x = plat.right
                 pr = self.rect
 
-        # Move vertically
-        self.y += self.vy
+        # Move vertically (scaled by dt*60 for frame-rate independence)
+        self.y += self.vy * dt * 60
         pr = self.rect
         for plat in platforms:
             if pr.colliderect(plat):
@@ -319,8 +321,9 @@ class LevelScene(Scene):
         self.box_system.akshat_found = False  # Level 2: set True when Akshat box is opened
         self.bhagwan_platform_added = False
 
-        # Audio
-        self.assets.play_music("bgm_loop.wav", volume=0.4)
+        # NOTE: Music is already started above at line 261 with the correct level-specific
+        #       track and the volume saved in Options. This duplicate call has been removed
+        #       so that the Options volume slider correctly controls level BGM as well.
 
     def handle_events(self, events, input_mgr):
         self.mouse_clicked_this_frame = False

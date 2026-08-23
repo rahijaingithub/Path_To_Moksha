@@ -35,7 +35,7 @@ class Game:
         # Window state
         self.windowed_size = DEFAULT_WINDOWED_SIZE
         self.is_fullscreen = False
-        self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
         # The game always renders to this fixed-size surface
         self.logical_surface = pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT))
@@ -65,6 +65,10 @@ class Game:
 
 
 
+        # FPS Counter overlay toggle
+        self.show_fps = False
+        self.fps_font = pygame.font.SysFont("Consolas", 18, bold=True)
+
         # Start at title
         self.scene_mgr.switch_to(SCENE_TITLE)
 
@@ -74,7 +78,7 @@ class Game:
         if self.is_fullscreen:
             self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         else:
-            self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE)
+            self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
     def _compute_scaling(self):
         """Compute letterboxed scaling from logical to screen size."""
@@ -104,7 +108,9 @@ class Game:
                     running = False
                 if event.type == pygame.VIDEORESIZE and not self.is_fullscreen:
                     self.windowed_size = (event.w, event.h)
-                    self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE)
+                    self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F3:
+                    self.show_fps = not self.show_fps
 
             # Update input
             self.input_mgr.update(events, self.scale_x, self.scale_y, self.offset_x, self.offset_y)
@@ -121,6 +127,17 @@ class Game:
             # Draw to logical surface
             self.logical_surface.fill(COLOR_BG_DARK)
             self.scene_mgr.draw(self.logical_surface)
+
+            # Draw FPS overlay if enabled
+            if self.show_fps:
+                fps_val = int(self.clock.get_fps())
+                mode_str = "FULLSCREEN" if self.is_fullscreen else "WINDOWED"
+                fps_text = f"FPS: {fps_val} | {dt*1000:.1f}ms | {self.screen.get_width()}x{self.screen.get_height()} | {mode_str}"
+                txt_surf = self.fps_font.render(fps_text, True, (0, 255, 128))
+                bg_surf = pygame.Surface((txt_surf.get_width() + 16, txt_surf.get_height() + 8), pygame.SRCALPHA)
+                bg_surf.fill((0, 0, 0, 190))
+                bg_surf.blit(txt_surf, (8, 4))
+                self.logical_surface.blit(bg_surf, (16, 16))
 
             # Scale and blit to screen
             self._compute_scaling()

@@ -69,14 +69,30 @@ class AssetManager:
             snd.play()
 
     def play_music(self, name, subfolder="bgm", volume=0.3, loops=-1):
-        """Stream background music."""
+        """Stream background music. Automatically checks for .mp3, .ogg, or .wav extensions if requested file doesn't exist."""
         path = os.path.join(AUDIO_DIR, subfolder, name)
+        
+        # If exact path doesn't exist, try alternative extensions (.mp3, .ogg, .wav)
         if not os.path.exists(path):
-            print(f"[AssetManager] WARNING: Missing music: {path}")
+            base_name, _ = os.path.splitext(name)
+            for ext in [".mp3", ".ogg", ".wav"]:
+                alt_path = os.path.join(AUDIO_DIR, subfolder, base_name + ext)
+                if os.path.exists(alt_path):
+                    path = alt_path
+                    break
+
+        if not os.path.exists(path):
+            print(f"[AssetManager] WARNING: Missing music: {os.path.join(AUDIO_DIR, subfolder, name)}")
             return
+
         if self._music_loaded != path:
-            pygame.mixer.music.load(path)
-            self._music_loaded = path
+            try:
+                pygame.mixer.music.load(path)
+                self._music_loaded = path
+            except Exception as e:
+                print(f"[AssetManager] ERROR: Could not load music file '{path}': {e}")
+                return
+
         pygame.mixer.music.set_volume(volume)
         pygame.mixer.music.play(loops)
 

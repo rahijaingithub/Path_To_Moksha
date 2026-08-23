@@ -83,6 +83,7 @@ class InputManager:
         self.custom_mappings = {}   # loaded from controller_map.json
         self._load_custom_mappings()
         self._init_joysticks()     # must come AFTER gamepad_name is defined
+        self._validate_and_apply_mappings()  # only trust the map if it matches what's connected
 
     def _load_custom_mappings(self):
         """Loads custom controller bindings saved by assign_controller.py."""
@@ -92,20 +93,73 @@ class InputManager:
         if not os.path.exists(config_path):
             config_path = os.path.join(BUNDLED_DATA_DIR, "controller_map.json")
 
+        self._pending_raw_map = None
+
         if os.path.exists(config_path):
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     raw_map = data.get("mapping", {})
-                    # Normalize all mappings into lists
+                    normalized = {}
                     for key, val in raw_map.items():
                         if isinstance(val, dict):
-                            self.custom_mappings[key] = [val]
+                            normalized[key] = [val]
                         elif isinstance(val, list):
-                            self.custom_mappings[key] = val
-                print(f"[InputManager] Loaded custom controller mappings from '{config_path}'")
+                            normalized[key] = val
+                    # Don't apply yet — stash until we know what controller is
+                    # actually connected, so we can validate the layout matches.
+                    self._pending_raw_map = normalized
+                    saved_for = data.get("controller_name", "unknown")
+                print(f"[InputManager] Found controller mapping file '{config_path}' "
+                      f"(saved for: '{saved_for}')")
             except Exception as e:
                 print(f"[InputManager] Could not load controller_map.json: {e}")
+
+    def _validate_and_apply_mappings(self):
+        """
+        Called after joysticks are detected. Only trusts the loaded custom_mappings
+        if the connected controller's physical button/axis/hat count matches what
+        the mapping expects. Name is ignored, since the same physical controller
+        can enumerate under different driver names (DirectInput vs XInput) on
+        different Windows machines, depending on installed drivers.
+        """
+        if not self._pending_raw_map or not self.joysticks:
+            return
+
+        js = next(iter(self.joysticks.values()))
+        connected_name = js.get_name()
+        num_buttons = js.get_numbuttons()
+        num_axes = js.get_numaxes()
+        num_hats = js.get_numhats()
+
+        # Capability check: every referenced index must exist on this device.
+        max_button = max_axis = max_hat = -1
+        for bindings in self._pending_raw_map.values():
+            for b in bindings:
+                if b.get("type") == "button":
+                    max_button = max(max_button, b.get("index", -1))
+                elif b.get("type") == "axis":
+                    max_axis = max(max_axis, b.get("index", -1))
+                elif b.get("type") == "hat":
+                    max_hat = max(max_hat, b.get("index", 0))
+
+        capability_ok = (
+            max_button < num_buttons and
+            max_axis < num_axes and
+            max_hat < num_hats
+        )
+
+        if capability_ok:
+            self.custom_mappings = self._pending_raw_map
+            print(f"[InputManager] Applied custom mappings for '{connected_name}' "
+                  f"({num_buttons} buttons, {num_axes} axes, {num_hats} hats).")
+        else:
+            self.custom_mappings = {}
+            print(f"[InputManager] IGNORED custom mappings — connected controller "
+                  f"'{connected_name}' lacks required indices. "
+                  f"Expected: button ≤ {max_button}, axis ≤ {max_axis}, hat ≤ {max_hat}. "
+                  f"Found: {num_buttons} buttons, {num_axes} axes, {num_hats} hats. "
+                  f"Falling back to hardcoded defaults.")
 
     # ── Gamepad helpers ───────────────────────────────────────────────────────
 
@@ -265,6 +319,7 @@ class InputManager:
                 self.joysticks[idx] = js
                 self.gamepad_name = js.get_name()
                 print(f"[InputManager] Controller connected: '{js.get_name()}'")
+                self._validate_and_apply_mappings()  # re-check saved map against this device
             except Exception as e:
                 print(f"[InputManager] Hot-plug init error: {e}")
 
