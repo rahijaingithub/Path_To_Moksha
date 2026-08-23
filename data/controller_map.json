@@ -27,7 +27,8 @@
       {"type": "button", "index": 5}
     ],
     "back": [
-      {"type": "button", "index": 10}
+      {"type": "button", "index": 10},
+      {"type": "button", "index": 9}
     ],
     "menu_up": [
       {"type": "axis", "index": 1, "direction": "negative", "threshold": 0.5},
@@ -50,7 +51,8 @@
       {"type": "button", "index": 5}
     ],
     "menu_back": [
-      {"type": "button", "index": 10}
+      {"type": "button", "index": 10},
+      {"type": "button", "index": 9}
     ]
   }
 }
