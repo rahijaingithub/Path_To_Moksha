@@ -400,9 +400,9 @@ class LevelScene(Scene):
                 if (inp.just_pressed[inp.ACTION] or inp.just_pressed[inp.JUMP]
                         or inp.just_pressed[inp.MENU_SELECT]):
                     if self.game_over_choice == 0:
-                        self.manager.switch_to(SCENE_LEVEL, level=self.level)
+                        self.manager.switch_to(SCENE_LEVEL, level=self.level, input_mgr=self.input_mgr)
                     else:
-                        self.manager.switch_to(SCENE_TITLE)
+                        self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
                 # Mouse hover updates highlight; click confirms
                 band_h = 110
@@ -423,16 +423,16 @@ class LevelScene(Scene):
                             if r.collidepoint(inp.mouse_x, inp.mouse_y):
                                 self.assets.play_sound("level_complete.wav", volume=0.3)
                                 if i == 0:
-                                    self.manager.switch_to(SCENE_LEVEL, level=self.level)
+                                    self.manager.switch_to(SCENE_LEVEL, level=self.level, input_mgr=self.input_mgr)
                                 else:
-                                    self.manager.switch_to(SCENE_TITLE)
+                                    self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
             if self.monk and self.monk.dialogue_active:
                 self.monk.dialogue_active = False
             else:
-                self.manager.switch_to(SCENE_TITLE)
+                self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
         # Proximity interaction with the Temple Gate for Level 1
@@ -460,16 +460,22 @@ class LevelScene(Scene):
             opt0_rect = pygame.Rect(text_cx - 280, by + 200 - 22, 560, 44)
             opt1_rect = pygame.Rect(text_cx - 280, by + 258 - 22, 560, 44)
 
-            # Hover detection
+            # Hover detection and Mouse click submission
             mx, my = input_mgr.mouse_x, input_mgr.mouse_y
-            if opt0_rect.collidepoint(mx, my):
-                if self.monk.selected_choice != 0:
-                    self.monk.selected_choice = 0
-                    self.assets.play_sound("jump.wav", volume=0.08)
-            elif opt1_rect.collidepoint(mx, my):
-                if self.monk.selected_choice != 1:
-                    self.monk.selected_choice = 1
-                    self.assets.play_sound("jump.wav", volume=0.08)
+            clicked = False
+            for event in events:
+                if event.type == pygame.MOUSEMOTION:
+                    if opt0_rect.collidepoint(mx, my):
+                        if self.monk.selected_choice != 0:
+                            self.monk.selected_choice = 0
+                            self.assets.play_sound("jump.wav", volume=0.08)
+                    elif opt1_rect.collidepoint(mx, my):
+                        if self.monk.selected_choice != 1:
+                            self.monk.selected_choice = 1
+                            self.assets.play_sound("jump.wav", volume=0.08)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if opt0_rect.collidepoint(mx, my) or opt1_rect.collidepoint(mx, my):
+                        clicked = True
 
             # Controller & Keyboard navigation
             if input_mgr.just_pressed[input_mgr.MENU_UP]:
@@ -478,14 +484,6 @@ class LevelScene(Scene):
             elif input_mgr.just_pressed[input_mgr.JUMP] or input_mgr.just_pressed[input_mgr.MENU_DOWN]:
                 self.monk.selected_choice = 1
                 self.assets.play_sound("jump.wav", volume=0.08)
-
-
-            # Mouse click submission
-            clicked = False
-            for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if opt0_rect.collidepoint(mx, my) or opt1_rect.collidepoint(mx, my):
-                        clicked = True
 
             if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT] or clicked:
                 correct = self.monk.submit_answer()
@@ -815,20 +813,20 @@ class LevelScene(Scene):
         if next_level > 4:
             # Check if victory scene is registered, else go to title
             if SCENE_VICTORY in self.manager.scenes:
-                self.manager.switch_to(SCENE_VICTORY)
+                self.manager.switch_to(SCENE_VICTORY, input_mgr=self.input_mgr)
             else:
                 from settings import SCENE_LEADERBOARD
-                self.manager.switch_to(SCENE_LEADERBOARD)
+                self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
         else:
             # Check if transition scene is registered
             if SCENE_TRANSITION in self.manager.scenes:
-                self.manager.switch_to(SCENE_TRANSITION, next_level=next_level, to_be_continued=tbc)
+                self.manager.switch_to(SCENE_TRANSITION, next_level=next_level, to_be_continued=tbc, input_mgr=self.input_mgr)
             else:
                 if tbc:
                     from settings import SCENE_LEADERBOARD
-                    self.manager.switch_to(SCENE_LEADERBOARD)
+                    self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
                 else:
-                    self.manager.switch_to(SCENE_LEVEL, level=next_level)
+                    self.manager.switch_to(SCENE_LEVEL, level=next_level, input_mgr=self.input_mgr)
 
 
     def draw(self, surface):

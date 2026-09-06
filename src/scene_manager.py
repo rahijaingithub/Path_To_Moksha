@@ -54,6 +54,12 @@ class SceneManager:
 
     def switch_to(self, key, input_mgr=None, **kwargs):
         """Transition to a different scene and purge leftover input state."""
+        try:
+            from debug_monitor import monitor
+            monitor.log_switch(self.active_key, key)
+        except ImportError:
+            pass
+
         if self.active_scene:
             self.active_scene.on_exit()
         self.active_key = key

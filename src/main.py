@@ -81,7 +81,7 @@ class Game:
         self.fps_font = pygame.font.SysFont("Consolas", 18, bold=True)
 
         # Start at title
-        self.scene_mgr.switch_to(SCENE_TITLE)
+        self.scene_mgr.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
     def _toggle_fullscreen(self):
         """Switch between windowed and fullscreen."""
@@ -125,7 +125,7 @@ class Game:
                     self.show_fps = not self.show_fps
 
             # Update input
-            self.input_mgr.update(events, self.scale_x, self.scale_y, self.offset_x, self.offset_y)
+            self.input_mgr.update(events, self.scale_x, self.scale_y, self.offset_x, self.offset_y, dt)
 
             # Update scene & handle events
             self.scene_mgr.handle_events(events, self.input_mgr)

@@ -73,8 +73,11 @@ class LeaderboardScene(Scene):
         self.assets.play_music("bgm_loop.wav", volume=0.35)
 
     def handle_events(self, events, input_mgr):
+        if self.elapsed < 0.3:
+            return
+
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
-            self.manager.switch_to(SCENE_TITLE)
+            self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
         # Controller Left/Right toggle between buttons: 0 = Main Menu, 1 = Restart Game
@@ -98,18 +101,24 @@ class LeaderboardScene(Scene):
         if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
             if self.selected_btn == 0:
                 self.assets.play_sound("box_open.wav", volume=0.2)
-                self.manager.switch_to(SCENE_TITLE)
+                self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             else:
                 self._restart_game()
             return
 
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEMOTION:
+                mx, my = input_mgr.mouse_x, input_mgr.mouse_y
+                if self.home_btn_rect.collidepoint(mx, my):
+                    self.selected_btn = 0
+                elif self.restart_btn_rect.collidepoint(mx, my):
+                    self.selected_btn = 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = input_mgr.mouse_x, input_mgr.mouse_y
 
                 if self.home_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("box_open.wav", volume=0.2)
-                    self.manager.switch_to(SCENE_TITLE)
+                    self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
                 elif self.restart_btn_rect.collidepoint(mx, my):
                     self._restart_game()
@@ -139,17 +148,13 @@ class LeaderboardScene(Scene):
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:
-            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level))
+            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level, input_mgr=self.input_mgr))
         else:
-            self.manager.switch_to(SCENE_LEVEL, level=starting_level)
+            self.manager.switch_to(SCENE_LEVEL, level=starting_level, input_mgr=self.input_mgr)
 
     def update(self, dt):
         self.elapsed += dt
         mx, my = self.input_mgr.mouse_x, self.input_mgr.mouse_y
-        if self.home_btn_rect.collidepoint(mx, my):
-            self.selected_btn = 0
-        elif self.restart_btn_rect.collidepoint(mx, my):
-            self.selected_btn = 1
 
         self.hover_home = (self.selected_btn == 0)
         self.hover_restart = (self.selected_btn == 1)

@@ -124,7 +124,7 @@ class PlayerSelectScene(Scene):
     def handle_events(self, events, input_mgr):
         # Global back
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
-            self.manager.switch_to(SCENE_TITLE)
+            self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
         # ── Controller navigation ──
@@ -142,7 +142,7 @@ class PlayerSelectScene(Scene):
 
             if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
                 self.assets.play_sound("box_open.wav", volume=0.2)
-                self.manager.switch_to(SCENE_TITLE)
+                self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
                 return
 
         elif self.focus == "vkb":
@@ -275,7 +275,7 @@ class PlayerSelectScene(Scene):
 
                 elif self.back_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("box_open.wav", volume=0.2)
-                    self.manager.switch_to(SCENE_TITLE)
+                    self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
                 elif self.confirm_btn_rect.collidepoint(mx, my):
                     self._confirm_selection()
@@ -316,7 +316,7 @@ class PlayerSelectScene(Scene):
             self.manager.shared["character"] = "boy"
             self.prof_mgr.save_profile(name, "boy")
             self.assets.play_sound("level_complete.wav", volume=0.35)
-            self.manager.switch_to(SCENE_CHARACTER_SELECT)
+            self.manager.switch_to(SCENE_CHARACTER_SELECT, input_mgr=self.input_mgr)
 
     def _launch_game_level(self):
         self.manager.shared["total_score"]  = 0
@@ -329,9 +329,9 @@ class PlayerSelectScene(Scene):
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:
-            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level))
+            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level, input_mgr=self.input_mgr))
         else:
-            self.manager.switch_to(SCENE_LEVEL, level=starting_level)
+            self.manager.switch_to(SCENE_LEVEL, level=starting_level, input_mgr=self.input_mgr)
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 

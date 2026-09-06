@@ -34,3 +34,9 @@ data/high_scores.json
 data/controller_audit_txt.txt
 data/controller_map_txt.txt
 src/backups/
+
+# --- Phase 0 (v2 prep): build output and local scratch are not source ---
+dist/
+Monitor FPS/
+assets/audio/Old/
+fix_switch.py

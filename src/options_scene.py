@@ -121,14 +121,28 @@ class OptionsScene(Scene):
                 self.assets.play_sound("jump.wav", volume=self.sfx_volume)
             elif self.selected_index == 4 and is_select:
                 self.assets.play_sound("jump.wav", volume=0.2)
-                self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS)
+                self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS, input_mgr=self.input_mgr)
 
             elif self.selected_index == 5 and is_select:
                 self.assets.play_sound("box_open.wav", volume=0.2)
                 self._save_and_exit()
 
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEMOTION:
+                mx, my = input_mgr.mouse_x, input_mgr.mouse_y
+                if self.mode_rect.collidepoint(mx, my):
+                    self.selected_index = 0
+                elif self.level_rect.collidepoint(mx, my):
+                    self.selected_index = 1
+                elif self.music_rect.collidepoint(mx, my):
+                    self.selected_index = 2
+                elif self.sfx_rect.collidepoint(mx, my):
+                    self.selected_index = 3
+                elif self.tutorial_rect.collidepoint(mx, my):
+                    self.selected_index = 4
+                elif self.back_rect.collidepoint(mx, my):
+                    self.selected_index = 5
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = input_mgr.mouse_x, input_mgr.mouse_y
 
                 # Mode click -> cycle
@@ -178,7 +192,7 @@ class OptionsScene(Scene):
                 elif self.tutorial_rect.collidepoint(mx, my):
                     self.selected_index = 4
                     self.assets.play_sound("jump.wav", volume=0.2)
-                    self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS)
+                    self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS, input_mgr=self.input_mgr)
 
 
                 # Back button
@@ -192,24 +206,11 @@ class OptionsScene(Scene):
         self.manager.shared["starting_level"] = self.starting_level
         self.manager.shared["music_volume"] = self.music_volume
         self.manager.shared["sfx_volume"] = self.sfx_volume
-        self.manager.switch_to(SCENE_TITLE)
+        self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
     def update(self, dt):
         self.elapsed += dt
         mx, my = self.input_mgr.mouse_x, self.input_mgr.mouse_y
-
-        if self.mode_rect.collidepoint(mx, my):
-            self.selected_index = 0
-        elif self.level_rect.collidepoint(mx, my):
-            self.selected_index = 1
-        elif self.music_rect.collidepoint(mx, my):
-            self.selected_index = 2
-        elif self.sfx_rect.collidepoint(mx, my):
-            self.selected_index = 3
-        elif self.tutorial_rect.collidepoint(mx, my):
-            self.selected_index = 4
-        elif self.back_rect.collidepoint(mx, my):
-            self.selected_index = 5
 
         self.hover_mode = (self.selected_index == 0)
         self.hover_level = (self.selected_index == 1)

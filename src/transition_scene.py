@@ -168,9 +168,9 @@ class TransitionScene:
             from profile_manager import ProfileManager
             ProfileManager().save_profile(player_name, character=character, score=final_score, level_reached=self.next_level - 1)
             self.manager.shared["final_score"] = final_score
-            self.manager.switch_to(SCENE_LEADERBOARD)
+            self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
         else:
-            self.manager.switch_to(SCENE_LEVEL, level=self.next_level)
+            self.manager.switch_to(SCENE_LEVEL, level=self.next_level, input_mgr=self.input_mgr)
 
 
 

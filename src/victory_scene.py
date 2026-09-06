@@ -88,7 +88,7 @@ class VictoryScene(Scene):
                     input_mgr.just_pressed[input_mgr.MENU_BACK]):
                 self.assets.play_sound("level_complete.wav", volume=0.35)
                 from settings import SCENE_LEADERBOARD
-                self.manager.switch_to(SCENE_LEADERBOARD)
+                self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
 
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -96,7 +96,7 @@ class VictoryScene(Scene):
                     if self.restart_rect.collidepoint(mx, my):
                         self.assets.play_sound("level_complete.wav", volume=0.35)
                         from settings import SCENE_LEADERBOARD
-                        self.manager.switch_to(SCENE_LEADERBOARD)
+                        self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
 
 
     def update(self, dt):

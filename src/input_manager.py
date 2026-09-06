@@ -22,7 +22,10 @@ from settings import (
 )
 
 # ── Gamepad axis dead-zone: ignore tiny stick drift ───────────────────────────
-AXIS_DEADZONE = 0.25
+# Raised from 0.25 → 0.35 to absorb worn-stick drift without sacrificing responsiveness
+AXIS_DEADZONE = 0.35
+# Minimum seconds before the same navigation action can fire again (prevents stuck/repeat)
+NAV_COOLDOWN = 0.15
 CURRENT_PLATFORM = platform.system()
 IS_MACOS = CURRENT_PLATFORM == "Darwin"
 
@@ -65,16 +68,9 @@ class InputManager:
         self.just_pressed = {key: False for key in self.actions}
         # Track which buttons are being held by mouse/touch
         self._touch_held = {key: False for key in self.actions}
-
-    def reset_states(self):
-        """Completely reset all input action states, held flags, and one-shot events.
-        Guarantees that state from a previous scene or long play session never spills over."""
-        for k in self.actions:
-            self.actions[k] = False
-            self.just_pressed[k] = False
-        if hasattr(self, "_touch_held"):
-            for k in self._touch_held:
-                self._touch_held[k] = False
+        # Per-action navigation cooldown: seconds remaining before that action can fire again
+        # Prevents both stuck-selection (axis drift) and input bleed (held button)
+        self._nav_cooldown = {key: 0.0 for key in self.actions}
 
         # Touch button rects (in logical coordinates)
         self._build_touch_buttons()
@@ -87,7 +83,11 @@ class InputManager:
         self.mouse_x = 0.0
         self.mouse_y = 0.0
 
-        # ── Gamepad / Controller setup ────────────────────────────────────────
+        # Initialize hardware ONCE
+        self.init_hardware()
+
+    def init_hardware(self):
+        """Initialize gamepad hardware and load mappings. Called ONCE at startup."""
         pygame.joystick.init()
         self.joysticks = {}   # SDL instance_id → Joystick object
         self.gamepad_name = None   # name of first connected controller (for HUD)
@@ -95,6 +95,28 @@ class InputManager:
         self._load_custom_mappings()
         self._init_joysticks()     # must come AFTER gamepad_name is defined
         self._validate_and_apply_mappings()  # only trust the map if it matches what's connected
+
+    def reset_states(self):
+        """Reset one-shot events and cooldowns during scene transitions.
+        CRITICAL: We do NOT clear self.actions or self._touch_held here. 
+        If a physical button is being held across a transition, we want self.actions to 
+        remain True so that update() correctly identifies it as a continuous hold, 
+        rather than a brand new button press!"""
+        for k in self.actions:
+            self.just_pressed[k] = False
+            if hasattr(self, "_nav_cooldown"):
+                self._nav_cooldown[k] = 0.0
+
+        # Touch button rects (in logical coordinates)
+        self._build_touch_buttons()
+
+        # Scale and offset for mouse translation
+        self.scale_x = 1.0
+        self.scale_y = 1.0
+        self.offset_x = 0
+        self.offset_y = 0
+        self.mouse_x = 0.0
+        self.mouse_y = 0.0
 
     def _load_custom_mappings(self):
         """Loads custom controller bindings saved by assign_controller.py."""
@@ -307,21 +329,22 @@ class InputManager:
             m_sel = self._check_mapping_active("menu_select", is_hold=True)
             m_back = self._check_mapping_active("menu_back", is_hold=True) or self._check_mapping_active("back", is_hold=True)
 
-            # Trigger just_pressed when state shifts from False (neutral) to True
-            if m_up and not self.actions[self.MENU_UP]:
-                self.just_pressed[self.MENU_UP] = True
-            if m_down and not self.actions[self.MENU_DOWN]:
-                self.just_pressed[self.MENU_DOWN] = True
-            if m_left and not self.actions[self.MENU_LEFT]:
-                self.just_pressed[self.MENU_LEFT] = True
-            if m_right and not self.actions[self.MENU_RIGHT]:
-                self.just_pressed[self.MENU_RIGHT] = True
-            if m_sel and not self.actions[self.MENU_SELECT]:
-                self.just_pressed[self.MENU_SELECT] = True
-            if m_back and not self.actions[self.MENU_BACK]:
-                self.just_pressed[self.MENU_BACK] = True
+            # Trigger just_pressed when state shifts from neutral to active AND cooldown has expired.
+            # This dual guard prevents: (a) stuck selection from axis drift,
+            # (b) bleed of held input from previous scene.
+            def _fire(key, is_active):
+                if is_active and not self.actions[key] and self._nav_cooldown[key] <= 0.0:
+                    self.just_pressed[key] = True
+                    self._nav_cooldown[key] = NAV_COOLDOWN
 
-            # Explicitly update action state — clears to False when stick/button returns to neutral
+            _fire(self.MENU_UP,     m_up)
+            _fire(self.MENU_DOWN,   m_down)
+            _fire(self.MENU_LEFT,   m_left)
+            _fire(self.MENU_RIGHT,  m_right)
+            _fire(self.MENU_SELECT, m_sel)
+            _fire(self.MENU_BACK,   m_back)
+
+            # Explicitly update action state — clears to False when stick returns to neutral
             self.actions[self.MENU_UP] = m_up
             self.actions[self.MENU_DOWN] = m_down
             self.actions[self.MENU_LEFT] = m_left
@@ -383,6 +406,12 @@ class InputManager:
         """
         Map JOYBUTTONDOWN / JOYBUTTONUP / JOYDEVICEADDED / JOYDEVICEREMOVED events.
         """
+        try:
+            from debug_monitor import monitor
+            monitor.log_raw_event(event, scene_name="InputMgr")
+        except ImportError:
+            pass
+
         if event.type == pygame.JOYDEVICEADDED:
             idx = event.device_index
             try:
@@ -411,26 +440,40 @@ class InputManager:
                     self.just_pressed[self.JUMP] = True
                     self.actions[self.JUMP] = True
                 if self._check_mapping_active("action", event=event) or self._check_mapping_active("menu_select", event=event):
-                    self.just_pressed[self.ACTION] = True
-                    self.just_pressed[self.MENU_SELECT] = True
+                    if self._nav_cooldown[self.ACTION] <= 0:
+                        self.just_pressed[self.ACTION] = True
+                        self.just_pressed[self.MENU_SELECT] = True
+                        self._nav_cooldown[self.ACTION] = NAV_COOLDOWN
+                        self._nav_cooldown[self.MENU_SELECT] = NAV_COOLDOWN
                     self.actions[self.ACTION] = True
                     self.actions[self.MENU_SELECT] = True
                 if self._check_mapping_active("back", event=event) or self._check_mapping_active("menu_back", event=event):
-                    self.just_pressed[self.BACK] = True
-                    self.just_pressed[self.MENU_BACK] = True
+                    if self._nav_cooldown[self.BACK] <= 0:
+                        self.just_pressed[self.BACK] = True
+                        self.just_pressed[self.MENU_BACK] = True
+                        self._nav_cooldown[self.BACK] = NAV_COOLDOWN
+                        self._nav_cooldown[self.MENU_BACK] = NAV_COOLDOWN
                     self.actions[self.BACK] = True
                     self.actions[self.MENU_BACK] = True
                 if self._check_mapping_active("menu_up", event=event):
-                    self.just_pressed[self.MENU_UP] = True
+                    if self._nav_cooldown[self.MENU_UP] <= 0:
+                        self.just_pressed[self.MENU_UP] = True
+                        self._nav_cooldown[self.MENU_UP] = NAV_COOLDOWN
                     self.actions[self.MENU_UP] = True
                 if self._check_mapping_active("menu_down", event=event):
-                    self.just_pressed[self.MENU_DOWN] = True
+                    if self._nav_cooldown[self.MENU_DOWN] <= 0:
+                        self.just_pressed[self.MENU_DOWN] = True
+                        self._nav_cooldown[self.MENU_DOWN] = NAV_COOLDOWN
                     self.actions[self.MENU_DOWN] = True
                 if self._check_mapping_active("menu_left", event=event):
-                    self.just_pressed[self.MENU_LEFT] = True
+                    if self._nav_cooldown[self.MENU_LEFT] <= 0:
+                        self.just_pressed[self.MENU_LEFT] = True
+                        self._nav_cooldown[self.MENU_LEFT] = NAV_COOLDOWN
                     self.actions[self.MENU_LEFT] = True
                 if self._check_mapping_active("menu_right", event=event):
-                    self.just_pressed[self.MENU_RIGHT] = True
+                    if self._nav_cooldown[self.MENU_RIGHT] <= 0:
+                        self.just_pressed[self.MENU_RIGHT] = True
+                        self._nav_cooldown[self.MENU_RIGHT] = NAV_COOLDOWN
                     self.actions[self.MENU_RIGHT] = True
             else:
                 btn = event.button
@@ -509,10 +552,11 @@ class InputManager:
 
     # ── Main update ───────────────────────────────────────────────────────────
 
-    def update(self, events, scale_x=1.0, scale_y=1.0, offset_x=0, offset_y=0):
+    def update(self, events, scale_x=1.0, scale_y=1.0, offset_x=0, offset_y=0, dt=0.016):
         """
         Process one frame of input.
         scale_x/y and offset_x/y convert screen mouse coords → logical coords.
+        dt is delta time in seconds for cooldown tick-down.
         """
         self.scale_x = scale_x
         self.scale_y = scale_y
@@ -523,6 +567,11 @@ class InputManager:
         mx, my = pygame.mouse.get_pos()
         self.mouse_x = (mx - offset_x) / scale_x if scale_x != 0 else 0
         self.mouse_y = (my - offset_y) / scale_y if scale_y != 0 else 0
+
+        # Tick down per-action navigation cooldowns
+        for k in self._nav_cooldown:
+            if self._nav_cooldown[k] > 0:
+                self._nav_cooldown[k] = max(0.0, self._nav_cooldown[k] - dt)
 
         # Reset one-shot events
         for key in self.just_pressed:
@@ -614,6 +663,12 @@ class InputManager:
         for action_key in self._touch_held:
             if self._touch_held[action_key]:
                 self.actions[action_key] = True
+
+        try:
+            from debug_monitor import monitor
+            monitor.log_just_pressed(self.just_pressed, scene_name="InputMgr")
+        except ImportError:
+            pass
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 

@@ -108,10 +108,10 @@ class TitleScreen(Scene):
             if self.selected_index == 0:
                 self.assets.play_sound("level_complete.wav", volume=0.35)
                 self.manager.shared["game_mode"] = self._game_mode
-                self.manager.switch_to(SCENE_PLAYER_SELECT)
+                self.manager.switch_to(SCENE_PLAYER_SELECT, input_mgr=self.input_mgr)
             elif self.selected_index == 1:
                 self.assets.play_sound("jump.wav", volume=0.2)
-                self.manager.switch_to(SCENE_OPTIONS)
+                self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
             elif self.selected_index == 2:
                 self.assets.play_sound("box_open.wav", volume=0.2)
                 pygame.quit()
@@ -128,15 +128,25 @@ class TitleScreen(Scene):
 
         # Mouse click triggers
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN and self.elapsed > 0.5:
+            if event.type == pygame.MOUSEMOTION:
+                mx, my = input_mgr.mouse_x, input_mgr.mouse_y
+                if self.start_btn_rect.collidepoint(mx, my):
+                    self.selected_index = 0
+                elif self.options_btn_rect.collidepoint(mx, my):
+                    self.selected_index = 1
+                elif self.exit_btn_rect.collidepoint(mx, my):
+                    self.selected_index = 2
+                elif self.fullscreen_btn_rect.collidepoint(mx, my):
+                    self.selected_index = 3
+            elif event.type == pygame.MOUSEBUTTONDOWN and self.elapsed > 0.5:
                 mx, my = input_mgr.mouse_x, input_mgr.mouse_y
                 if self.start_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("level_complete.wav", volume=0.35)
                     self.manager.shared["game_mode"] = self._game_mode
-                    self.manager.switch_to(SCENE_PLAYER_SELECT)
+                    self.manager.switch_to(SCENE_PLAYER_SELECT, input_mgr=self.input_mgr)
                 elif self.options_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("jump.wav", volume=0.2)
-                    self.manager.switch_to(SCENE_OPTIONS)
+                    self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
                 elif self.exit_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("box_open.wav", volume=0.2)
                     pygame.quit()
@@ -154,17 +164,8 @@ class TitleScreen(Scene):
         if self.fade_alpha > 0:
             self.fade_alpha = max(0, self.fade_alpha - 200 * dt)
 
-        # Track mouse hovers (sync mouse hover with selected_index)
+        # Track mouse hovers
         mx, my = self.input_mgr.mouse_x, self.input_mgr.mouse_y
-
-        if self.start_btn_rect.collidepoint(mx, my):
-            self.selected_index = 0
-        elif self.options_btn_rect.collidepoint(mx, my):
-            self.selected_index = 1
-        elif self.exit_btn_rect.collidepoint(mx, my):
-            self.selected_index = 2
-        elif self.fullscreen_btn_rect.collidepoint(mx, my):
-            self.selected_index = 3
 
         self.hover_start      = (self.selected_index == 0)
         self.hover_options    = (self.selected_index == 1)

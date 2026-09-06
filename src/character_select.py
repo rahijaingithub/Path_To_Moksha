@@ -59,7 +59,7 @@ class CharacterSelect(Scene):
 
     def handle_events(self, events, input_mgr):
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
-            self.manager.switch_to(SCENE_PLAYER_SELECT)
+            self.manager.switch_to(SCENE_PLAYER_SELECT, input_mgr=self.input_mgr)
             return
 
         if input_mgr.just_pressed[input_mgr.LEFT] or input_mgr.just_pressed[input_mgr.MENU_LEFT]:
@@ -76,13 +76,14 @@ class CharacterSelect(Scene):
 
 
         mx, my = input_mgr.mouse_x, input_mgr.mouse_y
-        for i, rect in enumerate(self.card_rects):
-            if rect.collidepoint(mx, my):
-                self.selected = i
-
-        # Click on card
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEMOTION:
+                for i, rect in enumerate(self.card_rects):
+                    if rect.collidepoint(mx, my):
+                        if self.selected != i:
+                            self.selected = i
+                            self.assets.play_sound("jump.wav", volume=0.08)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 for i, rect in enumerate(self.card_rects):
                     if rect.collidepoint(mx, my):
                         self.selected = i
@@ -106,27 +107,19 @@ class CharacterSelect(Scene):
         start_lvl = self.manager.shared.get("starting_level", 1)
         # Developer shortcut: negative values jump to transition scene directly
         if start_lvl == -1:
-            self.manager.switch_to(SCENE_TRANSITION, next_level=2, to_be_continued=False)
+            self.manager.switch_to(SCENE_TRANSITION, next_level=2, to_be_continued=False, input_mgr=self.input_mgr)
         elif start_lvl == -2:
-            self.manager.switch_to(SCENE_TRANSITION, next_level=3, to_be_continued=False)
+            self.manager.switch_to(SCENE_TRANSITION, next_level=3, to_be_continued=False, input_mgr=self.input_mgr)
         else:
             self.manager.shared["current_level"] = start_lvl
             self.manager.shared["total_time"] = 0.0
-            self.manager.switch_to(SCENE_LEVEL, level=start_lvl)
+            self.manager.switch_to(SCENE_LEVEL, level=start_lvl, input_mgr=self.input_mgr)
 
 
     def update(self, dt):
         self.elapsed += dt
         if self.fade_alpha > 0:
             self.fade_alpha = max(0, self.fade_alpha - 300 * dt)
-
-        # Dynamic mouse hover selects devotee card
-        mx, my = self.input_mgr.mouse_x, self.input_mgr.mouse_y
-        for i, rect in enumerate(self.card_rects):
-            if rect.collidepoint(mx, my):
-                if self.selected != i:
-                    self.selected = i
-                    self.assets.play_sound("jump.wav", volume=0.08)
 
         # Spawn background mist sparkles
         self.sparkle_timer += dt

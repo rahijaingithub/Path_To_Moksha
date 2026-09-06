@@ -212,11 +212,11 @@ class TutorialScene(Scene):
 
     def _go_start(self):
         self.assets.play_sound("level_complete.wav", volume=0.3)
-        self.manager.switch_to(SCENE_PLAYER_SELECT)
+        self.manager.switch_to(SCENE_PLAYER_SELECT, input_mgr=self.input_mgr)
 
     def _go_back(self):
         self.assets.play_sound("jump.wav", volume=0.15)
-        self.manager.switch_to(self.return_scene)
+        self.manager.switch_to(self.return_scene, input_mgr=self.input_mgr)
 
 
     # ── Update ───────────────────────────────────────────────────────────────
