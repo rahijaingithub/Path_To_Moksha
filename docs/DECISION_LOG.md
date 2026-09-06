@@ -49,3 +49,10 @@ This document records the chronological design decisions and architectural pivot
     dependency for no capability we need.
 * **Decision:** `docs/GDD_v2_refined.txt` is the spec of record; the "Not in spec" items
   in `docs/V2_GAP_ANALYSIS.md` are open questions, not silent deletions.
+
+## Phase 5b: v2 design decisions (2026-09-06, designer)
+* **Scoring:** leaderboard points are a pure function of total time (lower time = higher points). Rationale: spec says the winner is the fastest devotee; points keep the existing leaderboard UI.
+* **Levels 3–4 gating:** kid/standard stop at Level 2 only until L3/L4 are complete. Rationale: unfinished content should not be reachable in release modes.
+* **Level 2 snakes stay** as hazards, with water + fire added alongside. Rationale: designer's call; snakes are an established v1 element.
+* **Level 2 flight after Akshat stays.** Rationale: signature v1 moment; to be written into the spec.
+* **Monk reward:** no camera pan (single-screen levels); highlight + pulse fulfils the spec line.
