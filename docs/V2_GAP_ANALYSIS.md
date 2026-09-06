@@ -10,7 +10,7 @@ matches the spec; "Gap" means it does not. Nothing here is inferred from memory.
 | Box definitions for all 4 levels | **Done** — `box_system.LEVEL_BOX_DEFS` matches spec item-for-item |
 | Box categories incl. No-Effect (Wrong Lakshan) | **Done** |
 | Support item *distinct effects* (speed boost, water immunity, fire clear, reveal platforms, jump boost) | **Gap** — every support item does the same thing: `+15s` (`box_system._apply_item`) |
-| Water + Fire hazards in every level | **Gap in L2** — L2 has two patrolling *snakes* and no water/fire (`hazards.py:158-164`) |
+| Water + Fire hazards in every level | **Resolved by decision (2026-09-06)** — hazards are designer-defined per level; L2 keeps snakes only (`hazards.py:158-164`) |
 | Distinct hazard behaviour (water slows, fire stuns) | **Gap** — both give `-30s` + 1s stun (`hazards.py:14-16`) |
 | L2 moving stone platforms | **Gap** — all platforms static (`level_layouts.py`) |
 | L3 disappearing marble tiles | **Gap** — docstring says "disappearing-style", nothing implements it |
@@ -33,7 +33,7 @@ matches the spec; "Gap" means it does not. Nothing here is inferred from memory.
 1. **Flight in Level 2** — after finding Akshat the player can fly to a Bhagwan platform
    (`level_scene.py:47,562,692`; `level_goals.json` "Fly to the Bhagwan…"). A deliberate v1
    design; not in `GDD_v2_refined.txt`.
-2. **Snakes as hazards in Level 2** — spec makes the Snake a *support* Lakshan, not a threat.
+2. **Snakes as hazards in Level 2** — designer decision: keep; spec amended.
 3. **"To be continued" after Level 2** in kid/standard modes — a v1 release cut, not a design.
 4. **Three game modes** (kid / standard / developer) affecting platform visibility and game-over.
 5. **Level-2-only jump-force table** (`settings.LEVEL_JUMP_FORCES`).

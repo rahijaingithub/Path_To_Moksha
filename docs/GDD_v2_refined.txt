@@ -243,8 +243,13 @@ THE BOX SYSTEM ("Box Roulette")
       Contact causes a time penalty or character stun.
     Fire Hazard: Represents Kashaya (passions) — anger, ego, greed, deceit.
       Contact causes a time penalty or character stun.
-    Both Water and Fire hazards appear in every level. Their visual form
+    DEFAULT: Water and Fire hazards appear in every level. Their visual form
     and intensity scale with level difficulty.
+    AMENDMENT (2026-09-06, designer): Hazard types are DESIGNER-DEFINED per
+    level. Water/Fire is the default set, not a rule. A level may substitute
+    or add hazards (e.g. Level 2 uses patrolling Snakes and has no Water or
+    Fire). Each hazard must still carry a Jain meaning, recorded in
+    docs/DECISION_LOG.md.
 
 ================================================================================
 III. LEVEL ARCHITECTURE (THE CLIMB)
@@ -309,12 +314,13 @@ LEVEL 2: THE CAVE  (Resilience)
   Goal Item:
     Samagri (Akshat — sacred rice) hidden in one of the boxes.
 
-  Hazards:
-    Water: Rain shafts and waterfalls (Upsarg — the trial of Kamatha).
-           Contact stuns the player and drains time.
-    Fire:  Torch sconces that flare unexpectedly. Ember showers from above.
-    Note:  The Lakshan (Snake) support item grants temporary immunity to
-           the Water hazard, mirroring Dharanendra's protection of the Lord.
+  Hazards (AMENDED 2026-09-06 — designer-defined, see Hazard System):
+    Snakes: Patrolling cave snakes on the floor and a mid platform.
+            Contact stuns the player and drains time. (Implemented in v1.)
+    No Water or Fire hazards in this level.
+    Note:  The Lakshan (Snake) support item's effect is to be defined against
+           the snake hazards (e.g. temporary immunity), mirroring Dharanendra's
+           protection of the Lord.
 
   Platforming Difficulty:
     Medium. Moving stone platforms (floating in water channels). Wider gaps.

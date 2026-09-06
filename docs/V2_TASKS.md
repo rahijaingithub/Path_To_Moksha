@@ -41,7 +41,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
 | D1 | Support items get distinct effects: TTC Bus/Car speed boost; Ghanta hazard repel; Snake water immunity; Chanvar fire clear; Lion reveal; Bull jump boost | `box_system.py`, `level_scene.py` (Player), `hazards.py` | L | unit tests per effect + playtest #12 |
-| D2 | Level 2: keep snakes (Q3 decided); add water + fire hazards *alongside* them per spec — confirm placement with designer | `hazards.py` | M | A2 + playtest #6 |
+| D2 | Level 2: snakes are the hazard set (Q3 decided). No water/fire in L2. Spec amended: hazards are designer-defined per level | `hazards.py` | M | A2 + playtest #6 |
 | D3 | Level 2 moving stone platforms | `level_layouts.py`, `level_scene.py` | M | playtest #6 |
 | D4 | Distinct hazard behaviour: water slows + drains; fire stuns | `hazards.py`, `level_scene.py` | S | unit test |
 | D5 | Keep L2 flight after Akshat (Q4 decided); add one paragraph to `docs/GDD_v2_refined.txt` documenting it | `docs/` | S | — |
@@ -67,7 +67,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 ## Designer decisions (2026-09-06)
 - **Q1 Scoring:** points derived only from total time, so ordering matches the spec. (Bonuses remain optional/future.)
 - **Q2 Kid/standard end after L2** only because L3/L4 are unfinished; open them when Epics B+C are done. Designer has further ideas — see brainstorming.
-- **Q3 Level 2 snakes:** keep. Water + fire to be added alongside per spec (placement to confirm).
+- **Q3 Level 2 snakes:** keep, and **no** water/fire in Level 2. Spec amended so hazard types are designer-defined per level (Water/Fire is the default, not a rule).
 - **Q4 Level 2 flight after Akshat:** keep; document in spec.
 - **Q5 Monk reward:** highlight + pulse, no camera pan.
 
