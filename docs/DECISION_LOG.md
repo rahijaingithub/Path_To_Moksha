@@ -123,3 +123,28 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     flight descent) OR into a single flag and were left alone.
 * **Not addressed, logged for later:** there is still no `DOWN` action constant;
   Level-2 flight descent reads raw `K_DOWN/K_s`. Works, but violates the invariant.
+
+## Phase 6c: player-reported fixes, mechanical half (2026-09-07)
+* **Decision:** Shuffle monk answer order at monk creation, on a copy of the pool dict.
+  * *Rationale:* All 32 questions in both banks have `"correct": 0`, so the quiz was
+    clearable without reading anything. Grading is index-based, so re-pointing
+    `correct` suffices. Copy, because the dict is owned by the shared pool. Not in
+    `draw_dialogue`, which runs every frame.
+* **Decision:** Three options (1 correct + 2 distractors) is NOT implemented yet.
+  * *Rationale:* Needs 32 authored distractors — a wrong-but-plausible Jain answer
+    teaches, a silly one does not — plus a dialogue-box layout change. Content design,
+    not a code change. Several existing distractors are already obviously silly, so
+    shuffling alone does not fully fix guessability.
+* **Decision:** Frame counts derive from strip height via one `strip_frame_count()`
+  helper; the hardcoded `// 128` at both animation-update sites is gone.
+  * *Rationale:* Only the boy's sheets are normalized to 128px. The update path counted
+    the girl's frames ~4x over and the draw path clamped, freezing her pose mid-cycle.
+* **Decision:** `prepare_player_sprites.py` gains the twelve missing girl entries and an
+  idempotency guard, but was **not run**.
+  * *Rationale:* The script overwrites in place and re-slicing finished strips would
+    destroy the art. Normalizing the girl sheets also changes her on-screen scale —
+    a designer call, and unnecessary now that frame size is derived.
+* **Open, needs designer ruling:** "never fly above the Parshvanath picture" and "never
+  jump above the Monk's head" share one mechanism — a volume the player may not enter,
+  which the engine has no precedent for. Note the normal approach path to the Monk
+  already arcs ~110px over his head, so this cannot be framed as blocking an exploit.
