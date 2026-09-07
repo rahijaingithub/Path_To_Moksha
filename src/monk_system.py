@@ -357,6 +357,29 @@ def create_monk(level, platforms, hazards, asked_questions, game_mode="kid"):
     selected_q = random.choice(candidates)
     asked_questions.append(selected_q["question"])
 
+    # Shuffle the answer order. Every one of the 32 questions across both banks
+    # ships with "correct": 0, so the quiz could be cleared perfectly without
+    # reading a single question — which defeats the whole point of the Monk.
+    # Grading is by index (submit_answer compares selected_choice to
+    # q["correct"]), so re-pointing "correct" is all that is required.
+    #
+    # Copy before mutating: `selected_q` is the dict owned by the shared
+    # question pool, and shuffling it in place would persist for every later
+    # monk in the session. Done once here at creation, never in the per-frame
+    # draw path. `asked_questions` keys on question text, which is unchanged.
+    paired = list(enumerate(selected_q.get("choices", [])))
+    if len(paired) > 1:
+        original_correct = selected_q.get("correct", 0)
+        random.shuffle(paired)
+        selected_q = dict(selected_q)
+        selected_q["choices"] = [text for _, text in paired]
+        selected_q["correct"] = next(
+            (new_index
+             for new_index, (old_index, _) in enumerate(paired)
+             if old_index == original_correct),
+            0,
+        )
+
     # Fixed positions for Monk in Level 1 and Level 2
     target_platform = None
     if level == 1:

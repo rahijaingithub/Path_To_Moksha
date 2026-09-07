@@ -37,3 +37,16 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 20. [ ] Enter/leave every scene twice in a row: no input lockup, no stale score shown.
 21. [ ] Analog stick held on menu, then released: selection stops moving.
 22. [ ] Missing asset test: temporarily rename one PNG → pink placeholder, no crash.
+23. [ ] **Keyboard-only, no mouse, no gamepad, from a cold start:** reach Options,
+        then the tutorial, then start a level. (Item 4 above already covered this
+        and was never ticked; the keyboard could not navigate any menu at all.)
+24. [ ] Press **UP** to jump — not just SPACE. Both must work everywhere.
+25. [ ] Level 2 after Akshat: hold SPACE to fly, tap and release UP mid-flight —
+        flight must not stutter or drop.
+26. [ ] Tutorial: each arrow-key tap moves **one** tab, not two.
+27. [ ] Monk question on a keyboard: tapping SPACE must NOT move the highlight.
+        Up/Down move it; Enter submits. Confirm you can return to the first option.
+28. [ ] Monk questions: play several and confirm the correct answer is **not**
+        always the top option. (All 32 questions ship with correct at index 0.)
+29. [ ] Play as the **girl** character and watch the walk/run/idle/jump/fall
+        animations: the drawn pose must change, not freeze mid-cycle.

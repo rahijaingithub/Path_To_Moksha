@@ -23,6 +23,23 @@ from settings import (
 )
 
 
+def strip_frame_count(strip):
+    """Number of frames in a player sprite strip.
+
+    Frames are square, with side == strip height. This must be derived, never
+    hardcoded to 128: `prepare_player_sprites.py` normalises frames to 128x128,
+    but its SPRITE_GRID lists **boy files only**, so the girl strips are still at
+    their source resolution (416-720px tall). Assuming 128 over-counts the girl's
+    frames roughly four-fold — e.g. player_girl_walk_right.png is 2048x512, which
+    is 4 frames of 512px, not 16 of 128px — so the animation indexes past the end
+    of the cycle and the drawn pose sticks while the character slides.
+    """
+    frame_h = strip.get_height()
+    if frame_h <= 0:
+        return 1
+    return max(1, strip.get_width() // frame_h)
+
+
 def get_item_image_name(name):
     """Convert item name string to standard image filename."""
     name_clean = name.lower()
@@ -605,7 +622,7 @@ class LevelScene(Scene):
                 facing = "right" if p.facing_right else "left"
                 strip = self.player_strips.get(f"{self.anim_state}_{facing}")
                 if strip:
-                    n_frames = strip.get_width() // 128
+                    n_frames = strip_frame_count(strip)
                     self.anim_frame = (self.anim_frame + 1) % n_frames
 
             self.box_system.update(dt, self.elapsed)
@@ -756,7 +773,7 @@ class LevelScene(Scene):
             facing = "right" if p.facing_right else "left"
             strip = self.player_strips.get(f"{self.anim_state}_{facing}")
             if strip:
-                n_frames = strip.get_width() // 128
+                n_frames = strip_frame_count(strip)
                 self.anim_frame = (self.anim_frame + 1) % n_frames
 
         # Spawn dust trail when running
@@ -956,7 +973,7 @@ class LevelScene(Scene):
             # Girl strips: 416–720px tall → larger square frames.
             frame_h = strip.get_height()
             frame_w = frame_h  # square frames in all sprite sheets
-            n_frames = max(1, strip.get_width() // frame_w)
+            n_frames = strip_frame_count(strip)
             frame_idx = min(self.anim_frame, n_frames - 1)
             frame_surf = strip.subsurface((frame_idx * frame_w, 0, frame_w, frame_h))
 
