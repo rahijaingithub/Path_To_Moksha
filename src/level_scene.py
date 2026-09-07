@@ -259,7 +259,7 @@ class LevelScene(Scene):
 
         # Play level-specific background music
         vol = self.manager.shared.get("music_volume", 0.35)
-        bgm_track = f"level{self.level}_bgm.wav" if os.path.exists(os.path.join(ASSETS_DIR, "audio", "bgm", f"level{self.level}_bgm.wav")) else "bgm_loop.wav"
+        bgm_track = f"level{self.level}_bgm.wav" if os.path.exists(os.path.join(ASSETS_DIR, "audio", "bgm", f"level{self.level}_bgm.wav")) else "bgm_loop.ogg"
         self.assets.play_music(bgm_track, volume=vol)
 
         self._score_registered = False

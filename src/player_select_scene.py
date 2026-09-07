@@ -329,7 +329,7 @@ class PlayerSelectScene(Scene):
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:
-            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level, input_mgr=self.input_mgr))
+            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level), input_mgr=self.input_mgr)
         else:
             self.manager.switch_to(SCENE_LEVEL, level=starting_level, input_mgr=self.input_mgr)
 

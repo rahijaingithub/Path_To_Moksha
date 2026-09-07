@@ -70,7 +70,7 @@ class LeaderboardScene(Scene):
         self.font_small = self.assets.load_font(None, GAME_FONT_SIZE_SMALL)
 
         # Play victory / high score music
-        self.assets.play_music("bgm_loop.wav", volume=0.35)
+        self.assets.play_music("bgm_loop.ogg", volume=0.35)
 
     def handle_events(self, events, input_mgr):
         if self.elapsed < 0.3:
@@ -148,7 +148,7 @@ class LeaderboardScene(Scene):
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:
-            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level, input_mgr=self.input_mgr))
+            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level), input_mgr=self.input_mgr)
         else:
             self.manager.switch_to(SCENE_LEVEL, level=starting_level, input_mgr=self.input_mgr)
 

@@ -89,7 +89,7 @@ class TitleScreen(Scene):
         self.font_small = self.assets.load_font(None, FONT_SIZE_SMALL)
 
         # Play title bgm if not already playing
-        self.assets.play_music("bgm_loop.wav", volume=self.manager.shared.get("music_volume", 0.35))
+        self.assets.play_music("bgm_loop.ogg", volume=self.manager.shared.get("music_volume", 0.35))
 
         # Menu navigation index (0: Start, 1: Options, 2: Exit, 3: Fullscreen)
         self.selected_index = 0

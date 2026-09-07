@@ -252,6 +252,10 @@ class ControllerMappingPortabilityTests(unittest.TestCase):
                 windows_manager.custom_mappings = {}
                 with mock.patch("builtins.print"):
                     windows_manager._load_custom_mappings()
+                self.assertIsNone(
+                    windows_manager._pending_raw_map,
+                    "Darwin must not stage a Windows DirectInput mapping",
+                )
                 self.assertEqual(
                     windows_manager.custom_mappings,
                     {},
@@ -273,9 +277,15 @@ class ControllerMappingPortabilityTests(unittest.TestCase):
                 with mock.patch("builtins.print"):
                     darwin_manager._load_custom_mappings()
                 self.assertEqual(
-                    darwin_manager.custom_mappings,
+                    darwin_manager._pending_raw_map,
                     {"jump": [darwin_binding]},
-                    "Darwin should load a mapping captured on Darwin",
+                    "Darwin should stage a mapping captured on Darwin",
+                )
+                self.assertEqual(
+                    darwin_manager.custom_mappings,
+                    {},
+                    "A staged mapping is only applied once a controller is "
+                    "connected, by _validate_and_apply_mappings()",
                 )
 
 

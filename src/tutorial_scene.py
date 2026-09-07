@@ -111,7 +111,7 @@ class TutorialScene(Scene):
             "title_background.png", "backgrounds",
             alpha=False, scale=(LOGICAL_WIDTH, LOGICAL_HEIGHT)
         )
-        self.assets.play_music("bgm_loop.wav", volume=0.3)
+        self.assets.play_music("bgm_loop.ogg", volume=0.3)
 
 
     # ── Events ───────────────────────────────────────────────────────────────

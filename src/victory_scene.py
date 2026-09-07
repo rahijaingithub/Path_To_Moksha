@@ -77,7 +77,7 @@ class VictoryScene(Scene):
         )
 
         # Play peaceful victory music/drone loop
-        self.assets.play_music("bgm_loop.wav", volume=0.25)
+        self.assets.play_music("bgm_loop.ogg", volume=0.25)
 
     def handle_events(self, events, input_mgr):
         if self.elapsed > 1.0:

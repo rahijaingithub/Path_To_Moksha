@@ -56,3 +56,32 @@ This document records the chronological design decisions and architectural pivot
 * **Level 2 snakes stay** as the only hazards; no water/fire in L2. The spec's "Water AND Fire in every level" rule is relaxed to a default: hazard types are designer-defined per level. Rationale: designer's call; snakes are an established v1 element.
 * **Level 2 flight after Akshat stays.** Rationale: signature v1 moment; to be written into the spec.
 * **Monk reward:** no camera pan (single-screen levels); highlight + pulse fulfils the spec line.
+
+## Phase 6: v1 maintenance — CI unblock (2026-09-07)
+Track 1 work: repair only, no design committed. Undertaken in parallel with v2
+discovery because none of it forecloses a v2 option.
+
+* **Decision:** Fix the five `bgm_loop.wav` call sites to `bgm_loop.ogg` rather than
+  relax `test_source_referenced_assets_exist_with_exact_case`.
+  * *Rationale:* The file on disk is `.ogg`; `AssetManager.play_music` has an extension
+    fallback, so music plays and no player ever saw a fault — but the code and its own
+    test disagreed. CLAUDE.md DoD #5 requires exact-case asset references, so the code
+    was wrong, not the test.
+* **Decision:** Retarget `test_darwin_rejects_windows_map_and_accepts_darwin_map` at
+  `_pending_raw_map` instead of `custom_mappings`.
+  * *Rationale:* This was a **stale test, not a macOS bug.** `_load_custom_mappings` was
+    refactored to stage the map and defer application to
+    `_validate_and_apply_mappings()` once a controller is known; the test still asserted
+    the pre-refactor contract. The platform gate it exists to protect is intact, so the
+    assertions were moved to what the gate now controls rather than weakened.
+* **Decision:** Remove the `commit-builds` CI job (implements V2_TASKS A1).
+  * *Rationale:* It ran `git add dist/PathToMoksha.exe`, which cannot succeed against the
+    already-logged decision to stop tracking `dist/`. Builds remain reachable as workflow
+    artifacts (30 days) and as Release assets on a `v*` tag. `.gitattributes` keeps its
+    LFS filters for `dist/*` — harmless, and history still holds LFS objects.
+* **Decision:** Run CI on pushes to `v2-dev`, not just `main`.
+  * *Rationale:* All v2 work happens on `v2-dev`, so breakage was invisible until merge.
+    `release` stays gated on `v*` tags.
+* **Fix:** `abs(starting_level, input_mgr=...)` → `abs(starting_level), input_mgr=...` in
+  `player_select_scene.py:332` and `leaderboard_scene.py:151`. A misplaced paren; a
+  guaranteed `TypeError`, reachable only in developer mode via a negative `DEV_SEQ` entry.
