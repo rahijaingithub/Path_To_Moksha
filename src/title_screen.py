@@ -93,8 +93,32 @@ class TitleScreen(Scene):
 
         # Menu navigation index (0: Start, 1: Options, 2: Exit, 3: Fullscreen)
         self.selected_index = 0
+        # True while the "really quit?" prompt is showing.
+        self.confirm_quit = False
+
+    def _quit_game(self):
+        pygame.quit()
+        import sys
+        sys.exit()
 
     def handle_events(self, events, input_mgr):
+        # ── Quit confirmation ─────────────────────────────────────────────────
+        # ESC used to call sys.exit() outright. ESC is the key people reach for
+        # to mean "back", so the game closed under anyone who tried to back out
+        # of the title screen — with no prompt and nothing saved.
+        if self.confirm_quit:
+            if (input_mgr.just_pressed[input_mgr.ACTION]
+                    or input_mgr.just_pressed[input_mgr.MENU_SELECT]):
+                self.assets.play_sound("box_open.wav", volume=0.2)
+                self._quit_game()
+            elif (input_mgr.just_pressed[input_mgr.BACK]
+                    or input_mgr.just_pressed[input_mgr.MENU_BACK]):
+                self.confirm_quit = False
+                self.assets.play_sound("jump.wav", volume=0.12)
+            # Swallow everything else while the prompt is up, so the menu behind
+            # it cannot be navigated or activated.
+            return
+
         # Controller / Keyboard Menu Navigation (Up / Down)
         if input_mgr.just_pressed[input_mgr.MENU_UP]:
             self.selected_index = (self.selected_index - 1) % 4
@@ -113,18 +137,15 @@ class TitleScreen(Scene):
                 self.assets.play_sound("jump.wav", volume=0.2)
                 self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
             elif self.selected_index == 2:
-                self.assets.play_sound("box_open.wav", volume=0.2)
-                pygame.quit()
-                import sys
-                sys.exit()
+                self.assets.play_sound("jump.wav", volume=0.2)
+                self.confirm_quit = True
             elif self.selected_index == 3:
                 self.assets.play_sound("jump.wav", volume=0.2)
                 input_mgr.just_pressed[input_mgr.FULLSCREEN] = True
 
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
-            pygame.quit()
-            import sys
-            sys.exit()
+            self.assets.play_sound("jump.wav", volume=0.12)
+            self.confirm_quit = True
 
         # Mouse click triggers
         for event in events:
@@ -148,10 +169,8 @@ class TitleScreen(Scene):
                     self.assets.play_sound("jump.wav", volume=0.2)
                     self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
                 elif self.exit_btn_rect.collidepoint(mx, my):
-                    self.assets.play_sound("box_open.wav", volume=0.2)
-                    pygame.quit()
-                    import sys
-                    sys.exit()
+                    self.assets.play_sound("jump.wav", volume=0.2)
+                    self.confirm_quit = True
                 elif self.fullscreen_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("jump.wav", volume=0.2)
                     input_mgr.just_pressed[input_mgr.FULLSCREEN] = True
@@ -346,3 +365,25 @@ class TitleScreen(Scene):
             fade.fill(COLOR_BG_DARK)
             fade.set_alpha(int(self.fade_alpha))
             surface.blit(fade, (0, 0))
+
+        # Quit confirmation — drawn last so it sits above everything.
+        if self.confirm_quit:
+            dim = pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT), pygame.SRCALPHA)
+            dim.fill((0, 0, 0, 190))
+            surface.blit(dim, (0, 0))
+
+            box = pygame.Rect(0, 0, 900, 300)
+            box.center = (LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)
+            panel = pygame.Surface(box.size, pygame.SRCALPHA)
+            panel.fill((18, 16, 28, 245))
+            surface.blit(panel, box.topleft)
+            pygame.draw.rect(surface, COLOR_GOLD, box, width=3, border_radius=8)
+
+            title = self.font_subtitle.render("Leave the pilgrimage?", True, COLOR_GOLD_BRIGHT)
+            surface.blit(title, title.get_rect(center=(box.centerx, box.top + 90)))
+
+            hint = self.font_body.render("Enter / A  —  Yes, quit", True, COLOR_CREAM)
+            surface.blit(hint, hint.get_rect(center=(box.centerx, box.top + 175)))
+
+            hint2 = self.font_body.render("Esc / B  —  No, stay", True, COLOR_WHITE)
+            surface.blit(hint2, hint2.get_rect(center=(box.centerx, box.top + 230)))

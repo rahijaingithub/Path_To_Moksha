@@ -195,6 +195,8 @@ class LevelScene(Scene):
         self.box_system = None
         self.monk = None
         self.invisible_blockers = []
+        self.paused = False
+        self.pause_choice = 0   # 0 = Resume, 1 = Quit to title
         self.hazards = []
         self.level = 1
         self.time_remaining = 0.0
@@ -347,6 +349,8 @@ class LevelScene(Scene):
         # width == 150), so any change to the rect silently made it visible.
         self.invisible_blockers = []
         self._add_monk_sacred_volume()
+        self.paused = False
+        self.pause_choice = 0
 
     def _add_blocker(self, rect):
         """Add a rect that collides like a platform but is never drawn."""
@@ -495,11 +499,38 @@ class LevelScene(Scene):
                                     self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
+        # ── Pause ─────────────────────────────────────────────────────────────
+        # While paused, swallow all other input so the level cannot be played
+        # behind the overlay.
+        if self.paused:
+            if (input_mgr.just_pressed[input_mgr.BACK]
+                    or input_mgr.just_pressed[input_mgr.MENU_BACK]):
+                self.paused = False
+                self.assets.play_sound("jump.wav", volume=0.12)
+            elif (input_mgr.just_pressed[input_mgr.ACTION]
+                    or input_mgr.just_pressed[input_mgr.MENU_SELECT]):
+                if self.pause_choice == 0:
+                    self.paused = False
+                    self.assets.play_sound("jump.wav", volume=0.12)
+                else:
+                    self.assets.play_sound("box_open.wav", volume=0.2)
+                    self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
+            elif (input_mgr.just_pressed[input_mgr.MENU_UP]
+                    or input_mgr.just_pressed[input_mgr.MENU_DOWN]):
+                self.pause_choice = 1 - self.pause_choice
+                self.assets.play_sound("jump.wav", volume=0.08)
+            return
+
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
             if self.monk and self.monk.dialogue_active:
                 self.monk.dialogue_active = False
             else:
-                self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
+                # Was: straight back to the title, discarding the run with no
+                # prompt — and a second ESC on the title then quit the game, so
+                # an interrupted player lost everything twice.
+                self.paused = True
+                self.pause_choice = 0
+                self.assets.play_sound("jump.wav", volume=0.12)
             return
 
         # Proximity interaction with the Temple Gate for Level 1
@@ -640,6 +671,12 @@ class LevelScene(Scene):
                 self.complete_timer = 3.0
 
     def update(self, dt):
+        # Paused: freeze everything, including the level countdown. Nothing in
+        # the scene advances, so a player who has to step away does not lose the
+        # run to the clock.
+        if self.paused:
+            return
+
         self.elapsed += dt
         if self.fade_alpha > 0:
             self.fade_alpha = max(0, self.fade_alpha - 300 * dt)
@@ -1459,3 +1496,35 @@ class LevelScene(Scene):
             fade.fill(COLOR_BG_DARK)
             fade.set_alpha(int(self.fade_alpha))
             surface.blit(fade, (0, 0))
+
+        # Pause overlay — drawn last so it sits above the HUD and the controls bar.
+        if self.paused:
+            dim = pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT), pygame.SRCALPHA)
+            dim.fill((0, 0, 0, 190))
+            surface.blit(dim, (0, 0))
+
+            box = pygame.Rect(0, 0, 820, 380)
+            box.center = (LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)
+            panel = pygame.Surface(box.size, pygame.SRCALPHA)
+            panel.fill((18, 16, 28, 245))
+            surface.blit(panel, box.topleft)
+            pygame.draw.rect(surface, COLOR_GOLD, box, width=3, border_radius=8)
+
+            heading = self.font_title.render("Paused", True, COLOR_GOLD_BRIGHT)
+            surface.blit(heading, heading.get_rect(center=(box.centerx, box.top + 75)))
+
+            options = ("Resume", "Quit to title (this run is lost)")
+            for index, label in enumerate(options):
+                selected = (index == self.pause_choice)
+                colour = COLOR_GOLD_BRIGHT if selected else COLOR_CREAM
+                text = ("> " + label) if selected else ("   " + label)
+                surf = self.font_body.render(text, True, colour)
+                surface.blit(
+                    surf, surf.get_rect(center=(box.centerx, box.top + 175 + index * 70))
+                )
+
+            hint = self.font_small.render(
+                "Up / Down to choose    Enter or A to confirm    Esc to resume",
+                True, COLOR_GOLD_DIM,
+            )
+            surface.blit(hint, hint.get_rect(center=(box.centerx, box.bottom - 45)))

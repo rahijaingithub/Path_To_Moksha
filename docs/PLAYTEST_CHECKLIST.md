@@ -58,3 +58,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         fly above the murti. No visible platform appears where the wall is.
 33. [ ] Levels 3-4 in developer mode: the Monk is placed randomly, so confirm his
         invisible column has not landed somewhere that blocks a needed route.
+34. [ ] **Esc on the title** shows "Leave the pilgrimage?" — it does not quit outright.
+        Esc again cancels; Enter/A quits. Same for the Exit menu item and mouse click.
+35. [ ] **Pause:** Esc mid-level opens the pause menu. The countdown clock stops.
+        Resume returns to play with the clock where it was; Quit to title discards
+        the run (and says so). Nothing behind the overlay responds while paused.

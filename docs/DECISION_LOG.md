@@ -148,3 +148,28 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   jump above the Monk's head" share one mechanism — a volume the player may not enter,
   which the engine has no precedent for. Note the normal approach path to the Monk
   already arcs ~110px over his head, so this cannot be framed as blocking an exploit.
+
+## Phase 6d: sacred volumes, quit confirmation, pause (2026-09-07)
+* **Decision (designer):** the rule "never above the Monk's head / the Parshvanath
+  murti" is enforced as an **invisible wall**.
+  * *Rationale:* Designer's ruling. Implemented as `invisible_blockers` — rects that
+    collide like platforms and are never drawn. Reachability was verified against real
+    geometry, not assumed, because the normal route to the Monk already arcs over his
+    head: the wall's underside sits 3px above where the player lands on his ledge, so
+    the jump bonks and drops instead of sailing over. That clearance is structurally
+    `Monk.HEIGHT - PLAYER_HEIGHT` and holds only while the devotee is shorter.
+* **Decision:** the Bhagwan draw-skip is membership in `invisible_blockers`, not a
+  geometry match.
+  * *Rationale:* it hardcoded `left == 15 and top == 150 and width == 150`, so any
+    change to the rect would silently have rendered the collision block as a platform.
+* **Decision (designer):** gamepad **A** confirms as well as jumps.
+  * *Rationale:* players reach for A to accept a menu item or answer the Monk. The
+    keyboard equivalent (SPACE) stays JUMP-only — binding it to confirm would move the
+    highlight and submit in the same frame.
+* **Decision:** ESC on the title screen prompts instead of quitting; ESC in a level
+  opens a pause menu instead of discarding the run.
+  * *Rationale:* ESC is the key people reach for to mean "back". It called `sys.exit()`
+    on the title, and in a level it dropped straight to the title and threw the run
+    away — so an interrupted player lost everything, twice. The game had no pause at
+    all (`grep -i pause src/*.py` returned nothing). Pausing freezes `update()`
+    entirely, so the countdown does not run down while the player is away.
