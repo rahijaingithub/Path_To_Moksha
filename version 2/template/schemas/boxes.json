@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "patternProperties": {
+    "^[0-9]+$": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cat": { 
+            "type": "string", 
+            "enum": ["goal", "support", "distraction", "no_effect"],
+            "description": "Core mechanics engine category"
+          },
+          "name": { "type": "string", "description": "Thematic name of the item" },
+          "desc": { "type": "string", "description": "Flavor text displayed on pickup" }
+        },
+        "required": ["cat", "name", "desc"]
+      }
+    }
+  }
+}

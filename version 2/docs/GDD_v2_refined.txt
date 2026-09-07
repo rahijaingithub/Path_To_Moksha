@@ -1,0 +1,666 @@
+================================================================================
+  GAME DESIGN DOCUMENT — REVIEW & REFINEMENT NOTES
+  "The Path to Moksha" — Arcade JSOT Pilgrimage Game
+  Review Date: May 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+SECTION A: ANALYZE — DEVIATIONS IDENTIFIED IN THE ORIGINAL GDD
+--------------------------------------------------------------------------------
+
+A careful comparison of the original Game_Play.txt against the core concept
+revealed 24 specific deviations. These are grouped by category below.
+
+STRUCTURAL OMISSION
+  [A-01] Character Select screen (Boy / Girl) is entirely absent from the GDD.
+          The core concept requires this as the first screen after the title.
+
+LEVEL 1 DEVIATIONS
+  [A-02] Hazards: GDD lists Water only. Core concept requires Water AND Fire,
+          both representing Paap/Obstacles.
+  [A-03] Support items: GDD lists only "TTC Bus." Core concept specifies
+          TTC Bus OR Personal Car as two distinct support options.
+  [A-04] Distraction items: GDD lists only "Pizza." Core concept specifies
+          Mobile, Food, and Movie Ticket as the three distraction types.
+  [A-05] Monk reward scope: GDD says monk highlights the Key box only.
+          Core concept says monk should also identify the Personal Car box.
+  [A-06] Transition: GDD describes an "animation of removing shoes in front
+          of the temple." Core concept specifies a Background Image of the
+          actual JSOT Temple with the character walking toward it.
+
+LEVEL 2 DEVIATIONS
+  [A-07] Goal Item: GDD says "Samagri (Jal/Water)." Core concept says
+          "Samagri (Akshat)." Direct factual contradiction.
+  [A-08] Hazards: GDD lists Rain/Waterfalls only. Core concept requires
+          Water AND Fire in every level.
+  [A-09] Support items: GDD lists only "Lakshan (Snake)." Core concept
+          specifies Ghanta OR Lakshan (Snake) as two distinct support options.
+  [A-10] No-effect box: Core concept introduces a "Wrong Lakshan" mechanic
+          (example: Bull in Level 2) that has no positive or negative effect.
+          The GDD does not define this mechanic at all.
+  [A-11] Distraction items: GDD lists only "Mobile Phone." Core concept
+          specifies Mobile, Friend, and Foe as the three distraction types.
+  [A-12] Transition: GDD says "animation of bowing to Parshvanath Idol."
+          Core concept requires an Image of Parshvanath Bhagwan to be
+          displayed alongside the bowing animation.
+
+LEVEL 3 DEVIATIONS
+  [A-13] Goal Item: GDD says "Samagri (Chandan/Sandalwood)." Core concept
+          says "Samagri (Akshat)." Direct factual contradiction.
+  [A-14] Hazards: GDD lists Fire pits only. Core concept requires Water AND
+          Fire in every level.
+  [A-15] Support items: GDD lists only "Lakshan (Lion)." Core concept
+          specifies Chanvar OR Lakshan (Lion) as two distinct support options.
+  [A-16] No-effect box: Wrong Lakshan mechanic (example: Bull) is absent.
+  [A-17] Distraction items: GDD lists only "Friend." Core concept specifies
+          Mobile, Friend, and Foe as the three distraction types.
+  [A-18] Transition: GDD says "animation of bowing to Mahavir Idol." Core
+          concept requires an Image of Mahavir Bhagwan to be displayed.
+
+LEVEL 4 DEVIATIONS
+  [A-19] Hazards: GDD describes "Thin air (Gravity changes), steep falls"
+          — unique hazards not in the core concept. Core concept requires
+          Water AND Fire consistently across all four levels.
+  [A-20] Support items: GDD lists only "Lakshan (Bull)." Core concept
+          specifies Ghanta, Chanvar, OR Lakshan (Bull) — three options.
+  [A-21] No-effect box: Wrong Lakshan mechanic (example: Lion in Level 4)
+          is absent.
+  [A-22] Distraction items: GDD lists only "Foe." Core concept specifies
+          Mobile, Friend, and Foe.
+  [A-23] Transition: GDD says "animation of bowing to Adinath Idol." Core
+          concept requires an Image of Adinath Bhagwan to be displayed.
+
+SCORING DEVIATION
+  [A-24] The GDD introduces a complex three-part score formula (Time Bonus +
+          Focus Bonus + Wisdom Bonus) and named rankings (Moksha Margi,
+          Shravak, Bhakt). The core concept defines the Winning Score simply
+          as the total time taken to complete the game — lower is better.
+
+--------------------------------------------------------------------------------
+SECTION B: EVALUATE — CRITIQUE
+--------------------------------------------------------------------------------
+
+What the GDD gets RIGHT (retained in the refined version):
+  (+) Title "The Path to Shikhar" — evocative, spiritually resonant.
+  (+) Core Philosophy "Guidance over Gating" — perfectly captures the monk
+      mechanic's intent and reward structure.
+  (+) Level thematic names: The Commute (Samsara), The Cave (Resilience),
+      The Hall (Valor), The Summit (Moksha) — each name reflects both the
+      physical setting and a spiritual state the player must traverse.
+  (+) Level settings (Toronto cityscape, stone cave, marble hall, mountain
+      summit) — rich visual context that adds meaning without contradiction.
+  (+) Monk placement locations (bus stop, cave alcove, marble lotus, peak
+      ledge) — imaginative and contextually appropriate.
+  (+) Spiritual questions — well-researched, correct, and thematically tied
+      to each Bhagwan. Retained as-is.
+  (+) Victory screen showing Digambar Garbhalaya — matches core concept.
+  (+) Box Roulette structure (1 Goal, 2 Support, 3 Distraction) — a clean
+      and playable distribution for 6 boxes. Retained and extended with the
+      no-effect Wrong Lakshan category as needed.
+
+What the GDD gets WRONG (corrected in the refined version):
+  (-) The Samagri items (Jal in L2, Chandan in L3) appear to be the author's
+      own creative interpretation. While thematically interesting (Jal ties
+      to Parshvanath's serpent-shield story; Chandan to Mahavir's puja), they
+      contradict the core concept, which specifies Akshat uniformly. The core
+      concept must take precedence.
+  (-) Fire is dropped from L1, L2, and L4 entirely — a significant omission
+      since Fire alongside Water is the core hazard metaphor throughout.
+  (-) Support items are consistently underdefined. Ghanta and Chanvar are
+      important Jain ritual objects whose inclusion was specifically requested
+      and carry cultural meaning.
+  (-) The Wrong Lakshan / no-effect box is a nuanced and well-designed mechanic
+      the GDD ignores completely, flattening what should be a three-tier box
+      system (Goal / Support / Distraction / No-Effect) per level.
+  (-) All four transitions omit the Bhagwan images that are central to the
+      spiritual experience the game is trying to create.
+  (-) The scoring system overcomplicates the user's clear, elegant directive:
+      the winner is the fastest devotee.
+  (-) The named rankings (Moksha Margi, Shravak, Bhakt) are creative but
+      were not requested. They have been retained as an OPTIONAL enhancement,
+      clearly labelled as such, rather than elevated to core mechanics.
+
+--------------------------------------------------------------------------------
+SECTION C: REFINED APPROACH
+--------------------------------------------------------------------------------
+
+The following principles guided all corrections:
+
+  1. Core concept is authoritative. Where GDD and core concept conflict,
+     the core concept wins without exception.
+  2. Good GDD additions are retained. Thematic naming, spiritual questions,
+     and setting descriptions are preserved — they strengthen the document
+     without contradicting anything.
+  3. Consistency is enforced. Water AND Fire appear as hazards in all four
+     levels. Akshat is the goal Samagri across Levels 2, 3, and 4.
+  4. The no-effect box mechanic is fully documented for all levels.
+  5. Scoring is simplified to match the core concept. Rankings are noted
+     as optional.
+  6. All transitions are corrected to include both the Bhagwan image and
+     the animation.
+
+================================================================================
+  FINAL OUTPUT — REFINED GAME DESIGN DOCUMENT
+================================================================================
+
+Game Design Document: The Path to Shikhar
+An Arcade Pilgrimage — Dangerous Dave Style
+Core Philosophy: "Guidance over Gating." The game rewards focus and wisdom
+(seeking the Monk/Guide) while penalising distraction (opening the wrong boxes).
+
+================================================================================
+I. GAME FLOW
+================================================================================
+
+  Title Screen
+       |
+  Character Select  -->  Choose your Devotee: BOY or GIRL
+       |
+  Level 1: The Commute (Samsara)
+       |
+  [Transition: JSOT Temple Image + Character Walking Animation]
+       |
+  Level 2: The Cave (Resilience)
+       |
+  [Transition: Parshvanath Bhagwan Image + Character Bowing Animation]
+       |
+  Level 3: The Hall (Valor)
+       |
+  [Transition: Mahavir Bhagwan Image + Character Bowing Animation]
+       |
+  Level 4: The Summit (Moksha)
+       |
+  [Transition: Adinath Bhagwan Image + Character Bowing Animation]
+       |
+  Victory / Final Score Screen
+  [Display: Digambar Garbhalaya Image]
+
+================================================================================
+II. CORE SYSTEMS & MECHANICS
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+THE MONK / GUIDE SYSTEM ("Choice of Guidance")
+────────────────────────────────────────────────────────────────────────────────
+
+  Role:
+    The Monk is a passive NPC placed in a safe, reachable area of each level.
+
+  Interaction:
+    Completely optional. The player may walk past him at any time.
+    Trigger: Press UP arrow near the Monk.
+    Result: Game pauses. Dialogue window opens with a spiritual question.
+
+  The Wager:
+    Correct Answer:
+      The camera pans to reveal the specific box containing the level's Goal
+      Item (Key or Samagri) and/or the primary Support item. The player saves
+      significant search time.
+    Wrong Answer or Skip:
+      Player must manually open boxes, risking Distraction penalties and
+      wasted time.
+
+  Note: The Monk cannot be harmed and poses no threat. He is a guide, not
+  a gatekeeper. Players who ignore him are not punished — only those who
+  interact and answer wrongly lose the guidance advantage.
+
+────────────────────────────────────────────────────────────────────────────────
+THE BOX SYSTEM ("Box Roulette")
+────────────────────────────────────────────────────────────────────────────────
+
+  Every level contains 5 to 6 identical, visually indistinguishable boxes.
+  Their contents are randomly shuffled at the start of each play session.
+
+  BOX CONTENT CATEGORIES:
+
+  Category 1 — GOAL (1 box per level):
+    The required item to complete and exit the level.
+    Level 1: Temple Key
+    Level 2: Samagri (Akshat)
+    Level 3: Samagri (Akshat)
+    Level 4: Samagri (Akshat)
+
+  Category 2 — SUPPORT (1–2 boxes per level):
+    Beneficial items. Each support item ADDS time to the countdown clock.
+    Support items vary by level (see Level Architecture below).
+
+  Category 3 — DISTRACTION (2–3 boxes per level):
+    Penalty items. Each distraction item SUBTRACTS time from the countdown
+    clock and briefly stuns or freezes the player character.
+    Common distractions across levels: Mobile Phone, Friend, Foe.
+    Level 1 specific: Mobile Phone, Food, Movie Ticket.
+
+  Category 4 — NO EFFECT (1 box in Levels 2, 3, and 4):
+    A "Wrong Lakshan" — an item from a different Bhagwan's symbolic set
+    that does not apply here. Opening it has no positive or negative effect.
+    The player simply moves on. This teaches discernment.
+    Level 2 no-effect: Wrong Lakshan (Bull)
+    Level 3 no-effect: Wrong Lakshan (Bull)
+    Level 4 no-effect: Wrong Lakshan (Lion)
+
+  HAZARD SYSTEM (Universal Across All Levels):
+    Water Hazard: Represents attachment and the pull of Samsara.
+      Contact causes a time penalty or character stun.
+    Fire Hazard: Represents Kashaya (passions) — anger, ego, greed, deceit.
+      Contact causes a time penalty or character stun.
+    DEFAULT: Water and Fire hazards appear in every level. Their visual form
+    and intensity scale with level difficulty.
+    AMENDMENT (2026-09-06, designer): Hazard types are DESIGNER-DEFINED per
+    level. Water/Fire is the default set, not a rule. A level may substitute
+    or add hazards (e.g. Level 2 uses patrolling Snakes and has no Water or
+    Fire). Each hazard must still carry a Jain meaning, recorded in
+    docs/DECISION_LOG.md.
+
+================================================================================
+III. LEVEL ARCHITECTURE (THE CLIMB)
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+LEVEL 1: THE COMMUTE  (Samsara)
+────────────────────────────────────────────────────────────────────────────────
+
+  Setting:
+    Toronto Cityscape — Pixel Art.
+    Grey pavement, subway tiles, brick houses, TTC signage, storefronts.
+
+  Objective:
+    Navigate from the Home Gate to the Temple Gate.
+
+  Goal Item:
+    Temple Key (hidden in one of the boxes).
+
+  Hazards:
+    Water: Construction pits filled with water. Puddles on the road.
+    Fire:  Exposed gas flames from construction sites. Hot steam vents.
+    Other: Traffic cones narrowing the path. Moving vehicles on the road.
+
+  Platforming Difficulty:
+    Easy. Static platforms. Simple horizontal gaps. Forgiving jump arcs.
+    Suitable for players learning the controls.
+
+  The Guide (Monk):
+    Location: Seated at a Bus Stop bench, reading.
+    Question: "To find peace, what must one leave behind?"
+      Choice A: Ego   [Correct]
+      Choice B: Car   [Incorrect]
+    Reward: Camera pans to reveal the box containing the Temple Key
+            and/or the Personal Car support box.
+
+  Box Contents (6 boxes total):
+    Goal (1x):        Temple Key — required to exit to Level 2.
+    Support (2x):     TTC Bus — adds time; grants brief speed boost.
+                      Personal Car — adds more time; faster boost.
+    Distraction (3x): Mobile Phone — player stops to check screen (time lost).
+                      Food — player stops to eat (time lost).
+                      Movie Ticket — player daydreams (time lost).
+
+  Transition to Level 2:
+    Screen: Full background image of the Jain Society of Toronto (JSOT)
+            temple exterior.
+    Animation: Player character walks toward and through the temple entrance,
+               pausing momentarily at the threshold before the screen fades.
+
+────────────────────────────────────────────────────────────────────────────────
+LEVEL 2: THE CAVE  (Resilience)
+────────────────────────────────────────────────────────────────────────────────
+
+  Setting:
+    Darker, stone-textured passage leading through the temple's lower section
+    toward the Parshvanath Bhagwan Garbhalaya.
+
+  Objective:
+    Navigate from the Temple Gate to the Parshvanath Bhagwan Garbhalaya Gate.
+
+  Goal Item:
+    Samagri (Akshat — sacred rice) hidden in one of the boxes.
+
+  Hazards (AMENDED 2026-09-06 — designer-defined, see Hazard System):
+    Snakes: Patrolling cave snakes on the floor and a mid platform.
+            Contact stuns the player and drains time. (Implemented in v1.)
+    No Water or Fire hazards in this level.
+    Note:  The Lakshan (Snake) support item's effect is to be defined against
+           the snake hazards (e.g. temporary immunity), mirroring Dharanendra's
+           protection of the Lord.
+
+  Platforming Difficulty:
+    Medium. Moving stone platforms (floating in water channels). Wider gaps.
+    Timing of jumps begins to matter.
+
+  The Guide (Monk):
+    Location: Inside a meditation alcove carved into the cave wall.
+    Question: "Who shielded the Lord from the storm?"
+      Choice A: Dharanendra   [Correct — the protective serpent deity]
+      Choice B: Kamatha       [Incorrect — the source of the storm]
+    Reward: Camera pans to reveal the box containing the Akshat
+            and/or the primary Support box.
+
+  Box Contents (5–6 boxes total):
+    Goal (1x):        Samagri (Akshat) — required to exit to Level 3.
+    Support (2x):     Ghanta (Temple Bell) — rings to repel hazards; adds time.
+                      Lakshan (Snake) — grants Water hazard immunity; adds time.
+    No Effect (1x):   Wrong Lakshan (Bull) — player picks it up; nothing happens.
+    Distraction (2x): Mobile Phone — player takes a selfie; controls freeze briefly.
+                      Friend — friend appears and chats; controls freeze briefly.
+                      Foe — adversary taunts player; controls freeze briefly.
+    (Distribute 2–3 Distraction boxes depending on total box count for the level.)
+
+  Transition to Level 3:
+    Screen: Full image of Parshvanath Bhagwan.
+    Animation: Player character approaches the idol and bows reverently.
+               Screen holds on the image for a moment before fading.
+
+────────────────────────────────────────────────────────────────────────────────
+LEVEL 3: THE HALL  (Valor)
+────────────────────────────────────────────────────────────────────────────────
+
+  Setting:
+    White marble and gold interior of the temple — bright, clean, reflective.
+    The path to Mahavir Bhagwan's Garbhalaya is lined with pillars and light.
+
+  Objective:
+    Navigate from the Parshvanath Bhagwan Garbhalaya Gate to the
+    Mahavir Bhagwan Garbhalaya Gate.
+
+  Goal Item:
+    Samagri (Akshat — sacred rice) hidden in one of the boxes.
+
+  Hazards:
+    Fire: Fire pits along the floor, representing Kashaya (inner passions —
+          anger, pride, deceit, greed). Cannot be crossed without caution.
+    Water: Reflecting pools that overflow, creating slippery water patches
+           that slow the player and drain time on contact.
+    Platform Challenge: Disappearing marble tiles ("Illusions of permanence").
+           Tiles fade in and out. The player must memorise the safe path
+           or use the Lakshan (Lion) support to reveal it temporarily.
+
+  Platforming Difficulty:
+    Hard. Disappearing platforms require pattern recognition or support use.
+    Multiple hazard types active simultaneously.
+
+  The Guide (Monk):
+    Location: Seated on a floating marble lotus platform above the hall.
+    Question: "What is the weapon of the Tirthankara?"
+      Choice A: Ahimsa   [Correct — non-violence is the supreme force]
+      Choice B: Sword    [Incorrect]
+    Reward: Camera pans to reveal the box containing the Akshat
+            and/or the primary Support box.
+
+  Box Contents (5–6 boxes total):
+    Goal (1x):        Samagri (Akshat) — required to exit to Level 4.
+    Support (2x):     Chanvar (Ceremonial Fan) — clears fire hazards briefly;
+                                                 adds time.
+                      Lakshan (Lion) — reveals all invisible platforms for 10
+                                       seconds; adds time.
+    No Effect (1x):   Wrong Lakshan (Bull) — player picks it up; nothing happens.
+    Distraction (2–3x): Mobile Phone — player checks notifications; freeze.
+                         Friend — friend sprite appears and talks; freeze.
+                         Foe — foe provokes the player; freeze.
+
+  Transition to Level 4:
+    Screen: Full image of Mahavir Bhagwan.
+    Animation: Player character approaches the idol and bows reverently.
+               Screen holds on the image for a moment before fading.
+
+────────────────────────────────────────────────────────────────────────────────
+LEVEL 4: THE SUMMIT  (Moksha)
+────────────────────────────────────────────────────────────────────────────────
+
+  Setting:
+    The Shikhar — the temple's peak and final sanctum. White, gold, and open
+    sky. The atmosphere is serene but the path is narrow and demanding.
+    This is the culmination of the pilgrimage.
+
+  Objective:
+    Navigate from the Mahavir Bhagwan Garbhalaya Gate to the
+    Moolnayak Adinath Bhagwan Garbhalaya Gate.
+
+  Goal Item:
+    Samagri (Akshat — sacred rice) hidden in one of the boxes.
+
+  Hazards:
+    Water: Sacred water channels along the summit path. Falling in costs time.
+    Fire:  Ceremonial flame pillars flanking the path. Timing is essential.
+    Platform Challenge: Crumbling stone blocks that begin to break 1 second
+           after the player lands on them. Precision and speed are required.
+           Small, narrow platforms with minimal margin for error.
+
+  Platforming Difficulty:
+    Expert. The hardest level. Every jump counts. Crumbling blocks punish
+    hesitation. Multiple hazards overlap. This is the final test of focus.
+
+  The Guide (Monk):
+    Location: A high peak ledge just before the final approach to the idol.
+    Question: "Who was the first to show the path?"
+      Choice A: Adinath   [Correct — the first Tirthankara, the Moolnayak]
+      Choice B: Bahubali  [Incorrect — Bahubali attained moksha but did not
+                           show the path for others as a Tirthankara]
+    Reward: Camera pans to reveal the box containing the Akshat
+            and/or the primary Support box.
+
+  Box Contents (5–6 boxes total):
+    Goal (1x):        Samagri (Akshat) — required to complete the pilgrimage.
+    Support (2x):     Ghanta (Temple Bell) — repels hazards; adds time.
+                      Chanvar (Ceremonial Fan) — clears fire hazards; adds time.
+                      Lakshan (Bull) — grants enhanced jump height to cross
+                                       tall obstacles; adds time.
+    No Effect (1x):   Wrong Lakshan (Lion) — player picks it up; nothing happens.
+    Distraction (2x): Mobile Phone — player checks screen; controls freeze.
+                      Friend — appears and converses; controls freeze.
+                      Foe — provokes player; controls freeze.
+    (At Level 4, aim for 3 Support boxes across Ghanta / Chanvar / Lakshan
+     to give the player meaningful choice in the final stretch.)
+
+  Transition to Victory:
+    Screen: Full image of Moolnayak Adinath Bhagwan.
+    Animation: Player character approaches the idol and bows in deep reverence.
+               The screen holds on the image. A soft golden glow emanates.
+               Screen fades into the Victory / Final Score page.
+
+================================================================================
+IV. VICTORY & SCORING
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+FINAL SCREEN
+────────────────────────────────────────────────────────────────────────────────
+
+  Visual: A high-quality image of the Digambar Garbhalaya is displayed.
+  The player's score is shown beneath it.
+
+────────────────────────────────────────────────────────────────────────────────
+SCORING
+────────────────────────────────────────────────────────────────────────────────
+
+  Core Metric:
+    Winning Score = Total time taken to complete all four levels.
+    Lower time = higher rank. Speed of devotion is rewarded.
+
+  OPTIONAL ENHANCEMENT (for future versions):
+    The following bonus system may be layered on top of the time score
+    to add strategic depth without changing the core time-based measure:
+
+    Focus Bonus:   +500 points for every Distraction box left UNOPENED.
+                   Rewards players who search wisely rather than randomly.
+    Wisdom Bonus:  +1000 points for every Monk question answered correctly.
+                   Rewards spiritual knowledge alongside platform skill.
+
+────────────────────────────────────────────────────────────────────────────────
+RANKINGS  (Optional — for leaderboard display)
+────────────────────────────────────────────────────────────────────────────────
+
+  These titles may be displayed alongside the score for flavour:
+
+    Fastest completion time:  Moksha Margi  (One on the path to liberation)
+    Mid-range completion:     Shravak       (A devoted lay follower)
+    Slowest completion:       Bhakt         (A sincere but learning devotee)
+
+  Note: All three titles carry respect. No player is shamed. The ranking
+  reflects speed of the pilgrimage, not worthiness of the devotee.
+
+================================================================================
+V. REFERENCE — LEVEL COMPARISON TABLE
+================================================================================
+
+  +-------+------------------+--------------------------+---------------------+
+  | Level | Name             | Support Items            | No-Effect Box       |
+  +-------+------------------+--------------------------+---------------------+
+  |   1   | The Commute      | TTC Bus                  | N/A                 |
+  |       | (Samsara)        | Personal Car             |                     |
+  +-------+------------------+--------------------------+---------------------+
+  |   2   | The Cave         | Ghanta                   | Wrong Lakshan       |
+  |       | (Resilience)     | Lakshan (Snake)          | (Bull)              |
+  +-------+------------------+--------------------------+---------------------+
+  |   3   | The Hall         | Chanvar                  | Wrong Lakshan       |
+  |       | (Valor)          | Lakshan (Lion)           | (Bull)              |
+  +-------+------------------+--------------------------+---------------------+
+  |   4   | The Summit       | Ghanta                   | Wrong Lakshan       |
+  |       | (Moksha)         | Chanvar                  | (Lion)              |
+  |       |                  | Lakshan (Bull)           |                     |
+  +-------+------------------+--------------------------+---------------------+
+
+  +-------+---------------------------+---------------------------------------+
+  | Level | Monk Question             | Correct Answer                        |
+  +-------+---------------------------+---------------------------------------+
+  |   1   | "To find peace, what      | Ego                                   |
+  |       |  must one leave behind?"  |                                       |
+  +-------+---------------------------+---------------------------------------+
+  |   2   | "Who shielded the Lord    | Dharanendra                           |
+  |       |  from the storm?"         |                                       |
+  +-------+---------------------------+---------------------------------------+
+  |   3   | "What is the weapon of    | Ahimsa                                |
+  |       |  the Tirthankara?"        |                                       |
+  +-------+---------------------------+---------------------------------------+
+  |   4   | "Who was the first to     | Adinath                               |
+  |       |  show the path?"          |                                       |
+  +-------+---------------------------+---------------------------------------+
+
+  +-------+------------------+--------------------------------------------+
+  | Level | Transition Image | Transition Animation                        |
+  +-------+------------------+--------------------------------------------+
+  |  1→2  | JSOT Temple      | Character walks toward and into the temple  |
+  +-------+------------------+--------------------------------------------+
+  |  2→3  | Parshvanath      | Character approaches idol and bows          |
+  |       | Bhagwan          |                                             |
+  +-------+------------------+--------------------------------------------+
+  |  3→4  | Mahavir          | Character approaches idol and bows          |
+  |       | Bhagwan          |                                             |
+  +-------+------------------+--------------------------------------------+
+  |  4→V  | Adinath          | Character approaches idol and bows; golden  |
+  |       | Bhagwan          | glow; screen fades to Victory page          |
+  +-------+------------------+--------------------------------------------+
+
+================================================================================
+  JAI JINENDRA
+  Parasparopagraho Jīvānām — Souls assist each other.
+================================================================================
+UPDATE LOG:
+- Phase 1 Modernization: Implemented smooth sub-pixel character movement using lerp acceleration and friction in level_scene.py.
+- Phase 1 Modernization: Added dynamic jump and landing particle dust systems to improve game feel in level_scene.py.
+
+UPDATE LOG (Bug Fix):
+- Fixed TypeError crashes in character_select.py, box_system.py, and monk_system.py caused by passing float values (e.g. 1.5, 2.5) to the width parameter of pygame.draw.rect. Pygame requires integers for width.
+
+UPDATE LOG (Bug Fix):
+- Fixed UnboundLocalError in level_scene.py. Removed redundant inline local imports of the random module that were shadowing the global import and causing a crash when the player jumps or lands.
+
+UPDATE LOG (Workspace Cleanup):
+- Created a backups/ directory inside the src/ folder.
+- Moved character_select_backup.py, box_system_backup.py, monk_system_backup.py, and level_scene_backup.py into the backups/ folder to declutter the workspace.
+
+UPDATE LOG (Documentation):
+- Saved image_generation_prompts.md containing all high-resolution realistic AI prompts to the project root directory.
+
+UPDATE LOG (Palette & Title Screen Upgrade):
+- Updated settings.py to adopt a cool, atmospheric mountain color palette (deep slate blues, ice blues, and snowy whites) to match the new high-resolution title background.
+- Added a physics-based, wind-swayed snowfall particle animation to title_screen.py.
+- Pre-populated the title screen with snowflakes upon scene entry so the snow starts falling immediately.
+
+UPDATE LOG (Bug Fix):
+- Imported COLOR_BLUE_WATER from settings.py into title_screen.py to resolve the NameError crash when spawning blue-tinted snowflakes.
+
+UPDATE LOG (Title UI Refinement):
+- Removed the tagline.
+- Subtitle color changed to COLOR_SAFFRON for contrast.
+- Deepened gradients.
+- Added bottom-right developer credit.
+
+UPDATE LOG (Title UI Refinement):
+- Changed title screen subtitle to " Jinalaya Dev Darshan\.
+
+UPDATE LOG (Title UI Refinement):
+- Changed subtitle color to COLOR_GOLD_DIM for a softer, premium look that matches the dividing line.
+- Removed the diamond artifact/polygon from the dividing line.
+
+UPDATE LOG (Title UI Refinement):
+- Changed subtitle color to COLOR_BG_DARK for maximum legibility (100% contrast) against the white background.
+- Updated developer credits to " Developed by Rahi Jain and Shweta Ajmera Digamber Paathshala JSOT\.
+
+UPDATE LOG (Character Select UI):
+- Changed title to Choose Your Pilgrim.
+- Replaced labels with Shravak and Shravika.
+
+UPDATE LOG (Asset Documentation):
+- Modified Level 1 background prompt in image_generation_prompts.md to match the Toronto city streetscape theme of Level 1 (Samsara/The Commute), featuring local landmarks and storefronts.
+
+UPDATE LOG (Level 1 Layout Redesign):
+- Rebuilt _build_level1 in level_layouts.py to align platforms with building rooftops from the Level 1 background image.
+- 3 tiers of platforms: shop rooftops, 2nd-storey row house roofs, and peak ridges.
+- Added temple door landing platform at far right (x=1740).
+- Updated hazards.py Level 1 section: 2 water pools at magenta-marked street locations, 1 bonfire on rooftop at orange-marked location.
+- Updated box_system.py _place_boxes to pin the Temple Key (GOAL) box to the temple door platform for Level 1. All other boxes placed randomly.
+
+UPDATE LOG (Level 1 Platform Refinement):
+- Reduced platform thickness PH from 20 to 8 so platforms are thin and blend with rooftops.
+- Removed TTC shelter step (bottom left, X marked).
+- Removed rightmost row house platform (far right, X marked).
+- Moved all Tier 2 row house platforms DOWN by ~70px.
+- Moved all Tier 3 ridge peak platforms DOWN by ~65px.
+- Slightly adjusted Tier 1 shop rooftop Y from H-520 to H-525.
+
+UPDATE LOG (Level 1 Awning Platforms):
+- Added two awning-level platforms at H-430 for Toronto Pizza and City Bakery shop fronts.
+- These serve as low stepping stones between street level and the shop rooftops.
+
+UPDATE LOG (Developer Coordinate Finder Added):
+- Added MOUSEBUTTONDOWN coordinate logger to level_scene.py that prints exact Pygame Rect instantiation code to terminal.
+- Changed all gameplay platforms to solid black with a sharp white border for pixel-perfect visualization.
+
+UPDATE LOG (Level 1 Temple Gate Mechanics):
+- Detected temple_gate.png inside assets/images/items/.
+- Configured LevelScene to load this image as temple_gate_img in Level 1.
+- Rendered the majestic white marble Temple Gate sitting perfectly centered on the street-level goal platform.
+- Added a proximity-based interaction system: Gate shows custom floating box alerts ([Gate is locked...] or [Press UP or ACTION to unlock...]) depending on whether the Temple Key has been obtained.
+- Created a golden, pulsing spiritual aura that wraps around the gate when unlocked.
+- Modified box opening mechanics for Level 1 so obtaining the Temple Key plays a chime and allows the player to continue moving to the gate rather than immediately winning the level.
+
+UPDATE LOG (Fully Randomized Safe Q&A Monk / Box placements & Larger Gameplay Fonts):
+- Configuredsettings.py to define separate GAME_FONT_SIZE_... constants, dramatically boosting gameplay readability without changing Title Screen sizes.
+- Updated level_scene.py, character_select.py, transition_scene.py, and victory_scene.py to load these new larger, premium font sizes.
+- Revamped monk_system.py's create_monk to securely randomize Q&A Monk placement on either a platform or the ground (floor), systematically verifying no overlap with any water/fire hazards or screen limits.
+- Revamped box_system.py's BoxSystem to securely scatter all boxes (including the Level 1 Goal Key box) on either platforms or the ground, utilizing an intersection safety algorithm preventing placement on hazards or on top of the Monk/other boxes.
+- Fully verified project compilation (0 warnings, 0 errors).
+
+UPDATE LOG (Dynamic Dynamic Non-Repeating Monk Q&A Pool):
+- Imported LOGICAL_WIDTH into box_system.py, resolving the missing import compilation error.
+- Created assets/monk_questions.json containing a rich pool of 4 distinct, educational Jain Q&A questions for each of the 4 levels.
+- Modified settings.py to remove the static, hardcoded MONK_QUESTIONS dictionary.
+- Refactored monk_system.py and level_scene.py to load questions dynamically from the JSON pool, keeping track of asked questions in the shared manager session data to ensure no question is repeated during a single playthrough.
+
+UPDATE LOG (Acharya Portrait, Large Scalable Monk, Translucent Temple Gate, and Dialogue bugfix):
+- Fixed LevelScene.update early-return which prevented the Monk from updating when the dialogue scroll was open, restoring the typewriter question visibility.
+- Scaled up the Monk visual size to 76x110 (WIDTH=76, HEIGHT=110) and refactored the Digamber drawing code to scale proportion-wise.
+- Configured LevelScene to load assets/images/items/acharya_portrait.png and pass it to Monk.draw_dialogue.
+- Widened the parchment dialogue overlay to 920x380 to place the Acharya portrait on the left inside a gold frame while placing the wrapped typewriter question and options on the right side.
+- Changed Temple Gate scale to 220x280 and added set_colorkey((0,0,0)) to make pure black backgrounds transparent.
+- Added code comments to level_scene.py (lines 185 and 470) detailing exactly where the user can adjust the Temple Gate size and coordinate offset values.
+
+UPDATE LOG:
+- Reduced Acharya portrait height from 250px to 220px.
+- Updated monk_system.py to automatically adjust the gold frame around the portrait dynamically to fit the new size.
+
+UPDATE LOG:
+- Adjusted Acharya portrait vertical position in monk_system.py, pushing it down by 50 pixels (from by + 50 to by + 100) to balance it vertically with the Q&A text and choices.
+
+UPDATE LOG: Shifted gameplay 80px upwards, created solid dark bottom bar, fit controls inside bottom bar, removed Seek the Goal Item text.
+UPDATE LOG: Removed devotion progress bar, eliminated double border walls, drawn beautiful single gold spiritual frame, and implemented custom vector arrow triangles for touch controls instead of text glyphs.
+UPDATE LOG: Fixed test.py to uniquely define draw_monk_pygame, draw_monk_cairo, and draw_monk_skia with side-by-side dynamic loading. Implemented starting level selection on title screen and integrated level choice into confirm selection.

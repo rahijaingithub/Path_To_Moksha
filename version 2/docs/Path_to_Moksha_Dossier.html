@@ -1,0 +1,761 @@
+<title>Path to Moksha Codebase Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:ital,wght@0,300..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Palette lifted from the game's own settings.py so the report and the build share one identity. */
+  :root {
+    --ground:      #f6f2e8;
+    --ground-2:    #ede6d6;
+    --surface:     #fffdf7;
+    --ink:         #1b2334;
+    --ink-2:       #4a5468;
+    --ink-3:       #7b8296;
+    --rule:        #d9d0bd;
+    --rule-soft:   #e7dfcf;
+    --gold:        #a8791a;
+    --gold-bright: #ebb432;
+    --saffron:     #c9541a;
+    --green:       #2f7a4d;
+    --red:         #b03333;
+    --water:       #2e6d9e;
+    --slate:       #6b625d;
+    --shadow:      0 1px 2px rgba(27,35,52,.06), 0 8px 24px -16px rgba(27,35,52,.30);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0a1220;
+      --ground-2:    #111c2e;
+      --surface:     #16223a;
+      --ink:         #eef2f5;
+      --ink-2:       #b3bfd0;
+      --ink-3:       #7d8ba3;
+      --rule:        #27364f;
+      --rule-soft:   #1e2c42;
+      --gold:        #ebb432;
+      --gold-bright: #ffd76e;
+      --saffron:     #f07e3e;
+      --green:       #5ec98c;
+      --red:         #ee7676;
+      --water:       #6fb6e8;
+      --slate:       #9a8f88;
+      --shadow:      0 1px 2px rgba(0,0,0,.35), 0 10px 30px -18px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0a1220;
+    --ground-2:    #111c2e;
+    --surface:     #16223a;
+    --ink:         #eef2f5;
+    --ink-2:       #b3bfd0;
+    --ink-3:       #7d8ba3;
+    --rule:        #27364f;
+    --rule-soft:   #1e2c42;
+    --gold:        #ebb432;
+    --gold-bright: #ffd76e;
+    --saffron:     #f07e3e;
+    --green:       #5ec98c;
+    --red:         #ee7676;
+    --water:       #6fb6e8;
+    --slate:       #9a8f88;
+    --shadow:      0 1px 2px rgba(0,0,0,.35), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 28px 96px; }
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  header.mast {
+    border-bottom: 2px solid var(--ink);
+    padding: 52px 0 26px;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: Marcellus, Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(38px, 6vw, 60px);
+    line-height: 1.06;
+    letter-spacing: -.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 19px;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0 0 30px;
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .fact { background: var(--ground); padding: 12px 14px; }
+  .fact dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 4px;
+  }
+  .fact dd {
+    margin: 0; font-family: Marcellus, Georgia, serif; font-size: 22px;
+    font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+  .fact dd small { font-family: "Source Sans 3", sans-serif; font-size: 13px; color: var(--ink-3); }
+
+  /* ── Sections ─────────────────────────────────────────── */
+  section { margin-top: 58px; }
+  h2 {
+    font-family: Marcellus, Georgia, serif;
+    font-weight: 400;
+    font-size: 30px;
+    margin: 0 0 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  h2 .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; letter-spacing: .1em; color: var(--gold);
+  }
+  h3 {
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: .13em; text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 34px 0 10px;
+  }
+  p { max-width: 68ch; }
+  a { color: var(--water); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  code, .mono { font-family: "IBM Plex Mono", monospace; font-size: .88em; }
+  code { background: var(--rule-soft); padding: 1px 5px; border-radius: 3px; }
+
+  /* ── Tables ───────────────────────────────────────────── */
+  .tablewrap { overflow-x: auto; margin: 18px 0 4px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+  th, td { text-align: left; padding: 9px 14px 9px 0; vertical-align: top; border-bottom: 1px solid var(--rule-soft); }
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* Category swatch — the one place color carries meaning */
+  .cat { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; }
+  .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .dot.goal { background: var(--gold-bright); }
+  .dot.support { background: var(--green); }
+  .dot.distraction { background: var(--red); }
+  .dot.none { background: var(--slate); }
+
+  /* ── Figures ──────────────────────────────────────────── */
+  figure {
+    margin: 26px 0;
+    padding: 24px 22px 16px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  figure .svgscroll { overflow-x: auto; }
+  figure svg { display: block; max-width: 100%; height: auto; color: var(--ink); margin: 0 auto; }
+  figcaption {
+    margin-top: 14px; padding-top: 10px;
+    border-top: 1px solid var(--rule-soft);
+    font-size: 14px; color: var(--ink-3); max-width: 70ch;
+  }
+  figcaption b { color: var(--ink-2); font-weight: 600; }
+
+  /* ── Findings ─────────────────────────────────────────── */
+  .finding {
+    border-left: 3px solid var(--rule);
+    padding: 2px 0 2px 18px;
+    margin: 22px 0;
+  }
+  .finding.high { border-left-color: var(--red); }
+  .finding.med  { border-left-color: var(--saffron); }
+  .finding.low  { border-left-color: var(--slate); }
+  .finding h4 {
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 17px; font-weight: 600; margin: 0 0 4px;
+  }
+  .finding p { margin: 0 0 6px; font-size: 15.5px; color: var(--ink-2); }
+  .sev {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    padding: 2px 7px; border: 1px solid currentColor; border-radius: 2px;
+    margin-right: 10px; vertical-align: 2px;
+  }
+  .finding.high .sev { color: var(--red); }
+  .finding.med  .sev { color: var(--saffron); }
+  .finding.low  .sev { color: var(--slate); }
+  .loc { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-3); }
+
+  /* ── Callout ──────────────────────────────────────────── */
+  .callout {
+    background: var(--ground-2);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    padding: 16px 20px;
+    margin: 24px 0;
+  }
+  .callout p { margin: 0; max-width: 66ch; }
+  .callout p + p { margin-top: 10px; }
+
+  ul.tight { padding-left: 20px; max-width: 68ch; }
+  ul.tight li { margin-bottom: 6px; }
+
+  footer {
+    margin-top: 72px; padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 14px; color: var(--ink-3);
+  }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Codebase review &middot; September 2026</p>
+  <h1>The Path to Moksha</h1>
+  <p class="standfirst">A Jain pilgrimage arcade platformer in Python and pygame-ce: four levels, a randomized item roulette, a monk who answers to knowledge rather than reflexes, and the timer as the only score. This is what the folder actually contains, how it fits together, and where the shipped build parts ways with the documents that describe it.</p>
+  <dl class="facts">
+    <div class="fact"><dt>Engine</dt><dd>pygame&#8209;ce<br><small>2.5.8, Python 3.11+</small></dd></div>
+    <div class="fact"><dt>Source</dt><dd>8,340<br><small>lines across 21 modules</small></dd></div>
+    <div class="fact"><dt>Scenes</dt><dd>9<br><small>one state machine</small></dd></div>
+    <div class="fact"><dt>Levels built</dt><dd>4<br><small>2 reachable in normal play</small></dd></div>
+    <div class="fact"><dt>Render target</dt><dd>1920&times;1080<br><small>letterboxed, 60&nbsp;FPS</small></dd></div>
+  </dl>
+</header>
+
+<section id="what">
+  <h2><span class="num">01</span> What this project is</h2>
+  <p>You play a Shravak (boy) or Shravika (girl) making a pilgrimage that starts in a Toronto streetscape and ends on a mountain summit. Each level hides one <b>Goal</b> item inside a set of visually identical mystery boxes. You open boxes to find it, dodging fire, water and snakes on the way, and the clock is both your fuel and your score. A meditative Monk stands somewhere in each level; answer his question on Jain doctrine correctly and he marks the Goal box for you, converting knowledge directly into saved time. That is the whole thesis of the design, stated in the source notes as <i>&ldquo;Guidance over Gating.&rdquo;</i></p>
+  <p>The repository is unusually well documented for a hobby game &mdash; there is a GDD, an architecture doc, a decision log, a developer reference, a 40&nbsp;KB design-review transcript, and a reusable engine template. The code largely honours those documents, with a handful of real divergences catalogued in <a href="#findings">section 08</a>.</p>
+</section>
+
+<section id="layout">
+  <h2><span class="num">02</span> How the folder is laid out</h2>
+  <p>The workspace root is a scratch area; the actual game is one directory down, in <code>version 1</code>, which is the git repository.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Path</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Audio_split.py</td><td>ffmpeg wrapper that trims and fades a music clip. Root-level asset tooling, not part of the game.</td></tr>
+      <tr><td class="mono">prepare_player_sprites.py</td><td>Pillow script: slices sprite sheets, drops white backgrounds, normalizes every frame to 128&times;128 feet-aligned.</td></tr>
+      <tr><td class="mono">remove_backgrounds.py</td><td>Corner-sampled flood fill that makes item icons transparent; backs originals up first.</td></tr>
+      <tr><td class="mono">Game Play v2.txt</td><td>The design source of truth. Audits the first GDD, lists 24 deviations, and issues a corrected spec.</td></tr>
+      <tr><td class="mono">version 1/src/</td><td>21 modules &mdash; the game itself.</td></tr>
+      <tr><td class="mono">version 1/assets/</td><td>Read-only media plus <code>monk_questions.json</code>, <code>monk_questions_kids.json</code>, <code>level_goals.json</code>.</td></tr>
+      <tr><td class="mono">version 1/data/</td><td>Writable: profiles, high scores, controller mapping. Redirected to AppData in packaged builds.</td></tr>
+      <tr><td class="mono">version 1/docs/</td><td>GDD, architecture, decision log, developer reference, player guide.</td></tr>
+      <tr><td class="mono">version 1/template/</td><td>Engine spec and JSON schemas for spinning this engine up as a different game.</td></tr>
+      <tr><td class="mono">version 1/tools/</td><td>Controller calibration and audit utilities; image cleanup one-offs.</td></tr>
+      <tr><td class="mono">version 1/tests/</td><td>One dependency-free integrity suite that parses source with <code>ast</code> rather than importing pygame.</td></tr>
+      <tr><td class="mono">version 1/backups/</td><td>Nine pre-refactor snapshots of scene modules, kept alongside live code.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:18px">The checkout is 760&nbsp;MB, mostly the committed <code>venv/</code>, <code>build/</code> and <code>dist/</code> trees plus <code>Old/</code> asset folders. Git currently has a dozen modified files uncommitted, including <code>dist/PathToMoksha.exe</code>.</p>
+</section>
+
+<section id="architecture">
+  <h2><span class="num">03</span> Architecture</h2>
+  <p>A single owner &mdash; <code>Game</code> in <code>main.py</code> &mdash; holds three long-lived managers and one scene registry. Every frame follows the same order: pump SDL events, update input, let the active scene consume events, update it, draw it onto a fixed 1920&times;1080 surface, then smoothscale that surface into whatever window the player has. Physics and UI layout therefore never see the real resolution, which is why the same jump arc works windowed and fullscreen.</p>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 900 470" role="img" aria-label="Architecture: main.py owns InputManager, AssetManager and SceneManager; the active scene is drawn to a fixed logical surface which is scaled to the window; LevelScene delegates to the box, monk, hazard and layout modules, and persists through ProfileManager to JSON.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+        </marker>
+        <marker id="ar-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="#c9541a"/>
+        </marker>
+      </defs>
+      <g font-family="'IBM Plex Mono', monospace" font-size="12" fill="currentColor">
+
+        <!-- Frame loop -->
+        <rect x="16" y="16" width="200" height="86" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="30" y="42" font-size="13" font-weight="500">main.py</text>
+        <text x="30" y="62" font-size="11" opacity=".72">Game loop &middot; 60 FPS</text>
+        <text x="30" y="80" font-size="11" opacity=".72">dt capped at 0.1s</text>
+
+        <!-- Managers -->
+        <rect x="300" y="16" width="164" height="42" fill="none" stroke="currentColor"/>
+        <text x="316" y="42">InputManager</text>
+        <rect x="300" y="72" width="164" height="42" fill="none" stroke="currentColor"/>
+        <text x="316" y="98">AssetManager</text>
+        <rect x="300" y="128" width="164" height="42" fill="none" stroke="currentColor"/>
+        <text x="316" y="154">SceneManager</text>
+
+        <line x1="216" y1="44" x2="294" y2="38" stroke="currentColor" marker-end="url(#ar)"/>
+        <line x1="216" y1="58" x2="294" y2="92" stroke="currentColor" marker-end="url(#ar)"/>
+        <line x1="216" y1="72" x2="294" y2="146" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="222" y="112" font-size="10" opacity=".6">owns all three</text>
+
+        <!-- Input sources -->
+        <text x="548" y="27" font-size="10" opacity=".6">reads</text>
+        <text x="548" y="44" font-size="11">keyboard &middot; gamepad &middot; touch</text>
+        <line x1="464" y1="37" x2="540" y2="37" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="548" y="99" font-size="11">images &middot; sfx &middot; music &middot; fonts</text>
+        <text x="548" y="116" font-size="10" opacity=".6">pink placeholder on miss</text>
+        <line x1="464" y1="93" x2="540" y2="93" stroke="currentColor" marker-end="url(#ar)"/>
+
+        <!-- Scene registry -->
+        <rect x="300" y="196" width="560" height="62" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="316" y="218" font-size="10" opacity=".6">9 registered scenes &mdash; exactly one active</text>
+        <text x="316" y="240" font-size="11">title &middot; options &middot; player_select &middot; leaderboard &middot; tutorial</text>
+        <text x="316" y="252" font-size="11">character_select &middot; <tspan fill="#c9541a" font-weight="500">level</tspan> &middot; transition &middot; victory</text>
+        <line x1="382" y1="170" x2="382" y2="190" stroke="currentColor" marker-end="url(#ar)"/>
+
+        <!-- LevelScene internals -->
+        <rect x="300" y="292" width="560" height="120" fill="none" stroke="#c9541a" stroke-width="2"/>
+        <text x="316" y="314" font-size="13" font-weight="500" fill="#c9541a">LevelScene</text>
+        <text x="316" y="332" font-size="11" opacity=".72">player physics &middot; AABB collision &middot; timer &middot; HUD</text>
+        <line x1="450" y1="258" x2="450" y2="286" stroke="#c9541a" marker-end="url(#ar-g)"/>
+
+        <rect x="316" y="348" width="122" height="46" fill="none" stroke="currentColor"/>
+        <text x="330" y="368" font-size="11">level_layouts</text>
+        <text x="330" y="384" font-size="10" opacity=".6">platform rects</text>
+        <rect x="450" y="348" width="122" height="46" fill="none" stroke="currentColor"/>
+        <text x="464" y="368" font-size="11">hazards</text>
+        <text x="464" y="384" font-size="10" opacity=".6">fire/water/snake</text>
+        <rect x="584" y="348" width="122" height="46" fill="none" stroke="currentColor"/>
+        <text x="598" y="368" font-size="11">monk_system</text>
+        <text x="598" y="384" font-size="10" opacity=".6">Q&amp;A overlay</text>
+        <rect x="718" y="348" width="126" height="46" fill="none" stroke="currentColor"/>
+        <text x="732" y="368" font-size="11">box_system</text>
+        <text x="732" y="384" font-size="10" opacity=".6">roulette</text>
+        <text x="316" y="410" font-size="10" opacity=".55">built in this order each level: layout &rarr; hazards &rarr; monk &rarr; boxes, so nothing spawns on top of anything else</text>
+
+        <!-- Render pipeline -->
+        <rect x="16" y="196" width="200" height="106" fill="none" stroke="currentColor"/>
+        <text x="30" y="218" font-size="11">logical_surface</text>
+        <text x="30" y="236" font-size="10" opacity=".6">1920 &times; 1080, fixed</text>
+        <line x1="30" y1="250" x2="202" y2="250" stroke="currentColor" opacity=".3"/>
+        <text x="30" y="270" font-size="11">smoothscale + letterbox</text>
+        <text x="30" y="288" font-size="10" opacity=".6">&rarr; any window size</text>
+        <line x1="294" y1="227" x2="222" y2="227" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="228" y="216" font-size="10" opacity=".6">draw()</text>
+
+        <!-- Persistence -->
+        <rect x="16" y="344" width="200" height="68" fill="none" stroke="currentColor"/>
+        <text x="30" y="366" font-size="11">ProfileManager</text>
+        <text x="30" y="384" font-size="10" opacity=".6">profiles.json</text>
+        <text x="30" y="400" font-size="10" opacity=".6">high_scores.json</text>
+        <line x1="310" y1="378" x2="222" y2="378" stroke="currentColor" marker-end="url(#ar)"/>
+        <text x="228" y="368" font-size="10" opacity=".6">save on</text>
+        <text x="228" y="340" font-size="10" opacity=".6">level end</text>
+
+        <text x="16" y="446" font-size="10" opacity=".55">Writable path resolves per-OS in settings.py: %APPDATA%-adjacent on Windows, ~/Library/Application Support on macOS, XDG on Linux.</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>One loop, three managers, one active scene.</b> The fixed logical surface is the load-bearing decision: every coordinate in <code>level_layouts.py</code>, every hitbox and every HUD position is written against 1920&times;1080 and never has to know the real window.</figcaption>
+  </figure>
+
+  <h3>Module responsibilities</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Module</th><th>Lines</th><th>What it owns</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">level_scene.py</td><td class="num">1374</td><td>Player class, physics, animation state machine, HUD, item pop-ups, game-over and level-complete flows, scoring registration.</td></tr>
+      <tr><td class="mono">input_manager.py</td><td class="num">723</td><td>Abstract actions (<code>JUMP</code>, <code>ACTION</code>, <code>MENU_*</code>) fed by keyboard, joystick axes/hats/buttons via <code>controller_map.json</code>, and on-screen touch rects.</td></tr>
+      <tr><td class="mono">tutorial_scene.py</td><td class="num">562</td><td>Controls explainer, reachable from Options.</td></tr>
+      <tr><td class="mono">test.py</td><td class="num">570</td><td>Standalone R&amp;D benchmark drawing the same monk in Pygame, Cairo and Skia. Not shipped.</td></tr>
+      <tr><td class="mono">player_select_scene.py</td><td class="num">515</td><td>Profile picker with an on-screen virtual keyboard for name entry.</td></tr>
+      <tr><td class="mono">monk_system.py</td><td class="num">417</td><td>Monk placement, proximity prompt, parchment overlay with typewriter text, answer scoring.</td></tr>
+      <tr><td class="mono">transition_scene.py</td><td class="num">372</td><td>Between-level Bhagwan/temple imagery and the &ldquo;to be continued&rdquo; exit.</td></tr>
+      <tr><td class="mono">box_system.py</td><td class="num">330</td><td>Box definitions per level, safe randomized placement, opening, effect resolution, monk highlight.</td></tr>
+      <tr><td class="mono">hazards.py</td><td class="num">199</td><td>Fire, water and patrolling snakes; procedural animated drawing for each.</td></tr>
+      <tr><td class="mono">settings.py</td><td class="num">170</td><td>Every tunable constant plus cross-platform path resolution.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="flow">
+  <h2><span class="num">04</span> Scene flow</h2>
+  <p>Every screen is registered up front and switched by key. The one thing the navigation graph makes visible that no document states: <b>in the two player-facing modes the run ends after Level 2.</b> Levels 3 and 4 are built, populated and playable, but only <code>developer</code> mode walks past the &ldquo;to be continued&rdquo; gate into them &mdash; and the Victory screen, with its ranks, sits behind that gate.</p>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 900 560" role="img" aria-label="Scene flow: Title leads to Player Select and Options; Player Select leads to Character Select for new profiles or straight into Level 1; levels alternate with transition scenes; after Level 2 kid and standard modes divert to the Leaderboard while developer mode continues to Levels 3 and 4 and then Victory.">
+      <defs>
+        <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+        </marker>
+        <marker id="fa-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="#c9541a"/>
+        </marker>
+        <marker id="fa-d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="#2e6d9e"/>
+        </marker>
+      </defs>
+      <g font-family="'IBM Plex Mono', monospace" font-size="12" fill="currentColor">
+
+        <!-- Column 1: entry -->
+        <rect x="20" y="24" width="150" height="40" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="36" y="49">Title</text>
+
+        <rect x="20" y="104" width="150" height="40" fill="none" stroke="currentColor"/>
+        <text x="36" y="129">Options</text>
+        <rect x="20" y="164" width="150" height="40" fill="none" stroke="currentColor"/>
+        <text x="36" y="189">Tutorial</text>
+
+        <rect x="20" y="248" width="150" height="40" fill="none" stroke="currentColor"/>
+        <text x="36" y="273">Player Select</text>
+        <rect x="20" y="308" width="150" height="40" fill="none" stroke="currentColor"/>
+        <text x="36" y="333">Character Select</text>
+
+        <line x1="72" y1="64" x2="72" y2="98" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="80" y="86" font-size="10" opacity=".6">options</text>
+        <line x1="72" y1="144" x2="72" y2="158" stroke="currentColor" marker-end="url(#fa)"/>
+        <line x1="146" y1="164" x2="146" y2="150" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="154" y="162" font-size="10" opacity=".6">back</text>
+        <line x1="150" y1="44" x2="230" y2="44" stroke="currentColor" opacity=".35"/>
+        <path d="M 170 44 L 230 44 L 230 268 L 176 268" fill="none" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="238" y="150" font-size="10" opacity=".6">start &rarr; sets game mode</text>
+        <line x1="72" y1="288" x2="72" y2="302" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="80" y="300" font-size="10" opacity=".6">new profile</text>
+
+        <!-- Column 2: level chain -->
+        <rect x="360" y="24" width="176" height="44" fill="none" stroke="#c9541a" stroke-width="2"/>
+        <text x="376" y="43" fill="#c9541a">Level 1</text>
+        <text x="376" y="59" font-size="10" opacity=".7">The Commute &middot; 240s</text>
+
+        <rect x="360" y="104" width="176" height="34" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="376" y="126" font-size="11">Transition &mdash; JSOT</text>
+
+        <rect x="360" y="174" width="176" height="44" fill="none" stroke="#c9541a" stroke-width="2"/>
+        <text x="376" y="193" fill="#c9541a">Level 2</text>
+        <text x="376" y="209" font-size="10" opacity=".7">The Cave &middot; 260s</text>
+
+        <rect x="360" y="254" width="176" height="34" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="376" y="276" font-size="11">Transition &mdash; fork</text>
+
+        <rect x="360" y="352" width="176" height="44" fill="none" stroke="#2e6d9e"/>
+        <text x="376" y="371" fill="#2e6d9e">Level 3</text>
+        <text x="376" y="387" font-size="10" opacity=".7">The Hall &middot; 280s</text>
+        <rect x="360" y="422" width="176" height="44" fill="none" stroke="#2e6d9e"/>
+        <text x="376" y="441" fill="#2e6d9e">Level 4</text>
+        <text x="376" y="457" font-size="10" opacity=".7">The Summit &middot; 300s</text>
+
+        <path d="M 176 268 L 300 268 L 300 46 L 354 46" fill="none" stroke="currentColor" marker-end="url(#fa)"/>
+        <path d="M 176 328 L 320 328 L 320 60 L 354 60" fill="none" stroke="currentColor" marker-end="url(#fa)"/>
+        <line x1="448" y1="68" x2="448" y2="98" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="456" y="90" font-size="10" opacity=".6">gate + key</text>
+        <line x1="448" y1="138" x2="448" y2="168" stroke="currentColor" marker-end="url(#fa)"/>
+        <line x1="448" y1="218" x2="448" y2="248" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="456" y="240" font-size="10" opacity=".6">offer Akshat</text>
+        <line x1="448" y1="288" x2="448" y2="346" stroke="#2e6d9e" marker-end="url(#fa-d)"/>
+        <text x="456" y="320" font-size="10" fill="#2e6d9e">developer mode only</text>
+        <line x1="448" y1="396" x2="448" y2="416" stroke="#2e6d9e" marker-end="url(#fa-d)"/>
+
+        <!-- Column 3: endings -->
+        <rect x="676" y="254" width="180" height="44" fill="none" stroke="#c9541a" stroke-width="2"/>
+        <text x="692" y="273" fill="#c9541a">Leaderboard</text>
+        <text x="692" y="289" font-size="10" opacity=".7">&ldquo;to be continued&rdquo;</text>
+
+        <rect x="676" y="422" width="180" height="44" fill="none" stroke="#2e6d9e"/>
+        <text x="692" y="441" fill="#2e6d9e">Victory</text>
+        <text x="692" y="457" font-size="10" opacity=".7">rank + final score</text>
+
+        <line x1="536" y1="271" x2="670" y2="271" stroke="#c9541a" stroke-width="2" marker-end="url(#fa-o)"/>
+        <text x="546" y="262" font-size="10" fill="#c9541a">kid / standard end here</text>
+        <line x1="536" y1="444" x2="670" y2="444" stroke="#2e6d9e" marker-end="url(#fa-d)"/>
+        <path d="M 766 466 L 766 500 L 620 500 L 620 302" fill="none" stroke="currentColor" marker-end="url(#fa)"/>
+        <text x="628" y="514" font-size="10" opacity=".6">continue</text>
+        <path d="M 676 276 L 600 276 L 600 540 L 96 540 L 96 68" fill="none" stroke="currentColor" opacity=".5" marker-end="url(#fa)"/>
+        <text x="240" y="534" font-size="10" opacity=".6">back to title / restart</text>
+
+        <text x="20" y="386" font-size="10" opacity=".55">Any level: ESC &rarr; Title. Timer at zero &rarr; Game Over overlay</text>
+        <text x="20" y="402" font-size="10" opacity=".55">(restart level or quit) &mdash; disabled in developer mode.</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>The fork after Level 2 is the shipping boundary.</b> <code>level_scene.py:812</code> sets a <code>to_be_continued</code> flag for <code>kid</code> and <code>standard</code>; the transition scene then routes to the Leaderboard instead of Level 3. Only <code>developer</code> mode reaches Levels 3&ndash;4 and the Victory screen.</figcaption>
+  </figure>
+</section>
+
+<section id="gameplay">
+  <h2><span class="num">05</span> Gameplay</h2>
+  <p>The moment-to-moment loop is short and legible: move, jump, find a box, decide whether to open it. Everything the player can gain or lose is denominated in seconds, so the risk of an unknown box is always priced in the same currency as the reward.</p>
+
+  <figure>
+    <div class="svgscroll">
+    <svg viewBox="0 0 880 300" role="img" aria-label="Core loop: spawn with a level timer, traverse platforms, optionally answer the monk to highlight the goal box, open boxes which add or subtract seconds, and once the goal item is found reach the level's exit; hitting a hazard costs thirty seconds and a one second stun; the timer reaching zero is game over.">
+      <defs>
+        <marker id="la" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <polygon points="0,0 10,5 0,10" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g font-family="'IBM Plex Mono', monospace" font-size="12" fill="currentColor">
+        <rect x="16" y="112" width="118" height="46" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="30" y="132" font-size="11">Spawn</text>
+        <text x="30" y="148" font-size="10" opacity=".65">timer starts</text>
+
+        <rect x="182" y="112" width="130" height="46" fill="none" stroke="currentColor"/>
+        <text x="196" y="132" font-size="11">Traverse</text>
+        <text x="196" y="148" font-size="10" opacity=".65">run &middot; jump &middot; dodge</text>
+
+        <rect x="360" y="112" width="130" height="46" fill="none" stroke="currentColor" stroke-width="2"/>
+        <text x="374" y="132" font-size="11">Open a box</text>
+        <text x="374" y="148" font-size="10" opacity=".65">ACTION when near</text>
+
+        <rect x="538" y="112" width="140" height="46" fill="none" stroke="currentColor"/>
+        <text x="552" y="132" font-size="11">Goal found?</text>
+        <text x="552" y="148" font-size="10" opacity=".65">1 of 6 boxes</text>
+
+        <rect x="726" y="112" width="132" height="46" fill="none" stroke="#a8791a" stroke-width="2"/>
+        <text x="740" y="132" font-size="11" fill="#a8791a">Reach exit</text>
+        <text x="740" y="148" font-size="10" opacity=".65">gate / Bhagwan</text>
+
+        <line x1="134" y1="135" x2="176" y2="135" stroke="currentColor" marker-end="url(#la)"/>
+        <line x1="312" y1="135" x2="354" y2="135" stroke="currentColor" marker-end="url(#la)"/>
+        <line x1="490" y1="135" x2="532" y2="135" stroke="currentColor" marker-end="url(#la)"/>
+        <line x1="678" y1="135" x2="720" y2="135" stroke="currentColor" marker-end="url(#la)"/>
+        <text x="686" y="126" font-size="10" opacity=".65">yes</text>
+        <path d="M 600 112 L 600 76 L 247 76 L 247 106" fill="none" stroke="currentColor" marker-end="url(#la)"/>
+        <text x="380" y="70" font-size="10" opacity=".65">no &mdash; keep searching</text>
+
+        <!-- Monk branch, above -->
+        <rect x="182" y="18" width="308" height="40" fill="none" stroke="currentColor" stroke-dasharray="4 3"/>
+        <text x="196" y="35" font-size="11">Monk Q&amp;A &mdash; optional detour</text>
+        <text x="196" y="50" font-size="10" opacity=".65">correct answer highlights the Goal box + one Support box</text>
+        <line x1="247" y1="106" x2="247" y2="62" stroke="currentColor" opacity=".45" marker-end="url(#la)"/>
+        <path d="M 425 58 L 425 106" fill="none" stroke="currentColor" opacity=".45" marker-end="url(#la)"/>
+
+        <!-- Costs, below -->
+        <rect x="182" y="204" width="130" height="60" fill="none" stroke="#b03333"/>
+        <text x="196" y="224" font-size="11" fill="#b03333">Hazard hit</text>
+        <text x="196" y="240" font-size="10" opacity=".75">&minus;30s</text>
+        <text x="196" y="255" font-size="10" opacity=".75">1s stun</text>
+
+        <rect x="360" y="204" width="130" height="60" fill="none" stroke="#b03333"/>
+        <text x="374" y="224" font-size="11" fill="#b03333">Distraction</text>
+        <text x="374" y="240" font-size="10" opacity=".75">&minus;30s</text>
+        <text x="374" y="255" font-size="10" opacity=".75">5s frozen</text>
+
+        <rect x="538" y="204" width="140" height="60" fill="none" stroke="#2f7a4d"/>
+        <text x="552" y="224" font-size="11" fill="#2f7a4d">Support</text>
+        <text x="552" y="240" font-size="10" opacity=".75">+15s</text>
+
+        <line x1="247" y1="158" x2="247" y2="198" stroke="#b03333" marker-end="url(#la)"/>
+        <line x1="405" y1="158" x2="405" y2="198" stroke="#b03333" marker-end="url(#la)"/>
+        <line x1="600" y1="158" x2="600" y2="198" stroke="#2f7a4d" marker-end="url(#la)"/>
+
+        <text x="16" y="230" font-size="11">Timer</text>
+        <text x="16" y="248" font-size="10" opacity=".65">hits 0 &rarr;</text>
+        <text x="16" y="262" font-size="10" opacity=".65">Game Over</text>
+        <line x1="75" y1="158" x2="75" y2="216" stroke="currentColor" opacity=".5"/>
+        <line x1="75" y1="216" x2="176" y2="216" stroke="currentColor" opacity=".25"/>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>Everything is priced in seconds.</b> The only decision the player repeatedly makes &mdash; open this box or walk past it &mdash; weighs a possible &minus;30s and a five-second freeze against a possible +15s or the Goal itself. The Monk detour is the one way to buy information instead of gambling.</figcaption>
+  </figure>
+
+  <h3>Controls</h3>
+  <p>One abstraction layer, three input devices, no separate code paths in the scenes. Move with arrows / <code>A</code>&thinsp;<code>D</code> / stick / D-pad / on-screen arrows. Jump with <code>Space</code>, <code>Up</code>, gamepad A, or the on-screen JUMP. Interact with <code>Enter</code>, <code>E</code>, gamepad X, or ACT. <code>F3</code> toggles an FPS overlay; <code>Esc</code> backs out. Custom pad bindings live in <code>data/controller_map.json</code> and are validated against the connected device before being trusted.</p>
+
+  <h3>Box roulette</h3>
+  <p>Six boxes per level, shuffled and placed on random platforms with a 50-attempt safety search that keeps them clear of hazards, the Monk and each other. Opening one pauses the world and shows a pop-up; the effect only lands when you dismiss it.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Category</th><th>Effect</th><th>Items across the four levels</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="cat"><span class="dot goal"></span>Goal</span></td>
+        <td class="num">Unlocks the exit</td>
+        <td>Temple Key (L1), Akshat &mdash; sacred rice (L2&ndash;L4)</td>
+      </tr>
+      <tr>
+        <td><span class="cat"><span class="dot support"></span>Support</span></td>
+        <td class="num">+15s</td>
+        <td>TTC Bus, Personal Car, Ghanta (temple bell), Chanvar (ceremonial fan), Lakshan Snake / Lion / Bull</td>
+      </tr>
+      <tr>
+        <td><span class="cat"><span class="dot distraction"></span>Distraction</span></td>
+        <td class="num">&minus;30s and 5s frozen</td>
+        <td>Mobile Phone, Food, Movie Ticket, Friend, Foe</td>
+      </tr>
+      <tr>
+        <td><span class="cat"><span class="dot none"></span>No-effect</span></td>
+        <td class="num">Nothing</td>
+        <td>Wrong Lakshan &mdash; Bull in L2/L3, Lion in L4</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:16px">The mix shifts by level. Level 1 is the harshest gamble &mdash; one Goal, two Support, three Distraction. Level 4 is the gentlest &mdash; one Goal, three Support, one no-effect, one Distraction.</p>
+
+  <h3>The four levels</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Level</th><th>Setting</th><th class="num">Timer</th><th>Hazards present</th><th>How the level ends</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 &middot; The Commute</b><br><span class="loc">Samsara</span></td><td>Toronto streetscape; awnings, shop roofs, row-house peaks, tower ridges</td><td class="num">240s</td><td>1 water pool, 1 rooftop fire</td><td>Find the Temple Key, then walk to the temple gate and press ACTION</td></tr>
+      <tr><td><b>2 &middot; The Cave</b><br><span class="loc">Resilience</span></td><td>Stone cave; low shelves, wide-gap mid platforms, high passage</td><td class="num">260s</td><td>2 patrolling snakes only</td><td>Find the Akshat &rarr; <b>flight unlocks</b> and a Bhagwan platform spawns &rarr; fly up and offer it</td></tr>
+      <tr><td><b>3 &middot; The Hall</b><br><span class="loc">Valor</span></td><td>Marble hall; 18 tight ledges climbing to a top-centre goal</td><td class="num">280s</td><td>3 fire pits, 2 water pools</td><td>Ends the instant the Akshat box is opened &mdash; no exit to reach</td></tr>
+      <tr><td><b>4 &middot; The Summit</b><br><span class="loc">Moksha</span></td><td>Mountain ascent; sparse footholds into a double zigzag</td><td class="num">300s</td><td>2 water channels, 3 flame pillars</td><td>Ends the instant the Akshat box is opened &mdash; no exit to reach</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <p><b>Level 2 is the most designed level in the game.</b> Finding the Akshat flips <code>player.can_fly</code>, which disables gravity entirely and switches to 8-way floating control, and appends a new platform at <code>Rect(15,150,150,150)</code> where the Bhagwan image sits. The goal text in <code>level_goals.json</code> swaps to match. It is the only level where the goal item changes how the character moves.</p>
+  </div>
+
+  <h3>The Monk</h3>
+  <p>One Monk per level, on a fixed ledge in Levels 1&ndash;2 and randomly placed on a hazard-free platform in 3&ndash;4. Walk into a 60&times;40 inflated zone and a &ldquo;press UP&rdquo; prompt appears; accepting opens a full-screen parchment with the question typed out character by character and two choices. Questions come from <code>monk_questions.json</code> (or the kids variant), four per level, and the session tracks which have been asked so a run never repeats one. A correct answer calls <code>highlight_goal_box()</code>, which pulses a green outline around the Goal box and the first unopened Support box. One attempt per level, right or wrong.</p>
+
+  <h3>Modes, scoring and ranks</h3>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Mode</th><th>Platforms</th><th>Game over</th><th>Reaches</th></tr></thead>
+    <tbody>
+      <tr><td><b>kid</b> <span class="loc">(default)</span></td><td>Drawn as visible black lines</td><td>Enabled</td><td>Level 2, then Leaderboard</td></tr>
+      <tr><td><b>standard</b></td><td>Invisible &mdash; blend into the art</td><td>Enabled</td><td>Level 2, then Leaderboard</td></tr>
+      <tr><td><b>developer</b></td><td>Visible</td><td>Disabled &mdash; timer floors at 0</td><td>Levels 3&ndash;4 and Victory</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:16px">Per level, score is <code>remaining_seconds &times; 10</code>, banked once when the completion banner appears and accumulated into <code>total_score</code>. The Victory screen then computes its own number &mdash; <code>max(500, 10000 &minus; total_time&times;15 + 1500 &times; correct_monk_answers)</code> &mdash; and overwrites <code>final_score</code> with it. Rank comes from total elapsed time alone: under 4 minutes is <b>Moksha Margi</b>, under 8 is <b>Shravak</b>, beyond that <b>Bhakt</b>. Profiles and a top-500 leaderboard persist to JSON, and a score is only recorded when it strictly beats the player's previous best.</p>
+</section>
+
+<section id="data">
+  <h2><span class="num">06</span> Data and persistence</h2>
+  <p>Content that changes often is externalized; level geometry is not. Platforms are hardcoded <code>pygame.Rect</code> lists in <code>level_layouts.py</code>, hand-tuned against the background art &mdash; some coordinates carry fractional values from a click-to-place workflow still present in the code. Box definitions are a Python dict in <code>box_system.py</code>. Questions and goal text are JSON. The <code>template/schemas/</code> folder documents JSON formats for boxes, levels, dialogue and sprites that the engine does not yet read &mdash; forward work for reusing this as a generic engine.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>File</th><th>Kind</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">assets/monk_questions.json</td><td>read-only</td><td>16 questions, 4 per level, two choices each</td></tr>
+      <tr><td class="mono">assets/monk_questions_kids.json</td><td>read-only</td><td>16 simplified questions in the same shape</td></tr>
+      <tr><td class="mono">assets/level_goals.json</td><td>read-only</td><td>HUD objective strings, including post-goal variants for L1 and L2</td></tr>
+      <tr><td class="mono">data/controller_map.json</td><td>read-only</td><td>Custom pad bindings, validated against the live device</td></tr>
+      <tr><td class="mono">data/profiles.json</td><td>writable</td><td>Name, character, high score, highest level, games played</td></tr>
+      <tr><td class="mono">data/high_scores.json</td><td>writable</td><td>Top 500, sorted, one entry per player</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="build">
+  <h2><span class="num">07</span> Build and distribution</h2>
+  <p>PyInstaller for both desktop targets, with separate spec files. GitHub Actions runs a portability test suite on Ubuntu, then builds the Windows <code>.exe</code> and the macOS <code>.app</code>, publishing on <code>v*</code> tags. The macOS script validates, ad-hoc signs (or Developer-ID signs when <code>MACOS_CODESIGN_IDENTITY</code> is set), and zips the bundle; notarization is wired but optional. The test suite is deliberately import-free &mdash; it parses source with <code>ast</code> and mocks <code>sys.frozen</code> &mdash; so it runs on a headless worker before pygame is installed. It is the only automated test in the project, and it checks packaging integrity rather than gameplay.</p>
+</section>
+
+<section id="findings">
+  <h2><span class="num">08</span> What the code does that the docs don't say</h2>
+  <p>These are all verified against the source, not inferred. Ordered by how much they'd affect a player or a maintainer.</p>
+
+  <div class="finding high">
+    <h4><span class="sev">High</span>The Monk's correct answer is always the first option</h4>
+    <p>All 32 questions across both question files have <code>"correct": 0</code>, and the choices are never shuffled before display. A player who notices this gets a free Goal-box reveal every level, which removes the entire knowledge-versus-time trade the mechanic exists to create.</p>
+    <p class="loc">assets/monk_questions.json &middot; assets/monk_questions_kids.json &middot; monk_system.py (no shuffle of <code>q["choices"]</code>)</p>
+  </div>
+
+  <div class="finding high">
+    <h4><span class="sev">High</span>Two call sites crash if a negative starting level is set</h4>
+    <p>A misplaced parenthesis turns the keyword argument into a second positional argument to <code>abs()</code>: <code>abs(starting_level, input_mgr=self.input_mgr)</code> raises <code>TypeError</code>. It sits on the developer level-skip branch, so a normal run never touches it &mdash; but the same shortcut in <code>character_select.py</code> works, which means the shortcut succeeds for a new profile and crashes for an existing one.</p>
+    <p class="loc">player_select_scene.py:332 &middot; leaderboard_scene.py:151</p>
+  </div>
+
+  <div class="finding med">
+    <h4><span class="sev">Medium</span>Hazards don't reset the player &mdash; they charge 30 seconds</h4>
+    <p>The GDD states that fire and water &ldquo;cause the player to reset to the start of the level.&rdquo; The implementation subtracts 30 seconds and freezes for 1 second, with a 2-second per-hazard cooldown. The docs and the build describe different games here, and the code's version is arguably the better one &mdash; a doc fix, not a code fix.</p>
+    <p class="loc">hazards.py:14&ndash;16 &middot; level_scene.py:775&ndash;778 vs docs/GDD.md</p>
+  </div>
+
+  <div class="finding med">
+    <h4><span class="sev">Medium</span>Levels 3 and 4 end the moment the Goal box opens</h4>
+    <p>The README tells players to &ldquo;locate the Goal Box and then reach the temple gate at the end of the level.&rdquo; That is true only in Level 1. Level 2 substitutes the Bhagwan offering. Levels 3 and 4 fire <code>level_complete</code> directly from the box, so their long ascending layouts have no destination &mdash; whichever platform the Goal box happened to land on is the finish line.</p>
+    <p class="loc">level_scene.py:564&ndash;568</p>
+  </div>
+
+  <div class="finding med">
+    <h4><span class="sev">Medium</span>Level 2 has neither fire nor water</h4>
+    <p>Both the GDD and the design review in <code>Game Play v2.txt</code> make &ldquo;Water AND Fire in every level&rdquo; a named correction principle. Level 2 ships with two patrolling snakes and nothing else; the snakes are behind a module-level <code>ENABLE_LEVEL2_SNAKES</code> test flag that is currently the level's only hazard source.</p>
+    <p class="loc">hazards.py:150&ndash;158</p>
+  </div>
+
+  <div class="finding med">
+    <h4><span class="sev">Medium</span>Missing backgrounds render as hot pink</h4>
+    <p><code>assets/images/backgrounds/</code> holds art for the title, Level 1 and Level 2 only. Levels 3 and 4 hit the AssetManager's deliberate fallback and draw a magenta rectangle behind the whole level. <code>assets/fonts/</code> is empty too, so every scene silently uses the default pygame face despite the font-path machinery.</p>
+    <p class="loc">asset_manager.py:29&ndash;34</p>
+  </div>
+
+  <div class="finding med">
+    <h4><span class="sev">Medium</span>Two scoring systems, one field</h4>
+    <p>Levels bank <code>remaining_seconds &times; 10</code> into <code>total_score</code>, and <code>_advance_level</code> copies that into <code>final_score</code> and saves it to the profile. On reaching Victory, a second, unrelated formula recomputes <code>final_score</code> and saves again. A player who ends in kid mode after Level 2 and a player who finishes all four levels have scores on the same leaderboard that were computed different ways.</p>
+    <p class="loc">level_scene.py:1132&ndash;1140 &middot; victory_scene.py:45&ndash;50</p>
+  </div>
+
+  <div class="finding low">
+    <h4><span class="sev">Low</span>A level-design tool is live in the shipped gameplay path</h4>
+    <p>Every mouse click during a level prints a ready-to-paste <code>p.append(pygame.Rect(...))</code> line to stdout. Harmless in a windowed build, but it fires on the same clicks players use for the touch controls.</p>
+    <p class="loc">level_scene.py:330&ndash;337</p>
+  </div>
+
+  <div class="finding low">
+    <h4><span class="sev">Low</span>Falling off the world is free</h4>
+    <p>A player below <code>y = LOGICAL_HEIGHT</code> is teleported to <code>y = 100</code> with zeroed velocity &mdash; dropped back in at the top of the screen at no cost. In levels built as vertical climbs, falling is faster than descending.</p>
+    <p class="loc">level_scene.py:161&ndash;163</p>
+  </div>
+
+  <div class="finding low">
+    <h4><span class="sev">Low</span><code>AssetManager.get_image()</code> can never return anything</h4>
+    <p><code>load_image</code> caches under a <code>(path, scale)</code> tuple; <code>get_image</code> looks up a bare path string. The lookup always misses and returns <code>None</code>. Nothing currently calls it, so it is dead rather than broken &mdash; but it is a trap for the next caller.</p>
+    <p class="loc">asset_manager.py:45&ndash;48</p>
+  </div>
+
+  <div class="finding low">
+    <h4><span class="sev">Low</span>Repository hygiene</h4>
+    <p>760&nbsp;MB checkout carrying <code>venv/</code>, <code>build/</code>, <code>dist/</code>, <code>Old/</code> asset folders and a <code>backups/</code> directory of nine superseded modules. Twelve files are modified and uncommitted, including the built <code>dist/PathToMoksha.exe</code>.</p>
+  </div>
+</section>
+
+<section id="next">
+  <h2><span class="num">09</span> If you want a shortlist</h2>
+  <ul class="tight">
+    <li><b>Shuffle the Monk's answers.</b> One <code>random.shuffle</code> with a remapped <code>correct</code> index restores the mechanic the whole design is built around.</li>
+    <li><b>Decide what Levels 3 and 4 are.</b> They are complete geometry with no backgrounds, no exit condition and no route from normal play. Either finish them or state in the docs that this build ends at Level 2.</li>
+    <li><b>Pick one scoring formula.</b> Whichever it is, compute it in one place so the leaderboard compares like with like.</li>
+    <li><b>Reconcile the GDD with the build</b> on hazards, on Level 2's missing fire and water, and on where each level actually ends.</li>
+    <li><b>Move platform layouts into the JSON schema</b> the template folder already defines. It is the last thing keeping level design inside Python.</li>
+  </ul>
+</section>
+
+<footer>
+  Reviewed from source at <span class="mono">D:\Jain_game_workspace\Path to Moksha</span>. Line references point at <span class="mono">version 1/src/</span> as of the current working tree, which has uncommitted changes.
+</footer>
+
+</div>

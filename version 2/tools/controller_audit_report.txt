@@ -1,0 +1,137 @@
+
+════════════════════════════════════════════════════════════════════════
+  CONTROLLER AUDIT — Path to Moksha
+  Run at: 2026-08-02 16:16:55
+════════════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════════════
+  LAYER 1: Input Attribute Validity
+════════════════════════════════════════════════════════════════════════
+  Checks every input_mgr.ATTR reference against known InputManager constants.
+  ✅ PASS  asset_manager.py
+  ✅ PASS  box_system.py
+  ✅ PASS  character_select.py
+  ✅ PASS  fidelity_loop_demo.py
+  ✅ PASS  hazards.py
+  ✅ PASS  input_manager.py
+  ✅ PASS  leaderboard_scene.py
+  ✅ PASS  level_layouts.py
+  ✅ PASS  level_scene.py
+  ✅ PASS  main.py
+  ✅ PASS  monk_system.py
+  ✅ PASS  options_scene.py
+  ✅ PASS  player_select_scene.py
+  ✅ PASS  profile_manager.py
+  ✅ PASS  scene_manager.py
+  ✅ PASS  settings.py
+  ✅ PASS  test.py
+  ✅ PASS  title_screen.py
+  ✅ PASS  transition_scene.py
+  ✅ PASS  tutorial_scene.py
+  ✅ PASS  victory_scene.py
+
+════════════════════════════════════════════════════════════════════════
+  LAYER 2: Scene Name Safety (NameError prevention)
+════════════════════════════════════════════════════════════════════════
+  Checks every SCENE_XXX used in switch_to() is imported in the file.
+  ✅ PASS  asset_manager.py
+  ✅ PASS  box_system.py
+  ✅ PASS  character_select.py
+  ✅ PASS  fidelity_loop_demo.py
+  ✅ PASS  hazards.py
+  ✅ PASS  input_manager.py
+  ✅ PASS  leaderboard_scene.py
+  ✅ PASS  level_layouts.py
+  ✅ PASS  level_scene.py
+  ✅ PASS  main.py
+  ✅ PASS  monk_system.py
+  ✅ PASS  options_scene.py
+  ✅ PASS  player_select_scene.py
+  ✅ PASS  profile_manager.py
+  ✅ PASS  scene_manager.py
+  ✅ PASS  settings.py
+  ✅ PASS  test.py
+  ✅ PASS  title_screen.py
+  ✅ PASS  transition_scene.py
+  ✅ PASS  tutorial_scene.py
+  ✅ PASS  victory_scene.py
+
+════════════════════════════════════════════════════════════════════════
+  LAYER 3: Controller Checklist Coverage
+════════════════════════════════════════════════════════════════════════
+  Verifies each expected controller action appears in the scene source.
+
+  title_screen.py
+    ✅  Navigate menu up
+    ✅  Navigate menu down
+    ✅  Select menu item
+    ✅  Back / Quit
+
+  options_scene.py
+    ✅  Navigate up/down
+    ✅  Cycle option left
+    ✅  Cycle option right
+    ✅  Confirm / Select
+    ✅  Back
+    ✅  SCENE_OPTIONS imported
+
+  player_select_scene.py
+    ✅  VKB navigate left
+    ✅  VKB navigate right
+    ✅  VKB navigate up
+    ✅  VKB navigate down
+    ✅  VKB press key
+    ✅  Profile navigate up
+    ✅  Profile navigate down
+    ✅  Profile launch
+    ✅  Back to Title
+
+  character_select.py
+    ✅  Switch character left
+    ✅  Switch character right
+    ✅  Confirm character
+    ✅  Back
+
+  tutorial_scene.py
+    ✅  Tab left
+    ✅  Tab right
+    ✅  Scroll up
+    ✅  Scroll down
+    ✅  Start Pilgrimage
+    ✅  Back
+
+  level_scene.py
+    ✅  Walk left
+    ✅  Walk right
+    ✅  Jump
+    ✅  Fly up
+    ✅  Fly down
+    ✅  Dismiss popup
+    ✅  Temple Gate entry
+    ✅  Monk answer up
+    ✅  Monk answer down
+    ✅  Confirm monk answer
+    ✅  Start monk dialogue
+    ✅  Open box
+    ✅  Pause / back to title
+    ✅  Game Over Phase 1 dismiss
+    ✅  Game Over Phase 2 left
+    ✅  Game Over Phase 2 right
+    ✅  Game Over Phase 2 confirm
+
+  transition_scene.py
+    ✅  Advance scene
+
+  victory_scene.py
+    ✅  Go to leaderboard
+
+  leaderboard_scene.py
+    ✅  Return to Title
+    ✅  Back
+
+════════════════════════════════════════════════════════════════════════
+  SUMMARY
+════════════════════════════════════════════════════════════════════════
+  ✅  ALL CHECKS PASSED — controller is fully mapped
+
+════════════════════════════════════════════════════════════════════════

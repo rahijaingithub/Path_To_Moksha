@@ -1,0 +1,16 @@
+{
+  "1": {
+    "default": "Goal: Find the Temple Key!",
+    "key_found": "Goal: Unlock and enter the Temple Gate!"
+  },
+  "2": {
+    "default": "Goal: Find the Akshat (Sacred Rice)!",
+    "akshat_found": "Goal: Fly to the Bhagwan at the top-right and offer Akshat!"
+  },
+  "3": {
+    "default": "Goal: Find the Akshat (Sacred Rice)!"
+  },
+  "4": {
+    "default": "Goal: Find the Akshat (Sacred Rice)!"
+  }
+}
