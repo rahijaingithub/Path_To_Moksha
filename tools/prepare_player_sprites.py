@@ -97,6 +97,47 @@ def remove_white_bg(cell):
     return cell
 
 
+def sweep_ground_shadow(cell):
+    """Erase a soft drop shadow that remove_white_bg() cannot reach.
+
+    Both walk sheets render a soft gray shadow under the feet, down to ~150 on
+    each channel — well below remove_white_bg's ">230" test, so the flood fill
+    correctly leaves it (it fails the whiteness test) even though it isn't part
+    of the character either. It can't be fixed by connected-component analysis
+    either: the shadow touches the sandal directly at the ground-contact point,
+    so it is the SAME connected blob as the character, not a separate island.
+
+    Exploit the geometry instead of color alone. A cast shadow always sits
+    strictly below the feet, in every column of the image. So sweep each
+    column bottom-up: while a pixel is neutral-toned and reasonably light,
+    treat it as shadow and erase it; the moment a column hits a pixel with real
+    color saturation or darkness — the cel-shade outline, skin, cloth, the
+    sandal itself — stop. Everything above that point in the column is left
+    untouched, so a kurta fold-shadow (which sits behind and above the feet)
+    is never reached: the sweep in its column already stopped at the sandal.
+
+    Verified against real art, not just reasoned about: on the boy's and
+    girl's 8-frame walk sheets this clears the shadow blob in every frame
+    (confirmed on both a magenta and a cyan background, so it isn't a
+    translucency artifact) while the kurta/dhoti's own fold shading — which
+    reaches as dark as near-black at outlines, unlike the shadow's ~150 floor —
+    is untouched.
+    """
+    cw, ch = cell.size
+    cpix = cell.load()
+    for x in range(cw):
+        for y in range(ch - 1, -1, -1):
+            r, g, b, a = cpix[x, y]
+            if a < 10:
+                continue  # already transparent; keep sweeping upward
+            spread = max(r, g, b) - min(r, g, b)
+            if r > 150 and spread < 14:
+                cpix[x, y] = (r, g, b, 0)
+                continue
+            break  # real content: stop sweeping this column
+    return cell
+
+
 def tight_crop(cell):
     """Crop to non-transparent pixels only."""
     bbox = cell.getbbox()          # Pillow built-in: (left,top,right,bottom) of non-zero alpha
@@ -156,6 +197,7 @@ def process_sprite(filename, rows, cols):
             top    = r * cell_h
             cell   = img.crop((left, top, left + cell_w, top + cell_h)).copy()
             cell   = remove_white_bg(cell)
+            cell   = sweep_ground_shadow(cell)
             cell   = tight_crop(cell)
             if cell is None:
                 print(f"  WARN: empty cell at row={r} col={c} in {filename}")

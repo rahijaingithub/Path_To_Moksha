@@ -251,3 +251,47 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   real condition at the player-animation switch) and confirmed `anim_frame` visits all
   8 values with none exceeding `strip_frame_count() - 1`, and that `draw()` does not
   raise (a stale frame count would `subsurface()` out of range).
+
+## Phase 6h: ground-shadow removal fixed; walk-dwell timing flagged (2026-09-07)
+* **Bug found (Authority screenshot):** both walk sheets carried a visible white/gray
+  blob near the trailing foot in every frame — a soft cast shadow that
+  `remove_white_bg()` never erased.
+* **Root cause, confirmed by measurement, not assumed:** the shadow is medium-gray,
+  as dark as ~150 on each channel — well below `remove_white_bg`'s `>230` whiteness
+  test, so the flood fill correctly leaves it (it fails the test) even though it
+  isn't the character. Connected-component analysis alone cannot separate it either:
+  it touches the sandal directly at the ground-contact point, so it is the SAME
+  blob as the character, not an isolated island (tested: 1 component found, 0
+  pixels droppable). A naive "erase any light neutral-gray pixel" pass was tried
+  and rejected: measured 15% of the kurta's own fold-shadow pixels match that same
+  color test, which would have visibly damaged the art (screenshotted and compared).
+* **Fix: `sweep_ground_shadow()` in `tools/prepare_player_sprites.py`.** Exploits
+  geometry instead of color alone — a cast shadow is always strictly below the
+  feet, in every column. Sweeps each column bottom-up; erases neutral, light
+  pixels; stops the instant a column hits real saturation or darkness (the
+  cel-shade outline, skin, cloth, the sandal). A kurta fold-shadow, sitting behind
+  and above the feet, is never reached because the sweep in its column already
+  stopped at the sandal. Wired into `process_sprite()` right after
+  `remove_white_bg()`, so it applies to any future raw sheet automatically — the
+  idempotency guard means it cannot touch already-normalized art.
+* **Verified against the real pipeline, not a scratch approximation:** regenerated
+  both walk sheets from the raw `_source/` jpgs through the corrected pipeline,
+  composited each of the 8 frames per character onto both magenta and cyan
+  backgrounds (confirms opacity, not translucency blending in only one hue), and
+  confirmed no residual shadow in any of the 32 resulting frames (8 x 2 characters
+  x 2 directions). 16 unit tests OK; in-engine smoke test confirms `anim_frame`
+  still visits all 8 values with none exceeding `strip_frame_count()-1`.
+* **Second complaint, "walk doesn't look smooth" — root cause identified, NOT
+  fixed, flagged for a ruling.** Measured with the game's actual constants: the
+  walk state's velocity band is `0.5 < |vx| <= PLAYER_SPEED*0.6` (0.5 to 4.2), and
+  `vx` approaches `PLAYER_SPEED` via `vx += (target - vx) * 15 * dt`. Solving that
+  exponential: the player spends **56ms total inside the walk band** while
+  accelerating from a stop, but one walk animation frame is displayed for 120ms.
+  **The walk state is visible for less than half of one frame's duration before
+  the state machine switches to "run".** This holds regardless of how good the
+  walk art is — it is a timing/threshold issue, not a sprite issue, and it is the
+  same load-bearing constant set (`PLAYER_SPEED`, the 0.6 run threshold, the 15x
+  lerp rate) that Phase 6c's Fix A already flagged as "genuinely risky" and
+  deferred. Not changed in this pass — it is a design decision, not a bug fix, and
+  needs the Authority's ruling on which of the three constants should move and by
+  how much before touching game feel that affects every level.
