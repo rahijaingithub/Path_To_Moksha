@@ -232,3 +232,22 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     and play the cycle backwards.
 * **Note:** raw generated sheets kept in `assets/images/sprites/_source/`. They are
   irreplaceable inputs and were previously untracked.
+
+## Phase 6g: girl's walk cycle redrawn (2026-09-07)
+* **Decision:** adopt the designer's replacement `player_girl_walk_right` sheet.
+  * *Rationale:* the first generated sheet (Phase 6f) was photorealistic with no dark
+    outline between her white kurta and the white background, so `remove_white_bg()`
+    flooded through the edge and ate holes in her clothing. The designer regenerated it
+    with a hard dark silhouette edge (measured: brightness step 255 -> 127 -> 0 at the
+    body boundary, matching the boy's sheet). Verified by running the actual pipeline
+    and compositing the alpha-masked result on magenta: 21% opaque, matching the boy's
+    clean output, no holes, no residual background. `SPRITE_GRID` for both girl walk
+    entries moves (1, 4) -> (1, 8).
+* Both characters now have a genuine 8-frame walk cycle. Left-facing strips are mirrored
+  per frame from the right-facing sheet, as with the boy's (Phase 6f) — this stays
+  correct because it flips each frame individually rather than the whole strip.
+* Verified in-engine, not just at the file level: drove `LevelScene`'s actual animation
+  state machine into "walk" (on_ground, not frozen, `vx` held in the walk band per the
+  real condition at the player-animation switch) and confirmed `anim_frame` visits all
+  8 values with none exceeding `strip_frame_count() - 1`, and that `draw()` does not
+  raise (a stale frame count would `subsurface()` out of range).

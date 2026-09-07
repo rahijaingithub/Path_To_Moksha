@@ -45,8 +45,8 @@ SPRITE_GRID = {
 
     "player_girl_idle_left.png":  (1, 4),
     "player_girl_idle_right.png": (1, 4),
-    "player_girl_walk_left.png":  (1, 4),
-    "player_girl_walk_right.png": (1, 4),
+    "player_girl_walk_left.png":  (1, 8),
+    "player_girl_walk_right.png": (1, 8),
     "player_girl_run_left.png":   (1, 6),
     "player_girl_run_right.png":  (1, 6),
     "player_girl_jump_left.png":  (1, 4),
