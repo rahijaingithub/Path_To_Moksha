@@ -4,7 +4,7 @@ Renders on-screen touch buttons and maps all input methods to the same actions.
 
 Gamepad button mapping (standard layout — works for Xbox, PlayStation, Logitech, etc.):
   Left Analog Stick / D-Pad  →  LEFT / RIGHT / UP movement
-  Button 0 (A / Cross)       →  JUMP
+  Button 0 (A / Cross)       →  JUMP, and MENU_SELECT (confirm)
   Button 1 (B / Circle)      →  BACK
   Button 2 (X / Square)      →  ACTION (interact/confirm)
   Button 3 (Y / Triangle)    →  ACTION (interact/confirm)
@@ -439,6 +439,14 @@ class InputManager:
                 if self._check_mapping_active("jump", event=event):
                     self.just_pressed[self.JUMP] = True
                     self.actions[self.JUMP] = True
+                    # A also confirms. Players reach for A to accept a menu item
+                    # or answer a Monk question; it previously did neither. Note
+                    # the keyboard equivalent (SPACE) is deliberately NOT bound
+                    # to MENU_SELECT — see the keyboard block below.
+                    if self._nav_cooldown[self.MENU_SELECT] <= 0:
+                        self.just_pressed[self.MENU_SELECT] = True
+                        self._nav_cooldown[self.MENU_SELECT] = NAV_COOLDOWN
+                    self.actions[self.MENU_SELECT] = True
                 if self._check_mapping_active("action", event=event) or self._check_mapping_active("menu_select", event=event):
                     if self._nav_cooldown[self.ACTION] <= 0:
                         self.just_pressed[self.ACTION] = True
@@ -480,6 +488,11 @@ class InputManager:
                 if btn == 0:
                     self.just_pressed[self.JUMP] = True
                     self.actions[self.JUMP] = True
+                    # A also confirms (see the custom-mapping branch above).
+                    if self._nav_cooldown[self.MENU_SELECT] <= 0:
+                        self.just_pressed[self.MENU_SELECT] = True
+                        self._nav_cooldown[self.MENU_SELECT] = NAV_COOLDOWN
+                    self.actions[self.MENU_SELECT] = True
                 elif btn in (2, 3, 7):
                     self.just_pressed[self.ACTION] = True
                     self.actions[self.ACTION] = True
@@ -496,6 +509,7 @@ class InputManager:
             if self.custom_mappings:
                 if self._check_mapping_active("jump", event=event):
                     self.actions[self.JUMP] = False
+                    self.actions[self.MENU_SELECT] = False
                 if self._check_mapping_active("action", event=event) or self._check_mapping_active("menu_select", event=event):
                     self.actions[self.ACTION] = False
                     self.actions[self.MENU_SELECT] = False
@@ -515,6 +529,7 @@ class InputManager:
                 btn = event.button
                 if btn == 0:
                     self.actions[self.JUMP] = False
+                    self.actions[self.MENU_SELECT] = False
                 elif btn in (2, 3, 7):
                     self.actions[self.ACTION] = False
                 elif btn in (1, 6):

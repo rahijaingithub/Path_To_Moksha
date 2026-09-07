@@ -50,3 +50,11 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         always the top option. (All 32 questions ship with correct at index 0.)
 29. [ ] Play as the **girl** character and watch the walk/run/idle/jump/fall
         animations: the drawn pose must change, not freeze mid-cycle.
+30. [ ] Gamepad **A** confirms: selects on the title screen and submits a Monk answer.
+31. [ ] **Sacred volume — Monk:** you cannot jump or fly above the Monk's head in
+        Levels 1 and 2, AND you can still land on his ledge and talk to him.
+        (Clearance is only 3px by design — Monk.HEIGHT minus PLAYER_HEIGHT.)
+32. [ ] **Sacred volume — Parshvanath:** after the Akshat box in Level 2, you cannot
+        fly above the murti. No visible platform appears where the wall is.
+33. [ ] Levels 3-4 in developer mode: the Monk is placed randomly, so confirm his
+        invisible column has not landed somewhere that blocks a needed route.

@@ -10,7 +10,7 @@ from scene_manager import Scene
 from box_system import BoxSystem, CAT_GOAL, CAT_SUPPORT, CAT_DISTRACTION, CAT_NO_EFFECT, CAT_COLORS
 from monk_system import create_monk
 from hazards import create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION
-from level_layouts import build_level_platforms
+from level_layouts import build_level_platforms, WALL as WALL_THICKNESS
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, GRAVITY, PLAYER_SPEED,
     PLAYER_JUMP_FORCE, LEVEL_JUMP_FORCES, PLAYER_MAX_FALL_SPEED, PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -194,6 +194,7 @@ class LevelScene(Scene):
         self.platforms = []
         self.box_system = None
         self.monk = None
+        self.invisible_blockers = []
         self.hazards = []
         self.level = 1
         self.time_remaining = 0.0
@@ -337,6 +338,55 @@ class LevelScene(Scene):
         self.box_system = BoxSystem(self.level, self.platforms, self.hazards, self.monk)
         self.box_system.akshat_found = False  # Level 2: set True when Akshat box is opened
         self.bhagwan_platform_added = False
+
+        # ── Sacred volumes ───────────────────────────────────────────────────
+        # Rects that collide like platforms but are never drawn. Designer rule:
+        # the devotee may not pass above the Monk's head or above the Parshvanath
+        # image. Membership in this list is what suppresses drawing — the old
+        # check keyed on exact geometry (left == 15 and top == 150 and
+        # width == 150), so any change to the rect silently made it visible.
+        self.invisible_blockers = []
+        self._add_monk_sacred_volume()
+
+    def _add_blocker(self, rect):
+        """Add a rect that collides like a platform but is never drawn."""
+        self.platforms.append(rect)
+        self.invisible_blockers.append(rect)
+
+    def _add_monk_sacred_volume(self):
+        """Seal the column above the Monk's head, from the ceiling down.
+
+        Reachability is preserved rather than assumed. In Level 1 the Monk
+        stands on Rect(1383, 291, 50, 8) with his head at y=192, and the player
+        approaches from Rect(1407, 390, 115, 8) — whose x-span overlaps his, so
+        the normal route to him already passes over his head. Landing on his
+        ledge needs the player's top at y=195, which is *below* the wall's
+        underside at 192, so the jump now bonks and drops onto the ledge instead
+        of sailing over. The Monk stays reachable; he just cannot be overflown.
+
+        LOAD-BEARING INVARIANT: that clearance is exactly
+        Monk.HEIGHT - PLAYER_HEIGHT (99 - 96 = 3px), in every level, because the
+        wall's underside is the Monk's head and the player lands one player-height
+        above the same ledge. It holds only while the devotee is shorter than the
+        Monk. If PLAYER_HEIGHT ever meets or exceeds Monk.HEIGHT, the Monk becomes
+        unreachable — which is arguably the rule working as stated, but it would
+        read as a broken level. Verified against real geometry for L1 and L2:
+        clearance 3px both, and neither wall overlaps a real platform.
+
+        Levels 3-4 place the Monk randomly, so this wall lands somewhere
+        unpredictable there. Those levels are dev-only skeletons today; see
+        PLAYTEST_CHECKLIST for the item that covers it.
+        """
+        if not self.monk:
+            return
+        ceiling_bottom = WALL_THICKNESS
+        head_top = int(self.monk.y)
+        height = head_top - ceiling_bottom
+        if height <= 0:
+            return
+        self._add_blocker(
+            pygame.Rect(int(self.monk.x), ceiling_bottom, self.monk.WIDTH, height)
+        )
 
         # NOTE: Music is already started above at line 261 with the correct level-specific
         #       track and the volume saved in Options. This duplicate call has been removed
@@ -704,7 +754,18 @@ class LevelScene(Scene):
         # Level 2: Dynamically add Bhagwan platform when Akshat is found
         if self.level == 2 and getattr(self.box_system, "akshat_found", False):
             if not getattr(self, "bhagwan_platform_added", False):
-                self.platforms.append(pygame.Rect(15, 150, 150, 150))
+                # The image itself: solid, but drawn as the picture rather than
+                # as a platform, so it is registered as an invisible blocker.
+                self._add_blocker(pygame.Rect(15, 150, 150, 150))
+                # Sacred volume: seal the column above the image, ceiling down to
+                # its top edge. Flight is unlocked at exactly this moment
+                # (can_fly is set when the Akshat box opens) and the only upward
+                # clamp is world y >= 0, so without this the devotee can hover
+                # directly above the Parshvanath murti — and is half off-screen
+                # while doing it, since the world is drawn at (0, -80).
+                self._add_blocker(
+                    pygame.Rect(15, WALL_THICKNESS, 150, 150 - WALL_THICKNESS)
+                )
                 self.bhagwan_platform_added = True
 
         was_on_ground = self.player.on_ground
@@ -881,8 +942,12 @@ class LevelScene(Scene):
             if is_boundary:
                 continue
 
-            # Skip drawing the solid Bhagwan collision block
-            if self.level == 2 and plat.left == 15 and plat.top == 150 and plat.width == 150:
+            # Skip drawing invisible blockers: the Bhagwan collision block (the
+            # picture is drawn in its place) and the sacred volumes above the
+            # murti and the Monk. Membership, not geometry — the previous check
+            # hardcoded left/top/width, so changing any of those made the block
+            # start rendering as a platform.
+            if plat in self.invisible_blockers:
                 continue
 
             # All modes except Kid mode: draw a beautiful golden glow to the upper border of platforms
