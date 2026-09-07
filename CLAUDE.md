@@ -22,11 +22,13 @@ hazards (Paap), and optionally seeking a Monk who rewards Jain knowledge with gu
 - **The spec of record is `docs/GDD_v2_refined.txt`.** Where it conflicts with older docs
   or with code, the spec wins — unless a logged decision says otherwise.
 
-## Where we are (as of 2026-09-06)
+## Where we are (as of 2026-09-07)
 - `v1.0` tag = shipped baseline. Levels 1–2 are complete and polished; kid/standard modes
   end after Level 2 ("to be continued"). Levels 3–4 exist only as skeleton layouts
   reachable in developer mode.
-- Branches: `main` = shippable; `v2-dev` = all v2 work. Never commit directly to `main`.
+- **Folders replace branches.** The repo root is `Path to Moksha/`. `version 1/` is a
+  frozen snapshot — do not edit it. `version 2/` is where all active work happens. There
+  is a single `main` branch; commit directly to it, scoped to `version 2/`.
 - v2 objective: **make the full four-level pilgrimage playable and true to the spec**,
   then layer in new ideas. See `docs/V2_GAP_ANALYSIS.md` and `docs/V2_TASKS.md`.
 
@@ -51,7 +53,7 @@ Skip the ceremony for typo fixes and one-line tweaks. Use it fully for anything 
 - State assumptions explicitly. Flag low-confidence claims. Never present unverified
   reasoning as verified.
 - **Git is the only backup.** Never create `*_backup.py`, `*_v2.py`, or `backups/` folders.
-  Commit at every green checkpoint on `v2-dev` with a message that says *why*.
+  Commit at every green checkpoint (in `version 2/`) with a message that says *why*.
 - Never track build output (`dist/`, `build/`) or scratch folders. `.gitignore` is authoritative.
 - One task per session where possible; name the files in scope to keep token use low.
 - Every non-trivial decision gets one dated line in `docs/DECISION_LOG.md` with the *why*.
@@ -72,7 +74,7 @@ Skip the ceremony for typo fixes and one-line tweaks. Use it fully for anything 
 - Physics are frame-rate independent (`dt * 60` scaling). Keep it that way.
 
 ## Definition of Done (for any v2 task)
-1. Code change is on `v2-dev`, committed with a *why* message.
+1. Code change is in `version 2/`, committed to `main` with a *why* message.
 2. `python -m unittest discover -s tests -v` is green (this is what CI runs).
 3. New behaviour has either an automated test or a named item in `docs/PLAYTEST_CHECKLIST.md`.
 4. `docs/DECISION_LOG.md` updated if a design choice was made.
@@ -80,10 +82,12 @@ Skip the ceremony for typo fixes and one-line tweaks. Use it fully for anything 
    `tests/test_portability.py::DYNAMIC_REQUIRED_ASSETS` if loaded dynamically.
 
 ## Build & run
+Run these from `version 2/` — that's the game root; this file lives one level up.
 - Dev run: `venv\Scripts\python.exe src\main.py` (Python 3.12 venv; runtime dep is `pygame-ce`).
 - Tests: `venv\Scripts\python.exe -m unittest discover -s tests -v` (stdlib only, no pytest).
 - Windows exe: `build_exe.bat` → `dist\PathToMoksha.exe` (single-file; `dist/` is untracked).
-- CI: `.github/workflows/build.yml` runs tests, builds Windows + macOS, publishes on `v*` tags.
+- CI: `.github/workflows/build.yml` (repo root) runs tests, builds Windows + macOS, publishes
+  on `v*` tags. Defaults to `version 2/`; `version 1/` builds only via manual dispatch.
 
 ## Docs map
 - `docs/GDD_v2_refined.txt` — spec of record (with review notes and update log).

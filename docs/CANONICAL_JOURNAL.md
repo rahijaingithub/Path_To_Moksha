@@ -1,6 +1,6 @@
 # Canonical Journal: Path to Moksha
 
-- **Project Identifier:** Path to Moksha (`version 1`)
+- **Project Identifier:** Path to Moksha (`version 2` — active development; `version 1` preserved as a frozen snapshot)
 - **Version:** v0.1
 - **Status:** Approved / Active
 - **Last-Entry Date:** 2026-09-07
