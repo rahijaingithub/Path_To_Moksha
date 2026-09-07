@@ -4,6 +4,7 @@ name: Build PathToMoksha
   push:
     branches:
       - main
+      - v2-dev
     tags:
       - "v*"
   workflow_dispatch:
