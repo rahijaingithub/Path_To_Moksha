@@ -202,3 +202,33 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   when question is fully typed to encourage reading". Both options are visible from
   frame 1. Enabling that gate would directly serve the designer's stated goal of making
   players read the question — but it changes pacing, so it is flagged, not switched on.
+
+## Phase 6f: workspace tooling folded into the repo; new walk art (2026-09-07)
+* **Decision:** the asset-pipeline scripts and the codebase dossier move into the repo
+  (`tools/`, `docs/`) rather than getting a second repository.
+  * *Rationale:* git only tracks files at or below its own root, and these sat one level
+    above it — which is why they had no history and no remote. `tools/` already held
+    `assign_controller.py`, `controller_audit.py` and `clean_temple_gate.py`, and
+    `tests/test_portability.py` already lists `ROOT / "tools"` among its source roots,
+    so this is where they always belonged. Path constants now resolve via
+    `dirname(dirname(abspath(__file__)))`, matching `clean_temple_gate.py`.
+  * *Not moved:* `_archive_v1_manual_backups/` — all 68 files are already recoverable
+    from git history (commit 809bbd8), so it is a redundant copy of something the
+    remote already holds. `Game Play v2.txt` — a superseded duplicate of
+    `docs/GDD_v2_refined.txt`, retained on disk as history per C-003.
+* **Decision:** the boy's redrawn 8-frame walk cycle is adopted; the girl's is not.
+  * *Rationale:* both were generated as 8-frame side-profile cycles with real stride,
+    which fixes the reported "walk looks like flying". The boy's keys out cleanly
+    (100% of border pixels pass the >230 white test). The girl's does not: her border
+    runs down to 227, and more fundamentally her white kurta is the same value as the
+    white background with no dark outline between them, so `remove_white_bg()` floods
+    through the edge and eats holes in her clothing. Her sheets are restored to the
+    previous art until a replacement arrives. Her replacement needs **bold dark
+    outlines** — that is what makes keying possible — and should match the game's
+    cel-shaded style; the generated sheet is photorealistic, unlike the rest of the art.
+* **Decision:** left-facing strips are mirrored per frame from the right-facing sheet.
+  * *Rationale:* guarantees the two directions stay on-model, and halves the art. Frames
+    are flipped individually — mirroring the whole strip would also reverse frame order
+    and play the cycle backwards.
+* **Note:** raw generated sheets kept in `assets/images/sprites/_source/`. They are
+  irreplaceable inputs and were previously untracked.
