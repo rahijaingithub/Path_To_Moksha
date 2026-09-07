@@ -173,3 +173,32 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     away — so an interrupted player lost everything, twice. The game had no pause at
     all (`grep -i pause src/*.py` returned nothing). Pausing freezes `update()`
     entirely, so the countdown does not run down while the player is away.
+
+## Phase 6e: three-option Monk questions (2026-09-07)
+* **Decision (designer):** every Monk question now offers three options — one correct,
+  two wrong — with the order shuffled per spawn.
+  * *Rationale:* with two options and the answer always at index 0, the quiz was
+    guessable without reading. Three options plus shuffling drops a blind guess from
+    100% to ~33%.
+* **Decision:** the 32 new distractors are all real Jain concepts, chosen to be
+  *plausibly confusable* with the correct answer.
+  * *Rationale:* "Guidance over Gating" — a wrong answer should still teach. Examples:
+    **Arihant** against *Siddha* (enlightened but still embodied, vs fully liberated);
+    **Brahmacharya** against *Aparigraha* (both mahavratas); **Swarga** against
+    *Siddhashila* (the gods' heaven is still within samsara); **"Avoiding the obstacle
+    entirely"** against *equanimity* (parishaha-jaya is endurance, not evasion).
+  * *Not done:* the pre-existing second options are untouched, and several are obvious
+    jokes ("Physical car", "A giant umbrella", "Having lots of toys"). Shuffling cannot
+    fix guessability while one option is visibly absurd. Replacing them is a separate
+    designer decision — playtest item 37 exists to surface it.
+* **Decision:** dialogue geometry moved into shared constants in `monk_system`.
+  * *Rationale:* the box size, text centre and option rects were duplicated in
+    `monk_system` and `level_scene`, and the `level_scene` copy hardcoded exactly two
+    clickable rects — a third option would have been undrawable-on and unclickable.
+    Keyboard nav also hardcoded 0/1; it now wraps modulo the option count. The box grew
+    380 -> 450 so the third option clears the hint line (75px, verified).
+* **Known, not changed:** `monk_system` computes `is_typed` (chars revealed >= question
+  length) and never uses it, though the comment beside it claims choices are "drawn only
+  when question is fully typed to encourage reading". Both options are visible from
+  frame 1. Enabling that gate would directly serve the designer's stated goal of making
+  players read the question — but it changes pacing, so it is flagged, not switched on.

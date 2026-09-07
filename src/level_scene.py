@@ -8,7 +8,7 @@ import os
 from settings import IMAGES_DIR
 from scene_manager import Scene
 from box_system import BoxSystem, CAT_GOAL, CAT_SUPPORT, CAT_DISTRACTION, CAT_NO_EFFECT, CAT_COLORS
-from monk_system import create_monk
+from monk_system import create_monk, choice_rects
 from hazards import create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION
 from level_layouts import build_level_platforms, WALL as WALL_THICKNESS
 from settings import (
@@ -549,30 +549,25 @@ class LevelScene(Scene):
 
         # Monk dialogue navigation
         if self.monk and self.monk.dialogue_active:
-            # Match the actual monk_system.py enlarged box dimensions:
-            box_w, box_h = 920, 380
-            bx = (LOGICAL_WIDTH - box_w) // 2
-            by = (LOGICAL_HEIGHT - box_h) // 2
-            text_cx = bx + 260 + (box_w - 290) // 2
-
-            opt0_rect = pygame.Rect(text_cx - 280, by + 200 - 22, 560, 44)
-            opt1_rect = pygame.Rect(text_cx - 280, by + 258 - 22, 560, 44)
+            # Geometry comes from monk_system so the clickable rects cannot
+            # drift from the drawn options. Was hardcoded here AND there, and
+            # only ever described two options.
+            n_choices = len(self.monk.question_data.get("choices", []))
+            opt_rects = choice_rects(n_choices)
 
             # Hover detection and Mouse click submission
             mx, my = input_mgr.mouse_x, input_mgr.mouse_y
             clicked = False
             for event in events:
                 if event.type == pygame.MOUSEMOTION:
-                    if opt0_rect.collidepoint(mx, my):
-                        if self.monk.selected_choice != 0:
-                            self.monk.selected_choice = 0
-                            self.assets.play_sound("jump.wav", volume=0.08)
-                    elif opt1_rect.collidepoint(mx, my):
-                        if self.monk.selected_choice != 1:
-                            self.monk.selected_choice = 1
-                            self.assets.play_sound("jump.wav", volume=0.08)
+                    for index, rect in enumerate(opt_rects):
+                        if rect.collidepoint(mx, my):
+                            if self.monk.selected_choice != index:
+                                self.monk.selected_choice = index
+                                self.assets.play_sound("jump.wav", volume=0.08)
+                            break
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if opt0_rect.collidepoint(mx, my) or opt1_rect.collidepoint(mx, my):
+                    if any(r.collidepoint(mx, my) for r in opt_rects):
                         clicked = True
 
             # Controller & Keyboard navigation.
@@ -581,12 +576,13 @@ class LevelScene(Scene):
             # the key you have been holding all level moved you to option 2 with
             # no way back, and every question in both banks has its correct
             # answer at index 0. Selection is now navigation keys only.
-            if input_mgr.just_pressed[input_mgr.MENU_UP]:
-                self.monk.selected_choice = 0
-                self.assets.play_sound("jump.wav", volume=0.08)
-            elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
-                self.monk.selected_choice = 1
-                self.assets.play_sound("jump.wav", volume=0.08)
+            if n_choices > 0:
+                if input_mgr.just_pressed[input_mgr.MENU_UP]:
+                    self.monk.selected_choice = (self.monk.selected_choice - 1) % n_choices
+                    self.assets.play_sound("jump.wav", volume=0.08)
+                elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
+                    self.monk.selected_choice = (self.monk.selected_choice + 1) % n_choices
+                    self.assets.play_sound("jump.wav", volume=0.08)
 
             if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT] or clicked:
                 correct = self.monk.submit_answer()

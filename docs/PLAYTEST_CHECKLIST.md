@@ -63,3 +63,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 35. [ ] **Pause:** Esc mid-level opens the pause menu. The countdown clock stops.
         Resume returns to play with the clock where it was; Quit to title discards
         the run (and says so). Nothing behind the overlay responds while paused.
+36. [ ] Monk questions show **three** options. All three are selectable by keyboard,
+        gamepad and mouse, and the third is not clipped by the hint line.
+37. [ ] Read the two wrong options: each should be a real Jain idea that is
+        plausibly confusable, not an obvious joke. Flag any that give the answer away.

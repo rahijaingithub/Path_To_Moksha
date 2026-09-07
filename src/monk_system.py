@@ -13,6 +13,41 @@ from settings import (
 )
 
 
+# ── Dialogue geometry ─────────────────────────────────────────────────────────
+# Shared with level_scene so the drawn options and the clickable rects cannot
+# drift apart. The box was 380 tall when every question had exactly two options;
+# a third option's plate ends at by+338 against a hint at by+342, so it grew.
+DIALOGUE_BOX_W = 920
+DIALOGUE_BOX_H = 450
+CHOICE_FIRST_Y = 200      # offset from box top to the centre of option 0
+CHOICE_SPACING = 58
+CHOICE_W = 560
+CHOICE_H = 44
+
+
+def dialogue_box_origin():
+    """Top-left of the dialogue box in logical coordinates."""
+    return ((LOGICAL_WIDTH - DIALOGUE_BOX_W) // 2,
+            (LOGICAL_HEIGHT - DIALOGUE_BOX_H) // 2)
+
+
+def dialogue_text_cx(bx):
+    """Horizontal centre of the text column (right of the Acharya portrait)."""
+    return bx + 260 + (DIALOGUE_BOX_W - 290) // 2
+
+
+def choice_rects(count):
+    """Clickable rect per answer option, in order."""
+    bx, by = dialogue_box_origin()
+    cx = dialogue_text_cx(bx)
+    return [
+        pygame.Rect(cx - CHOICE_W // 2,
+                    by + CHOICE_FIRST_Y + i * CHOICE_SPACING - CHOICE_H // 2,
+                    CHOICE_W, CHOICE_H)
+        for i in range(count)
+    ]
+
+
 class Monk:
     """The Monk / Guide NPC with interactive parchment scroll and typewriter Q&A."""
 
@@ -248,9 +283,8 @@ class Monk:
         surface.blit(overlay, (0, 0))
 
         # Dialogue box dimensions - enlarged for portrait insertion
-        box_w, box_h = 920, 380
-        bx = (LOGICAL_WIDTH - box_w) // 2
-        by = (LOGICAL_HEIGHT - box_h) // 2
+        box_w, box_h = DIALOGUE_BOX_W, DIALOGUE_BOX_H
+        bx, by = dialogue_box_origin()
 
         # ── Scroll Wood Roll Rollers on Left and Right borders ──
         # Left Roller Cylindrical scroll roll
@@ -275,7 +309,7 @@ class Monk:
             pygame.draw.rect(surface, COLOR_GOLD, (bx + 35, by + 100, img_w, img_h), width=3, border_radius=4)
 
         # Right side center X for text alignment
-        text_cx = bx + 260 + (box_w - 290) // 2
+        text_cx = dialogue_text_cx(bx)
 
         # Title (Rendered in rich deep brown wood-tone)
         title = font_title.render("THE VENERABLE MONK SPEAKS", True, (110, 45, 10))
@@ -294,14 +328,14 @@ class Monk:
         
         for i, choice in enumerate(q["choices"]):
             is_sel = (i == self.selected_choice)
-            cy = by + 200 + i * 58
+            cy = by + CHOICE_FIRST_Y + i * CHOICE_SPACING
             
             # Selection backing plate with custom highlight
             if is_sel:
-                hl = pygame.Surface((560, 44), pygame.SRCALPHA)
+                hl = pygame.Surface((CHOICE_W, CHOICE_H), pygame.SRCALPHA)
                 pygame.draw.rect(hl, (255, 140, 0, 40), hl.get_rect(), border_radius=10)
                 pygame.draw.rect(hl, (220, 110, 20, 150), hl.get_rect(), width=2, border_radius=10)
-                surface.blit(hl, (text_cx - 280, cy - 22))
+                surface.blit(hl, (text_cx - CHOICE_W // 2, cy - CHOICE_H // 2))
             
             # Text option
             prefix = "► " if is_sel else "  "
@@ -310,7 +344,7 @@ class Monk:
             surface.blit(c_surf, c_surf.get_rect(center=(text_cx, cy)))
 
         # Instructions / Navigation hints
-        hint = font_small.render("▲▼ or Hover to choose  •  ENTER or Click option to answer  •  ESC to leave", True, (130, 110, 90))
+        hint = font_small.render("▲▼ or Hover to choose  •  ENTER / A or Click to answer  •  ESC to leave", True, (130, 110, 90))
         surface.blit(hint, hint.get_rect(center=(text_cx, by + box_h - 26)))
 
 
