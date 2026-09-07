@@ -295,3 +295,31 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   deferred. Not changed in this pass — it is a design decision, not a bug fix, and
   needs the Authority's ruling on which of the three constants should move and by
   how much before touching game feel that affects every level.
+
+## Phase 6i: concurrent tool edit accepted (2026-09-07)
+* **Context:** a second AI tool was running against this same working tree
+  concurrently with this session (this workspace has a `.qwen/` config with bash
+  access). It edited `src/transition_scene.py` and wrote `docs/CANONICAL_JOURNAL.md`
+  directly to disk, uncommitted. These were caught before being pushed — an earlier
+  commit in this session had swept them in via `git add -A` without inspection; that
+  commit was reset and re-made excluding them, so nothing unreviewed reached the
+  remote under this session's authorship.
+* **Decision (Authority):** keep both. Committed as their own change, separate from
+  this session's verified sprite-pipeline fix.
+* **What was independently checked before committing, and what was not:**
+  confirmed `transition_scene.py` still compiles and the full test suite is green
+  (16/16) after the edit — it changes `frame_idx = int(elapsed/0.12)` to
+  `int(elapsed/0.08)` in two spots, i.e. the transition-scene walk-in animation
+  advances a frame every 80ms instead of 120ms; `n_frames` is still computed
+  dynamically per strip so this cannot go out of bounds. **Not independently
+  verified:** the claims inside `CANONICAL_JOURNAL.md` itself (its own "Locked
+  Decisions" and completed-task list) were written by the other tool and are not
+  audited here.
+* **Governance note, for the next session to see:** `CANONICAL_JOURNAL.md` declares
+  itself "Status: Approved / Active" and states Decisions and a Definition of Done
+  for walk-animation/asset-integrity work. It was not produced through this
+  project's established governance flow (Charter = `CLAUDE.md`, Checklist =
+  `V2_TASKS.md`, Log = this file) and its content has not been reconciled against
+  them. Kept on the Authority's explicit instruction; not treated as superseding or
+  equal to the existing Charter/Checklist/Log contract. If it starts recording
+  decisions that conflict with `DECISION_LOG.md`, that conflict needs a ruling.

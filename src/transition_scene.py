@@ -260,7 +260,7 @@ class TransitionScene:
             if self.walk_strip:
                 fh = self.walk_strip.get_height()
                 n_frames = max(1, self.walk_strip.get_width() // fh)
-                frame_idx = int(self.elapsed / 0.12) % n_frames
+                frame_idx = int(self.elapsed / 0.08) % n_frames
                 frame_surf = pygame.Surface((fh, fh), pygame.SRCALPHA)
                 frame_surf.blit(self.walk_strip, (0, 0), (frame_idx * fh, 0, fh, fh))
                 current_sprite = pygame.transform.smoothscale(frame_surf, (150, 150))
@@ -285,7 +285,7 @@ class TransitionScene:
                 if self.walk_strip:
                     fh = self.walk_strip.get_height()
                     n_frames = max(1, self.walk_strip.get_width() // fh)
-                    frame_idx = int(self.elapsed / 0.12) % n_frames
+                    frame_idx = int(self.elapsed / 0.08) % n_frames
                     frame_surf = pygame.Surface((fh, fh), pygame.SRCALPHA)
                     frame_surf.blit(self.walk_strip, (0, 0), (frame_idx * fh, 0, fh, fh))
                     current_sprite = pygame.transform.smoothscale(frame_surf, (150, 150))
