@@ -136,27 +136,14 @@ class TutorialScene(Scene):
             if event.type == pygame.MOUSEWHEEL:
                 self.tab_scroll[self.active_tab] -= event.y * 35
 
-            if event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_RIGHT, pygame.K_d):
-                    if self.focus_zone == "tabs":
-                        self._switch_tab((self.active_tab + 1) % len(TABS))
-                    else:
-                        self.selected_btn = 1
-                elif event.key in (pygame.K_LEFT, pygame.K_a):
-                    if self.focus_zone == "tabs":
-                        self._switch_tab((self.active_tab - 1) % len(TABS))
-                    else:
-                        self.selected_btn = 0
-                elif event.key in (pygame.K_UP, pygame.K_w):
-                    if self.focus_zone == "buttons":
-                        self.focus_zone = "tabs"
-                    else:
-                        self.tab_scroll[self.active_tab] -= 40
-                elif event.key in (pygame.K_DOWN, pygame.K_s):
-                    if self.focus_zone == "tabs":
-                        self.focus_zone = "buttons"
-                    else:
-                        self.tab_scroll[self.active_tab] += 40
+            # NOTE: this scene used to also read raw K_LEFT/K_RIGHT/K_UP/K_DOWN
+            # here, duplicating the MENU_* handling below. That was invisible
+            # only because MENU_* was gamepad-only; now that the keyboard writes
+            # MENU_* too, both paths would fire and every tab switch would
+            # double-step. Removed in favour of the abstract-action path, which
+            # is also what the architecture invariant requires (scenes read
+            # actions, never raw keys) and which additionally plays feedback
+            # sounds and supports hold-to-scroll.
 
         # Clamp scroll position
         ms = self.max_scroll[self.active_tab]

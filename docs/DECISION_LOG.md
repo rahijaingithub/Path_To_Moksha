@@ -85,3 +85,41 @@ discovery because none of it forecloses a v2 option.
 * **Fix:** `abs(starting_level, input_mgr=...)` → `abs(starting_level), input_mgr=...` in
   `player_select_scene.py:332` and `leaderboard_scene.py:151`. A misplaced paren; a
   guaranteed `TypeError`, reachable only in developer mode via a negative `DEV_SEQ` entry.
+
+## Phase 6b: keyboard accessibility (2026-09-07)
+Prompted by a playtest observation: players aged 5–50; up to ~20 could play easily
+and enjoyed it, while older players "struggled — not adept with the controls".
+Reading the code, the reported cause was mostly not dexterity. Kids reached for the
+gamepad, which worked; adults sat at the keyboard, which largely did not.
+
+* **Decision:** Write `MENU_UP/DOWN/LEFT/RIGHT/SELECT/BACK` from the keyboard.
+  * *Rationale:* Scenes correctly read abstract actions per the architecture
+    invariant, but **every `MENU_*` write lived in a gamepad path**. On a keyboard the
+    title-screen highlight could not leave index 0, so Options was unreachable — and
+    with it the tutorial and the fullscreen toggle. One binding block fixes the whole
+    chain. This is the single highest-leverage change in the v1 backlog.
+* **Decision:** UP / W now also jump.
+  * *Rationale:* `tutorial_scene` has always displayed "SPACE / UP → Jump" while only
+    SPACE was wired. An adult who pressed Up got no response and concluded the
+    controls were broken — correctly. Cheaper to make the code true than the docs
+    false. Releasing one jump key while another is held no longer drops JUMP, so
+    Level-2 flight does not stutter.
+* **Decision:** SPACE is deliberately NOT bound to `MENU_SELECT`.
+  * *Rationale:* SPACE is JUMP; binding it to select as well would move the highlight
+    and submit in the same frame in the monk dialogue.
+* **Decision:** JUMP no longer moves the monk answer selection.
+  * *Rationale:* This was a trap, not a convenience. `MENU_UP` was gamepad-only, so on
+    a keyboard tapping SPACE moved the selection to option 2 **with no way back** —
+    and all 32 questions across both banks have their correct answer at index 0. A
+    keyboard player who touched the jump key during a question was locked into a wrong
+    answer. Selection is now navigation keys only. Gamepad A no longer moves the
+    selection either; whether it should confirm is a playtest question.
+* **Decision:** Removed the duplicate raw-key handler in `tutorial_scene.handle_events`.
+  * *Rationale:* It read raw `K_LEFT/K_RIGHT/K_UP/K_DOWN` alongside the `MENU_*` path.
+    Harmless only while `MENU_*` was gamepad-only; once the keyboard writes `MENU_*`,
+    both fire and every tab switch double-steps. The abstract path is also the one the
+    architecture invariant requires, and it plays feedback sounds and supports
+    hold-to-scroll. The idempotent raw-key reads in `level_scene` (game-over nav,
+    flight descent) OR into a single flag and were left alone.
+* **Not addressed, logged for later:** there is still no `DOWN` action constant;
+  Level-2 flight descent reads raw `K_DOWN/K_s`. Works, but violates the invariant.

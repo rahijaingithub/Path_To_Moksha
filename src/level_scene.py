@@ -477,11 +477,16 @@ class LevelScene(Scene):
                     if opt0_rect.collidepoint(mx, my) or opt1_rect.collidepoint(mx, my):
                         clicked = True
 
-            # Controller & Keyboard navigation
+            # Controller & Keyboard navigation.
+            # JUMP deliberately does NOT move the selection. It used to, and on a
+            # keyboard JUMP is SPACE while MENU_UP was gamepad-only — so tapping
+            # the key you have been holding all level moved you to option 2 with
+            # no way back, and every question in both banks has its correct
+            # answer at index 0. Selection is now navigation keys only.
             if input_mgr.just_pressed[input_mgr.MENU_UP]:
                 self.monk.selected_choice = 0
                 self.assets.play_sound("jump.wav", volume=0.08)
-            elif input_mgr.just_pressed[input_mgr.JUMP] or input_mgr.just_pressed[input_mgr.MENU_DOWN]:
+            elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
                 self.monk.selected_choice = 1
                 self.assets.play_sound("jump.wav", volume=0.08)
 

@@ -594,12 +594,43 @@ class InputManager:
                 if event.key in (pygame.K_UP, pygame.K_w):
                     self.just_pressed[self.UP] = True
                     self.actions[self.UP] = True
+                    # Up also jumps. The Controls tab has always told players
+                    # "SPACE / UP -> Jump" while only SPACE was wired up, so an
+                    # adult pressing Up got no response and reasonably concluded
+                    # the controls were broken. Make the documented promise true.
+                    self.just_pressed[self.JUMP] = True
+                    self.actions[self.JUMP] = True
                 if event.key in (pygame.K_RETURN, pygame.K_e):
                     self.just_pressed[self.ACTION] = True
                     self.actions[self.ACTION] = True
                 if event.key == pygame.K_ESCAPE:
                     self.just_pressed[self.BACK] = True
                     self.actions[self.BACK] = True
+
+                # ── Menu navigation ───────────────────────────────────────────
+                # Scenes read abstract MENU_* actions (architecture invariant),
+                # but every MENU_* write used to live in a gamepad code path. On
+                # a keyboard the title-screen highlight could not move off index
+                # 0, which made Options — and therefore the tutorial and the
+                # fullscreen toggle — unreachable without a pad or a mouse.
+                if event.key in (pygame.K_UP, pygame.K_w):
+                    self.just_pressed[self.MENU_UP] = True
+                    self.actions[self.MENU_UP] = True
+                if event.key in (pygame.K_DOWN, pygame.K_s):
+                    self.just_pressed[self.MENU_DOWN] = True
+                    self.actions[self.MENU_DOWN] = True
+                if event.key in (pygame.K_LEFT, pygame.K_a):
+                    self.just_pressed[self.MENU_LEFT] = True
+                    self.actions[self.MENU_LEFT] = True
+                if event.key in (pygame.K_RIGHT, pygame.K_d):
+                    self.just_pressed[self.MENU_RIGHT] = True
+                    self.actions[self.MENU_RIGHT] = True
+                if event.key in (pygame.K_RETURN, pygame.K_e):
+                    self.just_pressed[self.MENU_SELECT] = True
+                    self.actions[self.MENU_SELECT] = True
+                if event.key == pygame.K_ESCAPE:
+                    self.just_pressed[self.MENU_BACK] = True
+                    self.actions[self.MENU_BACK] = True
                 macos_fullscreen_shortcut = (
                     IS_MACOS
                     and event.key == pygame.K_f
@@ -611,14 +642,34 @@ class InputManager:
                     self.actions[self.FULLSCREEN] = True
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_SPACE:
+                # JUMP is now reachable from SPACE and from UP/W, so releasing
+                # one must not clear it while another is still held — that would
+                # stutter Level-2 flight, which holds a jump key continuously.
+                # Query live key state (the frame-start snapshot is stale by the
+                # time we are handling this KEYUP) and ignore the key that is
+                # being released right now.
+                live = pygame.key.get_pressed()
+                jump_keys = (pygame.K_SPACE, pygame.K_UP, pygame.K_w)
+                jump_still_held = any(
+                    live[k] for k in jump_keys if k != event.key
+                )
+                if event.key in jump_keys and not jump_still_held:
                     self.actions[self.JUMP] = False
                 if event.key in (pygame.K_UP, pygame.K_w):
                     self.actions[self.UP] = False
+                    self.actions[self.MENU_UP] = False
+                if event.key in (pygame.K_DOWN, pygame.K_s):
+                    self.actions[self.MENU_DOWN] = False
+                if event.key in (pygame.K_LEFT, pygame.K_a):
+                    self.actions[self.MENU_LEFT] = False
+                if event.key in (pygame.K_RIGHT, pygame.K_d):
+                    self.actions[self.MENU_RIGHT] = False
                 if event.key in (pygame.K_RETURN, pygame.K_e):
                     self.actions[self.ACTION] = False
+                    self.actions[self.MENU_SELECT] = False
                 if event.key == pygame.K_ESCAPE:
                     self.actions[self.BACK] = False
+                    self.actions[self.MENU_BACK] = False
 
             # ── Gamepad / Controller events ───────────────────────────────────
             if event.type in (pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP,
