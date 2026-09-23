@@ -275,13 +275,16 @@ class Level3RealPhysicsTests(unittest.TestCase):
             # gravity step (0.9px) into the floor between frames — pre-existing.
             self.assertAlmostEqual(p.y + PLAYER_HEIGHT, floor_top, delta=1)
 
-    def test_every_surface_is_reachable_from_the_start(self) -> None:
+    def test_every_surface_is_reachable_without_touching_the_lake(self) -> None:
+        """From the start (lily pad 18), with the floor deadly: all reachable, no dead ends."""
         import pygame
         floor = self.platforms[0]
         surfaces = {id(r): r for r in self.platforms[4:]}
         names = {id(r): f"rect({r.x},{r.y})" for r in self.platforms[4:]}
         names.update({id(s): f"slope({int(s.left)})" for s in self.slopes})
         names[id(floor)] = "floor"
+        start = next(r for r in self.platforms[4:] if r.x == 137)       # 18, lower-left pad
+        plinth = next(r for r in self.platforms[4:] if r.x == 790)
 
         def landing(p):
             if p.slope is not None:
@@ -311,9 +314,9 @@ class Level3RealPhysicsTests(unittest.TestCase):
                 for steer in (-self.speed, self.speed):
                     yield 0, self.jump, (delay, steer)
 
-        seen, frontier = {id(floor)}, [id(floor)]
-        while frontier:
-            key = frontier.pop()
+        def exits(key):
+            """Surfaces reachable in one move from `key`. Landing in the lake does not count."""
+            found = set()
             for x, y in starts(key):
                 for vx, vy, steer in moves(x, y):
                     p = self.Player(x, y)
@@ -330,16 +333,138 @@ class Level3RealPhysicsTests(unittest.TestCase):
                             airborne = True
                         elif airborne:
                             dest = landing(p)
-                            if dest is not None and dest not in seen:
-                                seen.add(dest)
-                                frontier.append(dest)
+                            if dest is not None and dest != id(floor):
+                                found.add(dest)
                             break
                         elif frame > 60:
                             break                    # walked into a wall; never left the ground
+            return found
+
+        graph = {}
+        seen, frontier = {id(start)}, [id(start)]
+        while frontier:
+            key = frontier.pop()
+            graph[key] = exits(key)
+            for dest in graph[key] - seen:
+                seen.add(dest)
+                frontier.append(dest)
         everything = set(surfaces) | {id(s) for s in self.slopes}
         self.assertGreaterEqual(len(everything), 20, "expected 16 platforms + 4 slopes")
         unreachable = sorted(names[k] for k in everything - seen)
         self.assertEqual(unreachable, [], f"unreachable Level 3 surfaces: {unreachable}")
+
+        def can_reach_plinth(key):
+            done, todo = {key}, [key]
+            while todo:
+                for dest in graph[todo.pop()] - done:
+                    done.add(dest)
+                    todo.append(dest)
+            return id(plinth) in done
+        dead_ends = sorted(names[k] for k in seen if not can_reach_plinth(k))
+        self.assertEqual(dead_ends, [], f"surfaces the pavilion cannot be reached from: {dead_ends}")
+
+
+@unittest.skipUnless(_pygame_available(), "needs pygame (runs locally in the venv, skipped on CI)")
+class Level3SceneTests(unittest.TestCase):
+    """Drive the real LevelScene for Level 3: drowning, box placement, reveal order."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+        os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+        sys.path.insert(0, str(SRC))
+        import pygame
+        pygame.init()
+        pygame.display.set_mode((64, 64))
+        import level_scene
+        from asset_manager import AssetManager
+        from input_manager import InputManager
+        from scene_manager import SceneManager
+        from box_system import CAT_GOAL
+        cls.pygame = pygame
+        cls.ls = level_scene
+        cls.CAT_GOAL = CAT_GOAL
+        cls.manager = SceneManager()
+        cls.manager.shared["game_mode"] = "developer"
+        cls.input = InputManager()
+        cls.scene = level_scene.LevelScene(cls.manager, AssetManager(), cls.input)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        sys.path.remove(str(SRC))
+
+    def setUp(self) -> None:
+        self.scene.on_enter(level=3, input_mgr=self.input)
+
+    def run_frames(self, seconds):
+        for _ in range(int(seconds * 60) + 2):
+            self.scene.update(1 / 60)
+
+    def test_starts_standing_on_lily_pad_18(self) -> None:
+        self.run_frames(0.5)
+        p = self.scene.player
+        self.assertEqual(self.scene.drown_timer, 0)
+        self.assertTrue(p.on_ground)
+        self.assertEqual(p.y + PLAYER_HEIGHT, LOGICAL_HEIGHT - 154)
+        self.assertTrue(137 <= p.x and p.x + PLAYER_WIDTH <= 137 + 169)
+
+    def test_falling_into_the_lake_costs_30s_and_rises_on_the_last_golden_surface(self) -> None:
+        self.run_frames(0.5)
+        safe = self.scene.last_safe_pos
+        before = self.scene.time_remaining
+        p = self.scene.player
+        p.x, p.y = 1000, 700            # over open water: nothing below until the floor
+        for _ in range(120):
+            self.scene.update(1 / 60)
+            if self.scene.drown_timer > 0:
+                break
+        self.assertGreater(self.scene.drown_timer, 0, "never drowned")
+        self.assertAlmostEqual(before - self.scene.time_remaining, 30, delta=3)
+        self.run_frames(self.ls.DROWN_SECONDS)
+        self.assertEqual(self.scene.drown_timer, 0)
+        self.assertAlmostEqual(p.x, safe[0], delta=1)
+        self.assertAlmostEqual(p.y, safe[1], delta=1)    # idles up to 0.9px, as on any ledge
+        self.run_frames(0.2)
+        self.assertTrue(p.on_ground)
+        self.assertEqual(self.scene.drown_timer, 0, "rose again straight into the lake")
+
+    def test_no_box_is_ever_placed_in_the_lake(self) -> None:
+        import random
+        floor_top = self.scene.floor.top
+        for seed in range(25):
+            random.seed(seed)
+            self.scene.on_enter(level=3, input_mgr=self.input)
+            with self.subTest(seed=seed):
+                self.assertEqual(len(self.scene.box_system.boxes), 6)
+                for box in self.scene.box_system.boxes:
+                    self.assertNotEqual(box.y + box.SIZE + 5, floor_top)
+
+    def test_monk_fades_before_bhagwan_appears_and_offering_waits_for_it(self) -> None:
+        s = self.scene
+        self.assertEqual((s.monk.x, s.monk.y + s.monk.HEIGHT), (924, LOGICAL_HEIGHT - 454))
+        s.player.x, s.player.y = s.monk.x + 20, LOGICAL_HEIGHT - 454 - PLAYER_HEIGHT
+        goal = next(b for b in s.box_system.boxes if b.item["cat"] == self.CAT_GOAL)
+        s.item_popup = {"item": goal.item, "time_delta": 0, "freeze_dur": 0, "message": "", "timer": 5.0}
+        s._dismiss_item_popup()
+        self.assertFalse(s.level_complete, "finding the Akshat must not end Level 3")
+        column = s.monk_column
+        self.run_frames(self.ls.MONK_FADE_SECONDS / 2)
+        self.assertEqual(s.reveal_phase, "monk_fading")
+        self.assertFalse(s._at_level3_offering_spot())
+        self.run_frames(self.ls.MONK_FADE_SECONDS / 2)
+        self.assertEqual(s.reveal_phase, "bhagwan_appearing")
+        self.assertEqual(s.monk.opacity, 0)
+        self.assertFalse(any(p is column for p in s.platforms), "Monk's column not lifted")
+        self.assertFalse(s._at_level3_offering_spot(), "offering allowed before the image is fully shown")
+        self.run_frames(self.ls.BHAGWAN_APPEAR_SECONDS)
+        self.assertEqual(s.reveal_phase, "ready")
+        self.assertTrue(s._at_level3_offering_spot())
+        self.input.just_pressed[self.input.ACTION] = True
+        try:
+            s.handle_events([], self.input)
+        finally:
+            self.input.just_pressed[self.input.ACTION] = False
+        self.assertTrue(s.level_complete)
 
 
 if __name__ == "__main__":

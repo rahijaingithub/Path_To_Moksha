@@ -214,6 +214,9 @@ class BoxSystem:
 
         # Floor is platforms[0]. Standard platforms are platforms[4:].
         candidates = [platforms[0]] + [p for p in platforms[4:] if p.width >= 100]
+        if self.level == 3:
+            # Level 3's floor is the lake: touching it drowns, so no boxes there.
+            candidates = candidates[1:]
 
         for item_def in shuffled:
             placed = False

@@ -9,7 +9,8 @@ from settings import IMAGES_DIR
 from scene_manager import Scene
 from box_system import BoxSystem, CAT_GOAL, CAT_SUPPORT, CAT_DISTRACTION, CAT_NO_EFFECT, CAT_COLORS
 from monk_system import create_monk, choice_rects
-from hazards import create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION
+from hazards import (create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION,
+                     DROWN_TIME_PENALTY)
 from level_layouts import (build_level_platforms, build_level_slopes,
                            LEVEL3_BHAGWAN_RECT, WALL as WALL_THICKNESS)
 from slopes import find_slope_contact, SLOPE_REACH
@@ -28,6 +29,8 @@ from settings import (
 # Level 3 reveal timing (seconds): Monk fades out, then Mahavir Bhagwan fades in.
 MONK_FADE_SECONDS = 1.5
 BHAGWAN_APPEAR_SECONDS = 1.5
+# Level 3: how long the devotee sinks before rising again on the last golden surface.
+DROWN_SECONDS = 1.5
 
 
 def strip_frame_count(strip):
@@ -373,8 +376,24 @@ class LevelScene(Scene):
         if self.level == 2:
             # Change 150 and H - 250 to whatever starting X and Y coordinates you want
             self.player = Player(80, LOGICAL_HEIGHT - 50- PLAYER_HEIGHT - 100)
+        elif self.level == 3:
+            # The floor is the lake, so start on lily pad 18 (x 137, w 169, H - 154).
+            self.player = Player(137 + (169 - PLAYER_WIDTH) // 2, LOGICAL_HEIGHT - 154 - PLAYER_HEIGHT)
         else:
             self.player = Player(80, LOGICAL_HEIGHT - 30 - PLAYER_HEIGHT - 10)
+
+        # Level 3 drowning: the floor (platforms[0]) is the lake. Touching it sinks
+        # the devotee for DROWN_SECONDS, costs DROWN_TIME_PENALTY, and they rise
+        # again on the last golden surface they stood on.
+        self.floor = self.platforms[0]
+        self.drown_timer = 0.0
+        self.last_safe_pos = (self.player.x, self.player.y)
+        self.drown_strip = None
+        if self.level == 3:
+            # Optional art; until it exists the sink is drawn from the stun sprite.
+            name = f"player_{self.manager.shared.get('character', 'boy')}_drown.png"
+            if os.path.exists(os.path.join(IMAGES_DIR, "sprites", name)):
+                self.drown_strip = self.assets.load_image(name, "sprites", alpha=True)
 
         # Instantiation Order for fully randomized safe Q&A Monk and Box Roulette systems:
         # 1. Build hazards first
@@ -805,6 +824,10 @@ class LevelScene(Scene):
                 self.assets.stop_music()
                 self.assets.play_sound("wrong.wav")
 
+        # Level 3: sinking into the lake — no input, no physics until it ends.
+        if self.drown_timer > 0:
+            self._update_drowning(dt)
+            return
 
         # Player input
         if not self.player.frozen:
@@ -878,6 +901,14 @@ class LevelScene(Scene):
         self.player.update(dt, self.platforms, self.slopes)
         if self.level == 3:
             self._update_level3_reveal(dt)
+            if self._touching_lake():
+                self._start_drowning()
+                return
+            if self.player.on_ground and not any(
+                    h.rect.colliderect(self.player.rect) for h in self.hazards):
+                # Somewhere to rise again after a fall. Never a spot inside a
+                # hazard, or the respawn would hit it straight away.
+                self.last_safe_pos = (self.player.x, self.player.y)
 
         # Level 2: check if player reached Bhagwan (interact on lower side of image)
         if self.level == 2 and self.player.can_fly and not self.level_complete:
@@ -971,6 +1002,64 @@ class LevelScene(Scene):
                 self.assets.play_sound("hazard.wav")
                 self.time_remaining -= HAZARD_TIME_PENALTY
                 self.player.freeze(HAZARD_STUN_DURATION)
+
+    def _touching_lake(self):
+        """Level 3: feet on the floor line, i.e. in the lake. Golden surfaces are the only footing."""
+        return self.player.y + self.player.height >= self.floor.top
+
+    def _start_drowning(self):
+        """Water is attachment (Samsara): the devotee slips in, loses time, and rises again."""
+        self.drown_timer = DROWN_SECONDS
+        self.time_remaining -= DROWN_TIME_PENALTY
+        self.player.vx = 0
+        self.player.vy = 0
+        self.player.y = self.floor.top - self.player.height
+        self.assets.play_sound("hazard.wav")
+        feet_x = self.player.x + self.player.width / 2
+        for _ in range(16):
+            self.particles.append({
+                "x": feet_x + random.uniform(-20, 20), "y": self.floor.top,
+                "vx": random.uniform(-90, 90), "vy": random.uniform(-160, -60),
+                "color": random.choice([COLOR_WHITE, (170, 225, 230)]),
+                "size": random.randint(3, 6),
+                "lifetime": random.uniform(0.4, 0.8), "age": 0.0,
+            })
+
+    def _update_drowning(self, dt):
+        self.drown_timer -= dt
+        if random.random() < 0.3:
+            self.particles.append({     # rising bubbles
+                "x": self.player.x + self.player.width / 2 + random.uniform(-12, 12),
+                "y": self.floor.top - random.uniform(0, 10),
+                "vx": random.uniform(-8, 8), "vy": random.uniform(-50, -25),
+                "color": (200, 240, 245), "size": random.randint(2, 4),
+                "lifetime": random.uniform(0.3, 0.6), "age": 0.0,
+            })
+        if self.drown_timer <= 0:
+            self.drown_timer = 0.0
+            self.player.x, self.player.y = self.last_safe_pos
+            self.player.vx = 0
+            self.player.vy = 0
+            self.player.slope = None
+            self.player.trail.clear()
+
+    def _draw_drowning(self, gameplay_surf, scaled, blit_x, blit_y):
+        """Level 3 sink. Uses player_<character>_drown.png (square frames, water
+        drawn in) when present; otherwise sinks the current sprite below the
+        waterline, which is the floor's top edge."""
+        progress = 1.0 - self.drown_timer / DROWN_SECONDS
+        if self.drown_strip:
+            frame_h = self.drown_strip.get_height()
+            n_frames = strip_frame_count(self.drown_strip)
+            idx = min(n_frames - 1, int(progress * n_frames))
+            frame = self.drown_strip.subsurface((idx * frame_h, 0, frame_h, frame_h))
+            frame = pygame.transform.smoothscale(frame, scaled.get_size())
+            gameplay_surf.blit(frame, (blit_x, blit_y))
+            return
+        sink = int(progress * scaled.get_height())
+        gameplay_surf.set_clip(pygame.Rect(0, 0, LOGICAL_WIDTH, self.floor.top))
+        gameplay_surf.blit(scaled, (blit_x, blit_y + sink))
+        gameplay_surf.set_clip(None)
 
     def _build_slope_glow(self, slope):
         """Pre-render a slope's glow + core line once; returns (surface, topleft)."""
@@ -1228,7 +1317,10 @@ class LevelScene(Scene):
             foot_pad = int(disp_h * 9 / 128)
             blit_x = int(self.player.x + (self.player.width  - disp_w) // 2)
             blit_y = int(self.player.y + (self.player.height - disp_h)) + foot_pad
-            gameplay_surf.blit(scaled, (blit_x, blit_y))
+            if self.drown_timer > 0:
+                self._draw_drowning(gameplay_surf, scaled, blit_x, blit_y)
+            else:
+                gameplay_surf.blit(scaled, (blit_x, blit_y))
 
             # Flashing red overlay when frozen/stunned
             if self.player.frozen and int(self.elapsed * 8) % 2:

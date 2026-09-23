@@ -368,3 +368,22 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
 * **Open:** Level 3 hazards (`hazards.py`) still use the old skeleton positions: two
   water pools float in the sky and one overlaps ledge 5a, and fire pits sit on the lake
   floor. Re-authoring them is task B4, deliberately outside this change.
+
+## Phase 7b: Level 3 drowning (2026-09-23, designer)
+* **Decision (designer):** in Level 3 the floor is the lake. Only golden surfaces
+  (platforms and slopes) are footing; feet touching the bottom line **drown** the
+  devotee: a 1.5s sink, **−30s**, then they rise again on the **last golden surface
+  they stood on** (option a — not a restart, not game over).
+  * *Rationale:* water already means attachment / Samsara in this game; slipping back
+    into it costs time, and the devotee rises again like the lotus. Respawning at the
+    last footing keeps it kind for children ("Guidance over Gating"); the penalty
+    matches the existing water hazard. A spot inside a hazard is never saved as the
+    respawn point, so rising again can never land straight in one.
+* **Decision:** start moves from the floor to lily pad 18; boxes are never placed on
+  the Level 3 floor; Level 3's floor fire pits are removed (designer).
+  * *Rationale:* all three sat in what is now the lake. Verified with the real physics
+    before building: with the floor deadly, all 20 surfaces are still reachable from
+    pad 18 and none is a dead end (now `test_every_surface_is_reachable_without_touching_the_lake`).
+* **Open:** drown art `player_<boy|girl>_drown.png` (4 square frames, front view, water
+  drawn in) is optional. Until it exists the sink clips the current sprite below the
+  waterline, so nothing is blocked on art. Prompts were given to the designer in chat.

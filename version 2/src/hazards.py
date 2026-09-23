@@ -15,6 +15,7 @@ ENABLE_LEVEL2_SNAKES = True   # Set to False to test Level 2 with NO snakes
 HAZARD_TIME_PENALTY = 30      # seconds lost on contact
 HAZARD_STUN_DURATION = 1.0    # seconds stunned
 HAZARD_COOLDOWN = 2.0         # seconds before same hazard can hurt again
+DROWN_TIME_PENALTY = 30       # Level 3: seconds lost for falling into the lake
 
 
 class Hazard:
@@ -179,11 +180,9 @@ def create_hazards_for_level(level, platforms):
             hazards.append(Hazard(1000, H - 320, 120, 24, "snake", patrol_range=(950, 1350), move_speed=65))
 
     elif level == 3:
-        # Fire: fire pits along the floor
-        hazards.append(Hazard(300, H - WALL - 20, 150, 20, "fire"))
-        hazards.append(Hazard(800, H - WALL - 20, 130, 20, "fire"))
-        hazards.append(Hazard(1300, H - WALL - 20, 100, 20, "fire"))
-        # Water: overflowing pools
+        # No floor fire pits: the Level 3 floor is the lake itself, and touching
+        # it drowns the devotee (level_scene._start_drowning).
+        # Water: overflowing pools — old skeleton positions, re-author in task B4
         hazards.append(Hazard(550, H - 500, 50, 80, "water"))
         hazards.append(Hazard(1100, H - 650, 50, 60, "water"))
 

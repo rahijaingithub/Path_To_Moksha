@@ -80,3 +80,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         nothing until the image is fully shown. Then the offering completes the level.
 41. [ ] **Mahavir image art:** the shikhar shows Mahavir Bhagwan, not a pink square
         (fails until `mahavir_bhagwan.png` is added).
+42. [ ] **Level 3 lake:** you start on the lower-left lily pad. Drop into the water
+        anywhere: you sink (splash + bubbles), lose 30s, and rise again on the last
+        golden platform/petal you stood on — never back in the water, never on the
+        old water pools. No box ever appears down in the lake.
