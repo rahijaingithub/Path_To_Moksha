@@ -8,7 +8,8 @@
     "akshat_found": "Goal: Fly to the Bhagwan at the top-right and offer Akshat!"
   },
   "3": {
-    "default": "Goal: Find the Akshat (Sacred Rice)!"
+    "default": "Goal: Find the Akshat (Sacred Rice)!",
+    "akshat_found": "Goal: Offer the Akshat to Mahavir Bhagwan from the pavilion!"
   },
   "4": {
     "default": "Goal: Find the Akshat (Sacred Rice)!"

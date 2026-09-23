@@ -101,6 +101,7 @@ class Monk:
         self.result_correct = False
         self.hover_offset = 0.0
         self.dialogue_elapsed = 0.0
+        self.opacity = 1.0            # 0..1; Level 3 fades him out once the Akshat is found
 
     @property
     def rect(self):
@@ -147,6 +148,27 @@ class Monk:
         return correct
 
     def draw(self, surface, font_body, font_small):
+        if self.opacity <= 0:
+            return
+        if self.opacity < 1:
+            # Fading: draw at full strength onto a scratch layer the size of the
+            # figure plus its glow, then blit that once with the alpha. Leaves the
+            # class-level cached sprites untouched. Prompt and result text are
+            # skipped — the fade only runs after he can no longer be spoken to.
+            pad = 4   # == the glow radius below
+            layer = pygame.Surface((self.WIDTH + 2 * pad, self.HEIGHT + 2 * pad), pygame.SRCALPHA)
+            saved = (self.x, self.y, self.hover_offset, self.show_prompt,
+                     self.result_timer, self.opacity)
+            self.x, self.y, self.hover_offset = pad, pad, 0.0
+            self.show_prompt, self.result_timer, self.opacity = False, 0.0, 1.0
+            try:
+                self.draw(layer, font_body, font_small)
+            finally:
+                (self.x, self.y, self.hover_offset, self.show_prompt,
+                 self.result_timer, self.opacity) = saved
+            layer.set_alpha(int(255 * self.opacity))
+            surface.blit(layer, (self.x - pad, int(self.y + self.hover_offset) - pad))
+            return
         dy = int(self.y + self.hover_offset)
         W = self.WIDTH
         H = self.HEIGHT
@@ -425,6 +447,13 @@ def create_monk(level, platforms, hazards, asked_questions, game_mode="kid"):
         for p in platforms:
             # Target the platform at H - 680 (1080 - 680 = 400)
             if abs(p.x - 1700) < 5 and abs(p.y - (LOGICAL_HEIGHT - 680)) < 5:
+                target_platform = p
+                break
+    elif level == 3:
+        for p in platforms:
+            # Pavilion plinth at H - 454: he sits in the centre arch, and there is
+            # only sky above him, so his sacred column crosses no platform.
+            if abs(p.x - 790) < 5 and abs(p.y - (LOGICAL_HEIGHT - 454)) < 5:
                 target_platform = p
                 break
 

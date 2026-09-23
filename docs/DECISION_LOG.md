@@ -323,3 +323,48 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   them. Kept on the Authority's explicit instruction; not treated as superseding or
   equal to the existing Charter/Checklist/Log contract. If it starts recording
   decisions that conflict with `DECISION_LOG.md`, that conflict needs a ruling.
+
+## Phase 7: Level 3 rebuilt as the Jal Mandir (2026-09-23, designer)
+* **Decision (designer):** Level 3's setting changes from the spec's "white marble and
+  gold temple interior" to a white marble pavilion on a lotus lake at sunrise
+  (`level3_background.png`). Spec amended (`GDD_v2_refined.txt`, Level 3).
+  * *Rationale:* the designer's art. It evokes the Jal Mandir at Pawapuri — the marble
+    temple in a lotus pond where Mahavir Bhagwan attained nirvana — which fits Level 3's
+    goal of reaching Mahavir Bhagwan. The link is Claude's reading; confirm with the
+    Paathshala before it appears in any on-screen text.
+* **Decision:** platforms are the designer's traced lines, curated so no spot puts the
+  devotee inside a platform (where two surfaces overlap in x, the upper one clears the
+  lower by `PLAYER_HEIGHT`). Dropped 5b, 7 and 22–24; trimmed 12, 15, 17.
+  * *Rationale:* rect platforms are solid on every side, so a thin platform less than
+    96px above another made the lower one unstandable (e.g. lotus 9 under ledge 5b).
+    The designer chose to keep lotus 9 and drop 5b. Enforced by
+    `tests/test_level3_layout.py`.
+* **Decision (designer):** new mechanic — **one-way slopes** (`src/slopes.py`) for the
+  curved petals 9, 19, 20, 21. You land on them from above and stay on them walking;
+  you pass through them jumping up from below or walking into them from the side.
+  * *Rationale:* stair-stepped rects would need a hop for every step uphill (there is
+    no step-up in the physics). The rule is pure Python so CI tests it without pygame;
+    `Player.update` gains an optional `slopes` argument that defaults to none, so Levels
+    1, 2 and 4 behave exactly as before. The reach tolerance scales with `dt * 60`, and
+    the real-physics tests walk every slope at 60 and 30 fps.
+* **Decision (designer):** the Level 3 Monk is fixed in the centre arch of the pavilion
+  (plinth x 790, H − 454), not random and not the spec's "floating lotus".
+  * *Rationale:* designer's choice. Only sky is above him, so his sacred column crosses
+    no platform (tested); random placement in this dense layout would often have cut
+    through the rock ledges.
+* **Decision (designer):** Level 3 twist. Finding the Akshat no longer ends the level.
+  The Monk **fades away** (1.5s), **then** Mahavir Bhagwan **fades in** on the shikhar
+  (1.5s), and **only then** can the Akshat be offered — by standing at the Monk's empty
+  seat and pressing UP/ACTION. The Monk does not "step aside"; he simply fades.
+  * *Rationale:* designer's ruling, including the strict order. The image is solid, like
+    Parshvanath in Level 2, because a jump from the plinth reaches ~y 222 and would
+    otherwise pass into the murti; it is only added once the devotee is clear of it.
+    It sits at (883, 128, 150×150), not higher, because the world is drawn 80px up
+    and the HUD covers the next 48px — the designer's first mark was off-screen.
+* **Open:** `assets/images/items/mahavir_bhagwan.png` does not exist yet. The reveal
+  shows AssetManager's pink placeholder until the designer supplies it; the file is
+  listed in `ALLOWED_MISSING_LITERAL_ASSETS` until then. `bhagwan.jpg` was not reused
+  because it depicts Parshvanath.
+* **Open:** Level 3 hazards (`hazards.py`) still use the old skeleton positions: two
+  water pools float in the sky and one overlaps ledge 5a, and fire pits sit on the lake
+  floor. Re-authoring them is task B4, deliberately outside this change.

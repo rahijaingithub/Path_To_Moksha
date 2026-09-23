@@ -10,7 +10,9 @@ from scene_manager import Scene
 from box_system import BoxSystem, CAT_GOAL, CAT_SUPPORT, CAT_DISTRACTION, CAT_NO_EFFECT, CAT_COLORS
 from monk_system import create_monk, choice_rects
 from hazards import create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION
-from level_layouts import build_level_platforms, WALL as WALL_THICKNESS
+from level_layouts import (build_level_platforms, build_level_slopes,
+                           LEVEL3_BHAGWAN_RECT, WALL as WALL_THICKNESS)
+from slopes import find_slope_contact, SLOPE_REACH
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, GRAVITY, PLAYER_SPEED,
     PLAYER_JUMP_FORCE, LEVEL_JUMP_FORCES, PLAYER_MAX_FALL_SPEED, PLAYER_WIDTH, PLAYER_HEIGHT,
@@ -21,6 +23,11 @@ from settings import (
     SCENE_TITLE, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY,
     DEFAULT_GAME_MODE, ASSETS_DIR,
 )
+
+
+# Level 3 reveal timing (seconds): Monk fades out, then Mahavir Bhagwan fades in.
+MONK_FADE_SECONDS = 1.5
+BHAGWAN_APPEAR_SECONDS = 1.5
 
 
 def strip_frame_count(strip):
@@ -62,6 +69,7 @@ class Player:
         self.frozen = False
         self.freeze_timer = 0.0
         self.can_fly = False   # Activated when Akshat is found in Level 2
+        self.slope = None      # slopes.Slope stood on this frame, or None
 
         # Squash and stretch state
         self.scale_x = 1.0
@@ -77,7 +85,26 @@ class Player:
         self.frozen = True
         self.freeze_timer = duration
 
-    def update(self, dt, platforms):
+    def _settle_on_slopes(self, slopes, prev_bottom, dt):
+        """Land on / stay on a one-way slope. Runs after rect collisions.
+
+        Slopes never block: a rising jump passes up through a petal, and walking
+        into one from the side walks through it. The rule itself lives in
+        slopes.find_slope_contact so it can be tested without pygame.
+        """
+        slope, surface_y = find_slope_contact(
+            slopes, self.x + self.width / 2, prev_bottom, self.y + self.height,
+            self.vy, self.slope, SLOPE_REACH * max(1.0, dt * 60))
+        self.slope = slope
+        if slope is None:
+            return
+        self.y = surface_y - self.height
+        self.vy = 0
+        if not self.was_on_ground:
+            self.scale_y = 0.65
+            self.scale_x = 1.35
+
+    def update(self, dt, platforms, slopes=()):
         # Update trail
         self.trail.append((self.x + self.width // 2, self.y + self.height // 2))
         if len(self.trail) > 12:
@@ -98,8 +125,9 @@ class Player:
             self.vy += GRAVITY * dt * 60
             if self.vy > PLAYER_MAX_FALL_SPEED:
                 self.vy = PLAYER_MAX_FALL_SPEED
+            prev_bottom = self.y + self.height
             self.y += self.vy * dt * 60
-            
+
             # Resolve vertical collisions
             pr = self.rect
             for plat in platforms:
@@ -113,9 +141,10 @@ class Player:
                     elif self.vy < 0:
                         self.y = plat.bottom
                         self.vy = 0
-            
+            self._settle_on_slopes(slopes, prev_bottom, dt)
+
             # Stable ground check (shift down 1px)
-            self.on_ground = False
+            self.on_ground = self.slope is not None
             test_rect = pygame.Rect(int(self.x), int(self.y) + 1, self.width, self.height)
             for plat in platforms:
                 if test_rect.colliderect(plat):
@@ -145,6 +174,7 @@ class Player:
                 pr = self.rect
 
         # Move vertically (scaled by dt*60 for frame-rate independence)
+        prev_bottom = self.y + self.height
         self.y += self.vy * dt * 60
         pr = self.rect
         for plat in platforms:
@@ -159,9 +189,13 @@ class Player:
                 elif self.vy < 0:
                     self.y = plat.bottom
                     self.vy = 0
+        if not self.can_fly:
+            self._settle_on_slopes(slopes, prev_bottom, dt)
+        else:
+            self.slope = None
 
         # Stable ground check (shift down 1px)
-        self.on_ground = False
+        self.on_ground = self.slope is not None
         test_rect = pygame.Rect(int(self.x), int(self.y) + 1, self.width, self.height)
         for plat in platforms:
             if test_rect.colliderect(plat):
@@ -306,6 +340,17 @@ class LevelScene(Scene):
         self.bhagwan_img = None
         if self.level == 2:
             self.bhagwan_img = self.assets.load_image("bhagwan.jpg", "items", alpha=False)
+        elif self.level == 3:
+            # Mahavir Bhagwan (Lion Lakshan) — NOT bhagwan.jpg, which is Parshvanath.
+            self.bhagwan_img = self.assets.load_image(
+                "mahavir_bhagwan.png", "items", alpha=True,
+                scale=(LEVEL3_BHAGWAN_RECT[2], LEVEL3_BHAGWAN_RECT[3]))
+
+        # Level 3 reveal, driven by _update_level3_reveal once the Akshat is found:
+        # None -> "monk_fading" -> "bhagwan_appearing" -> "ready" (offering allowed)
+        self.reveal_phase = None
+        self.reveal_timer = 0.0
+        self.bhagwan_blocker = None
 
 
         # Load Acharya Portrait for Q&A Scroll
@@ -322,6 +367,8 @@ class LevelScene(Scene):
 
         # Build level from layouts module
         self.platforms = build_level_platforms(self.level)
+        self.slopes = build_level_slopes(self.level)
+        self.slope_glow_cache = {}
         # self.player = Player(80, LOGICAL_HEIGHT - 30 - PLAYER_HEIGHT - 10)
         if self.level == 2:
             # Change 150 and H - 250 to whatever starting X and Y coordinates you want
@@ -377,10 +424,13 @@ class LevelScene(Scene):
         read as a broken level. Verified against real geometry for L1 and L2:
         clearance 3px both, and neither wall overlaps a real platform.
 
-        Levels 3-4 place the Monk randomly, so this wall lands somewhere
-        unpredictable there. Those levels are dev-only skeletons today; see
+        Level 3 seats him in the centre arch of the pavilion (plinth H - 454):
+        same 3px clearance, and only sky above, so his wall crosses no platform
+        (tests/test_level3_layout.py checks this). Level 4 still places the Monk
+        randomly, so this wall lands somewhere unpredictable there; see
         PLAYTEST_CHECKLIST for the item that covers it.
         """
+        self.monk_column = None
         if not self.monk:
             return
         ceiling_bottom = WALL_THICKNESS
@@ -388,9 +438,14 @@ class LevelScene(Scene):
         height = head_top - ceiling_bottom
         if height <= 0:
             return
-        self._add_blocker(
-            pygame.Rect(int(self.monk.x), ceiling_bottom, self.monk.WIDTH, height)
-        )
+        # Kept so Level 3 can lift the wall when the Monk fades away.
+        self.monk_column = pygame.Rect(int(self.monk.x), ceiling_bottom, self.monk.WIDTH, height)
+        self._add_blocker(self.monk_column)
+
+    def _remove_blocker(self, rect):
+        """Undo _add_blocker (by identity, so an equal real platform survives)."""
+        self.platforms = [p for p in self.platforms if p is not rect]
+        self.invisible_blockers = [b for b in self.invisible_blockers if b is not rect]
 
         # NOTE: Music is already started above at line 261 with the correct level-specific
         #       track and the volume saved in Options. This duplicate call has been removed
@@ -547,6 +602,16 @@ class LevelScene(Scene):
                         self.complete_timer = 3.0
                         return
 
+        # Level 3: offer the Akshat from the Monk's seat, only once Mahavir
+        # Bhagwan has fully appeared on the shikhar.
+        if self.level == 3 and self._at_level3_offering_spot():
+            if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+                self.assets.play_sound("level_complete.wav")
+                self.assets.stop_music()
+                self.level_complete = True
+                self.complete_timer = 3.0
+                return
+
         # Monk dialogue navigation
         if self.monk and self.monk.dialogue_active:
             # Geometry comes from monk_system so the clickable rects cannot
@@ -660,6 +725,14 @@ class LevelScene(Scene):
                 self.assets.play_sound("correct.wav")
                 self.player.can_fly = True
                 self.box_system.akshat_found = True
+            elif self.level == 3:
+                # Akshat found: the Monk fades away, then Mahavir Bhagwan appears
+                # on the shikhar. The level completes only when the Akshat is
+                # offered — see _update_level3_reveal and handle_events.
+                self.assets.play_sound("correct.wav")
+                self.box_system.akshat_found = True
+                self.reveal_phase = "monk_fading"
+                self.reveal_timer = 0.0
             else:
                 self.assets.play_sound("level_complete.wav")
                 self.assets.stop_music()
@@ -802,7 +875,9 @@ class LevelScene(Scene):
                 self.bhagwan_platform_added = True
 
         was_on_ground = self.player.on_ground
-        self.player.update(dt, self.platforms)
+        self.player.update(dt, self.platforms, self.slopes)
+        if self.level == 3:
+            self._update_level3_reveal(dt)
 
         # Level 2: check if player reached Bhagwan (interact on lower side of image)
         if self.level == 2 and self.player.can_fly and not self.level_complete:
@@ -838,7 +913,11 @@ class LevelScene(Scene):
                     "age": 0.0
                 })
         self.box_system.update(dt, self.elapsed)
-        self.monk.update(dt, self.elapsed, self.player.rect)
+        if self.reveal_phase is None:
+            self.monk.update(dt, self.elapsed, self.player.rect)
+        else:
+            # Fading or gone: he can no longer be spoken to.
+            self.monk.show_prompt = False
 
         # ── Player animation state machine ──
         p = self.player
@@ -892,6 +971,58 @@ class LevelScene(Scene):
                 self.assets.play_sound("hazard.wav")
                 self.time_remaining -= HAZARD_TIME_PENALTY
                 self.player.freeze(HAZARD_STUN_DURATION)
+
+    def _build_slope_glow(self, slope):
+        """Pre-render a slope's glow + core line once; returns (surface, topleft)."""
+        glow_ht = self.platform_glow_texture.get_height()
+        ys = [y for _, y in slope.points]
+        left, top = int(slope.left), int(min(ys)) - glow_ht
+        surf = pygame.Surface((int(slope.right) - left + 1, int(max(ys)) - top + 3), pygame.SRCALPHA)
+        for x in range(left, int(slope.right) + 1):
+            y = slope.y_at(x)
+            if y is not None:
+                surf.blit(self.platform_glow_texture, (x - left, int(y) - glow_ht - top))
+        points = [(x - left, y - top) for x, y in slope.points]
+        pygame.draw.lines(surf, (255, 255, 200, 255), False, points, 2)
+        return surf, (left, top)
+
+    def _update_level3_reveal(self, dt):
+        """Level 3 twist: Monk fades out, then Mahavir Bhagwan fades in.
+
+        Strictly sequential, as designed: the image does not start to appear
+        until the Monk is gone, and the offering is not accepted until the
+        image is fully there (reveal_phase == "ready").
+        """
+        if self.reveal_phase is None or self.reveal_phase == "ready":
+            return
+        self.reveal_timer += dt
+        if self.reveal_phase == "monk_fading":
+            self.monk.opacity = max(0.0, 1.0 - self.reveal_timer / MONK_FADE_SECONDS)
+            if self.reveal_timer >= MONK_FADE_SECONDS:
+                self.monk.opacity = 0.0
+                if self.monk_column is not None:
+                    self._remove_blocker(self.monk_column)
+                    self.monk_column = None
+                self.reveal_phase = "bhagwan_appearing"
+                self.reveal_timer = 0.0
+        elif self.reveal_phase == "bhagwan_appearing":
+            # The image is solid, like the Parshvanath image in Level 2, so a
+            # jump from the plinth (head reaches ~y 222) bonks under it instead
+            # of passing into the murti. Added only when the devotee is clear of
+            # it, so it can never materialise around them.
+            if self.bhagwan_blocker is None:
+                rect = pygame.Rect(LEVEL3_BHAGWAN_RECT)
+                if not self.player.rect.colliderect(rect):
+                    self.bhagwan_blocker = rect
+                    self._add_blocker(rect)
+            if self.reveal_timer >= BHAGWAN_APPEAR_SECONDS:
+                self.reveal_phase = "ready"
+
+    def _at_level3_offering_spot(self):
+        """True when the offering may be made: image fully shown, devotee at the Monk's seat."""
+        return (self.reveal_phase == "ready"
+                and not self.level_complete
+                and self.monk.interaction_zone.collidepoint(self.player.rect.center))
 
     def _advance_level(self):
         """Move to next level or victory."""
@@ -999,6 +1130,14 @@ class LevelScene(Scene):
             pygame.draw.rect(ps, (0, 0, 0, 255), ps.get_rect(), border_radius=2)
             pygame.draw.rect(ps, (255, 255, 255, 255), ps.get_rect(), width=1, border_radius=2)
             gameplay_surf.blit(ps, plat.topleft)
+
+        # Slopes: the same golden glow and core line, following the curve.
+        for slope in self.slopes:
+            cached = self.slope_glow_cache.get(id(slope))
+            if cached is None:
+                cached = self._build_slope_glow(slope)
+                self.slope_glow_cache[id(slope)] = cached
+            gameplay_surf.blit(*cached)
 
 
         # Draw Temple Gate for Level 1
@@ -1116,6 +1255,36 @@ class LevelScene(Scene):
             offer_txt = self.font_small.render("Offer Akshat here!", True, COLOR_GOLD_BRIGHT)
             gameplay_surf.blit(offer_txt, offer_txt.get_rect(center=(bw_x + bw_size // 2, bw_y + bw_size + 12)))
 
+        # Level 3: Mahavir Bhagwan on the shikhar — fades in after the Monk is gone.
+        if self.level == 3 and self.reveal_phase in ("bhagwan_appearing", "ready") and self.bhagwan_img:
+            bw_rect = pygame.Rect(LEVEL3_BHAGWAN_RECT)
+            if self.reveal_phase == "ready":
+                strength = 1.0
+                pulse = int(180 + 60 * math.sin(self.elapsed * 3))
+            else:
+                strength = min(1.0, self.reveal_timer / BHAGWAN_APPEAR_SECONDS)
+                pulse = 180
+            img = self.bhagwan_img.copy()
+            img.set_alpha(int(255 * strength))
+            frame = pygame.Surface((bw_rect.width + 8, bw_rect.height + 8), pygame.SRCALPHA)
+            pygame.draw.rect(frame, (255, 215, 0, int(pulse * strength)), frame.get_rect(), width=3, border_radius=10)
+            gameplay_surf.blit(frame, (bw_rect.x - 4, bw_rect.y - 4))
+            gameplay_surf.blit(img, bw_rect.topleft)
+
+            if self.reveal_phase == "ready":
+                # Where to offer: the Monk's empty seat in the centre arch.
+                seat = self.monk.rect
+                if self._at_level3_offering_spot():
+                    prompt_surf = self.font_hud.render("[ Press UP or ACTION to offer Akshat ]", True, COLOR_GOLD_BRIGHT)
+                else:
+                    prompt_surf = self.font_small.render("Offer Akshat here", True, COLOR_GOLD_BRIGHT)
+                px = seat.centerx - prompt_surf.get_width() // 2
+                py = seat.y - 45
+                bg_surf = pygame.Surface((prompt_surf.get_width() + 20, prompt_surf.get_height() + 10), pygame.SRCALPHA)
+                pygame.draw.rect(bg_surf, (0, 0, 0, 180), bg_surf.get_rect(), border_radius=6)
+                gameplay_surf.blit(bg_surf, (px - 10, py - 5))
+                gameplay_surf.blit(prompt_surf, (px, py))
+
         # ── Blit the gameplay surface shifted UPWARDS by 80 pixels onto logical surface ──
         # This makes the bottom Y space clear of gameplay and creates the solid controls zone
         surface.blit(gameplay_surf, (0, -80))
@@ -1131,6 +1300,8 @@ class LevelScene(Scene):
                 goal_text = lvl_goals.get("key_found", "Goal: Unlock and enter the Temple Gate!")
             elif self.level == 2 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Fly to the Bhagwan and offer Akshat!")
+            elif self.level == 3 and getattr(self.box_system, "akshat_found", False):
+                goal_text = lvl_goals.get("akshat_found", "Goal: Offer the Akshat to Mahavir Bhagwan!")
             else:
                 goal_text = lvl_goals.get("default", "Goal: Find the sacred item!")
             goal_surf = self.font_body.render(goal_text, True, COLOR_GOLD_BRIGHT)

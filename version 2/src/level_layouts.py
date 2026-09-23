@@ -4,9 +4,15 @@ Separated from level_scene.py for clarity and maintainability.
 """
 import pygame
 from settings import LOGICAL_WIDTH, LOGICAL_HEIGHT
+from slopes import Slope
 
 WALL = 30
 PH = 8   # platform thickness — thin to blend with building rooftops
+
+# Level 3: where Mahavir Bhagwan appears once the Akshat is found — on the
+# shikhar, centred on the spire (x 958). Top edge sits just under the 48px HUD
+# bar; the world is drawn 80px up, so world y 128 is screen y 48.
+LEVEL3_BHAGWAN_RECT = (883, 128, 150, 150)
 
 
 def build_level_platforms(level):
@@ -32,6 +38,21 @@ def build_level_platforms(level):
         _build_level4(platforms, W, H)
 
     return platforms
+
+
+def build_level_slopes(level):
+    """Returns the one-way sloped surfaces (slopes.Slope) for the given level."""
+    H = LOGICAL_HEIGHT
+    if level == 3:
+        return [
+            Slope([(707, H - 332), (752, H - 328), (823, H - 321)]),                   # 9  Pink lotus by the rock ledge
+            # 20 and 19 start half a devotee-width (~13px) in from the traced tip,
+            # so standing on the tip never overlaps lily pads 18 / 17 beside them.
+            Slope([(323, H - 86), (444, H - 96), (618, H - 132)]),                     # 20 Big pink lotus, left
+            Slope([(1361, H - 150), (1506, H - 113), (1666, H - 97)]),                 # 19 Big pink lotus, right
+            Slope([(1672, H - 90), (1713, H - 89), (1796, H - 62), (1890, H - 59)]),   # 21 Lily pad, bottom right
+        ]
+    return []
 
 
 def _build_level1(p, W, H):
@@ -104,34 +125,37 @@ def _build_level2(p, W, H):
 
 
 def _build_level3(p, W, H):
-    """The Hall (Valor) — Hard. Marble hall with disappearing-style platforms."""
-    # Ground level small ledges
-    p.append(pygame.Rect(180, H - 160, 140, PH))
-    p.append(pygame.Rect(450, H - 190, 140, PH))
-    p.append(pygame.Rect(700, H - 160, 140, PH))
-    p.append(pygame.Rect(950, H - 200, 140, PH))
+    """The Hall (Valor) — Hard. Jal Mandir: a marble pavilion on a lotus lake.
+    Platforms traced from the designer's blue lines on level3_background.png
+    (1376x768, stretched to 1920x1080). Numbers in comments are the designer's
+    line numbers. The curved petals (9, 19, 20, 21) are slopes — see
+    build_level_slopes. Dropped: 5b (right half of the rock ledge, it sat over
+    lotus 9), 7 (3px headroom under rock 3), 22-24 (at or below the floor).
+    Rule every pair obeys: where two surfaces overlap in x, the upper one's
+    underside is at least PLAYER_HEIGHT above the lower one's top, so no spot
+    exists where the devotee would stand inside a platform.
+    """
+    # ── Island: rocks and the pavilion
+    p.append(pygame.Rect(790, H - 454, 336, PH))    # 2  Pavilion plinth (Monk sits centre)
+    p.append(pygame.Rect(642, H - 462, 83, PH))     # 1  Top of the rock mound
+    p.append(pygame.Rect(501, H - 380, 139, PH))    # 5a Left rock ledge
+    p.append(pygame.Rect(1143, H - 428, 139, PH))   # 3  Right rocks, upper
+    p.append(pygame.Rect(1292, H - 398, 80, PH))    # 4  Right rocks, lower
 
-    # Middle rows — smaller, tighter
-    p.append(pygame.Rect(1200, H - 320, 160, PH))
-    p.append(pygame.Rect(900, H - 400, 150, PH))
-    p.append(pygame.Rect(600, H - 440, 150, PH))
-    p.append(pygame.Rect(300, H - 380, 160, PH))
+    # ── Lotus flowers
+    p.append(pygame.Rect(82, H - 313, 119, PH))     # 10 Pink lotus, far left
+    p.append(pygame.Rect(248, H - 274, 120, PH))    # 13 White lotus, second from left
+    p.append(pygame.Rect(419, H - 339, 71, PH))     # 8  Small white lotus, left
+    p.append(pygame.Rect(1581, H - 357, 56, PH))    # 6  Small pink lotus, far right
+    p.append(pygame.Rect(1704, H - 259, 149, PH))   # 14 White lotus, far right
 
-    # Upper hall — narrow ledges
-    p.append(pygame.Rect(100, H - 540, 140, PH))
-    p.append(pygame.Rect(400, H - 580, 140, PH))
-    p.append(pygame.Rect(700, H - 620, 150, PH))
-    p.append(pygame.Rect(1000, H - 570, 140, PH))
-    p.append(pygame.Rect(1300, H - 530, 160, PH))
-
-    # High passage
-    p.append(pygame.Rect(1500, H - 680, 160, PH))
-    p.append(pygame.Rect(1200, H - 760, 150, PH))
-    p.append(pygame.Rect(800, H - 800, 180, PH))
-    p.append(pygame.Rect(450, H - 840, 150, PH))
-
-    # Goal area (top-center)
-    p.append(pygame.Rect(850, H - 950, 220, PH))
+    # ── Lily pads (12, 15, 17 trimmed where they ran under a neighbour)
+    p.append(pygame.Rect(370, H - 249, 46, PH))     # 15 Left
+    p.append(pygame.Rect(137, H - 154, 169, PH))    # 18 Lower left
+    p.append(pygame.Rect(633, H - 198, 116, PH))    # 16 Centre
+    p.append(pygame.Rect(1268, H - 196, 76, PH))    # 17 Right of centre
+    p.append(pygame.Rect(1362, H - 292, 92, PH))    # 11 Under the right-centre pink lotus
+    p.append(pygame.Rect(1532, H - 279, 46, PH))    # 12 Right
 
 
 def _build_level4(p, W, H):

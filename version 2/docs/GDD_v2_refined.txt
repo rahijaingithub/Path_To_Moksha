@@ -356,6 +356,10 @@ LEVEL 3: THE HALL  (Valor)
   Setting:
     White marble and gold interior of the temple — bright, clean, reflective.
     The path to Mahavir Bhagwan's Garbhalaya is lined with pillars and light.
+    AMENDMENT (2026-09-23, designer): the setting is now a white marble
+    pavilion on a small rocky island in a lotus lake at sunrise (evoking the
+    Jal Mandir at Pawapuri). The devotee crosses on lotus flowers, lily pads
+    and rocks; the curved petals are one-way slopes. See DECISION_LOG Phase 7.
 
   Objective:
     Navigate from the Parshvanath Bhagwan Garbhalaya Gate to the
@@ -379,6 +383,10 @@ LEVEL 3: THE HALL  (Valor)
 
   The Guide (Monk):
     Location: Seated on a floating marble lotus platform above the hall.
+    AMENDMENT (2026-09-23, designer): seated in the centre arch of the
+    pavilion. Once the Akshat is found he fades away, then Mahavir Bhagwan
+    appears on the shikhar; only then is the Akshat offered, from the
+    Monk's empty seat, which completes the level.
     Question: "What is the weapon of the Tirthankara?"
       Choice A: Ahimsa   [Correct — non-violence is the supreme force]
       Choice B: Sword    [Incorrect]
@@ -664,3 +672,7 @@ UPDATE LOG:
 UPDATE LOG: Shifted gameplay 80px upwards, created solid dark bottom bar, fit controls inside bottom bar, removed Seek the Goal Item text.
 UPDATE LOG: Removed devotion progress bar, eliminated double border walls, drawn beautiful single gold spiritual frame, and implemented custom vector arrow triangles for touch controls instead of text glyphs.
 UPDATE LOG: Fixed test.py to uniquely define draw_monk_pygame, draw_monk_cairo, and draw_monk_skia with side-by-side dynamic loading. Implemented starting level selection on title screen and integrated level choice into confirm selection.
+
+UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
+- Level 3 setting amended to the lotus-lake pavilion; platforms traced from the designer's art; one-way slopes added for curved petals (src/slopes.py).
+- Level 3 Monk fixed in the pavilion's centre arch; Akshat now triggers Monk fade -> Mahavir Bhagwan reveal on the shikhar -> offering at the Monk's seat.

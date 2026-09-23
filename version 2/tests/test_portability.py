@@ -110,6 +110,7 @@ class AssetPortabilityTests(unittest.TestCase):
     DYNAMIC_REQUIRED_ASSETS = (
         "assets/images/backgrounds/level1_background.png",
         "assets/images/backgrounds/level2_background.png",
+        "assets/images/backgrounds/level3_background.png",
         "assets/images/transitions/jsot_temple.png",
         "assets/images/transitions/parshvanath.png",
         "assets/images/items/monk_sprite.png",
@@ -148,6 +149,10 @@ class AssetPortabilityTests(unittest.TestCase):
     # rather than a content-completeness gate.
     ALLOWED_MISSING_LITERAL_ASSETS = {
         "assets/images/transitions/digambar_garbhalaya.png",
+        # Level 3 reveal art — pending from the designer (2026-09-23). Until it
+        # lands the reveal shows AssetManager's pink placeholder. Remove this
+        # line when the file is added.
+        "assets/images/items/mahavir_bhagwan.png",
     }
 
     @staticmethod

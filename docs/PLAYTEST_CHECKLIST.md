@@ -56,8 +56,9 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         (Clearance is only 3px by design — Monk.HEIGHT minus PLAYER_HEIGHT.)
 32. [ ] **Sacred volume — Parshvanath:** after the Akshat box in Level 2, you cannot
         fly above the murti. No visible platform appears where the wall is.
-33. [ ] Levels 3-4 in developer mode: the Monk is placed randomly, so confirm his
+33. [ ] Level 4 in developer mode: the Monk is placed randomly, so confirm his
         invisible column has not landed somewhere that blocks a needed route.
+        (Level 3's Monk is fixed since 2026-09-23 — see #39.)
 34. [ ] **Esc on the title** shows "Leave the pilgrimage?" — it does not quit outright.
         Esc again cancels; Enter/A quits. Same for the Exit menu item and mouse click.
 35. [ ] **Pause:** Esc mid-level opens the pause menu. The countdown clock stops.
@@ -67,3 +68,15 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         gamepad and mouse, and the third is not clipped by the hint line.
 37. [ ] Read the two wrong options: each should be a real Jain idea that is
         plausibly confusable, not an obvious joke. Flag any that give the answer away.
+
+## Level 3 — Jal Mandir (added 2026-09-23)
+38. [ ] **Slopes (lotus 9, 19, 20, 21):** walk up and down each petal both ways — the
+        devotee follows the curve, never jitters or drops through. Jump up from below
+        a big petal: you pass through it and land on top.
+39. [ ] **Monk fixed in the centre arch:** he stands in the middle of the pavilion,
+        you can walk past him on the plinth, and you cannot jump over him.
+40. [ ] **Reveal order:** open the Akshat box. The Monk fades out completely **before**
+        the Bhagwan image starts to appear, and pressing UP/ACTION at his seat does
+        nothing until the image is fully shown. Then the offering completes the level.
+41. [ ] **Mahavir image art:** the shikhar shows Mahavir Bhagwan, not a pink square
+        (fails until `mahavir_bhagwan.png` is added).
