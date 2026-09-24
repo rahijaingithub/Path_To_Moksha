@@ -393,3 +393,30 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   * *Rationale:* designer's ruling; the pools floated in the sky and one sat on ledge 5a.
     Reusing the stun overlay keeps one visual language for "danger". Levels 1, 2 and 4
     hazards are untouched. Drown-sprite prompts are in `image_generation_prompts.md` §6.
+
+## Phase 8: new boy walk cycle; walk is the normal-speed look (2026-09-23, designer)
+* **Decision (designer):** adopt the new boy walk sheet — **row 1** (6 frames) of a 3×6
+  magenta-background sheet. Left strip mirrored per frame from the right, as before.
+  * *Rationale:* designer's pick after animated previews of each row and of all 18.
+    Rows 1 and 2 are the same cycle drawn twice; row 3 is a different take and its last
+    frame carries a generator watermark over the front foot. Raw sheet kept in
+    `sprites/_source/player_boy_walk_right.jpg` (the previous 8-frame source is in git
+    history).
+* **Decision (designer):** **walk is shown at normal speed.** "Run" now only shows above
+  `PLAYER_SPEED`, which nothing reaches today, so the run strip is dormant.
+  * *Rationale:* resolves the ruling Phase 6h asked for. Measured with real input in the
+    real `LevelScene`: holding a direction showed the walk for **50 ms** before "run" took
+    over, so no walk art could ever be seen. Now it shows 100% of the time held (tested in
+    `tests/test_player_walk.py`). Only the animation choice changed — `PLAYER_SPEED`,
+    the 15× lerp and all physics are untouched. Walk keeps its 0.12 s frame time (what the
+    designer approved in the previews); at 7 px/frame some foot-slide is expected — if it
+    reads as skating, 0.08 s (the old run cadence at this speed) is the one-line tweak.
+* **Tool:** `tools/prepare_player_sprites.py` now keys magenta backgrounds (detected from
+  the sheet's corner, so pink in a white-background sheet is never touched), can use
+  selected grid rows (`SPRITE_ROWS`), mirrors left walks per frame (`MIRRORED_FROM` —
+  verified to reproduce the existing boy and girl left strips pixel-for-pixel), and takes
+  file names on the command line.
+  * **Caution recorded in the tool:** a full no-argument run would reprocess **ten of the
+    girl's strips** that were never normalized (idle/jump/run/fall/stun, 416–720 px
+    tall), overwriting her art. This install processed only the boy's walk; git confirms
+    only his three walk files changed.

@@ -5,10 +5,16 @@ It reads from <repo>/assets/images/sprites/, removes white backgrounds,
 normalizes each frame to 128x128 (feet-aligned), and overwrites in-place.
 
 Usage:
-    python prepare_player_sprites.py
+    python prepare_player_sprites.py                    # every file in SPRITE_GRID
+    python prepare_player_sprites.py FILE [FILE ...]    # only these (safer)
+
+CAUTION: a full run reprocesses EVERY strip that is not already 128px tall —
+including ten of the girl's strips that were never normalized (2026-09-23). Name
+the files you mean to process.
 """
 import os
-from PIL import Image
+import sys
+from PIL import Image, ImageOps
 
 # Repo root is the parent of tools/ — same idiom as clean_temple_gate.py.
 SPRITES_DIR = os.path.join(
@@ -24,16 +30,15 @@ SPRITES_DIR = os.path.join(
 # frame size is derived from strip height — but any code that assumed 128 px
 # counted her frames roughly 4x over. See level_scene.strip_frame_count().
 #
-# The BOY's walk is now a real 8-frame cycle. The GIRL's is still four copies of
-# one standing pose; change her two entries to (1, 8) when her redrawn sheet
-# lands. Her replacement must have bold dark outlines — her white kurta is the
+# The BOY's walk is a 6-frame cycle from the 2026-09-23 magenta sheet (row 1 of
+# 3 — see SPRITE_ROWS); the GIRL's is an 8-frame cycle. Left walks are mirrored
+# from the right (MIRRORED_FROM), so they have no grid entry. Her replacement must have bold dark outlines — her white kurta is the
 # same value as the white background, so remove_white_bg() floods straight
 # through the edge and eats holes in her clothing.
 SPRITE_GRID = {
     "player_boy_idle_left.png":  (2, 2),
     "player_boy_idle_right.png": (2, 2),
-    "player_boy_walk_left.png":  (1, 8),
-    "player_boy_walk_right.png": (1, 8),
+    "player_boy_walk_right.png": (3, 6),   # 2026-09-23 sheet: 3 takes of a 6-frame cycle
     "player_boy_run_left.png":   (1, 6),
     "player_boy_run_right.png":  (1, 6),
     "player_boy_jump_left.png":  (1, 4),
@@ -45,7 +50,6 @@ SPRITE_GRID = {
 
     "player_girl_idle_left.png":  (1, 4),
     "player_girl_idle_right.png": (1, 4),
-    "player_girl_walk_left.png":  (1, 8),
     "player_girl_walk_right.png": (1, 8),
     "player_girl_run_left.png":   (1, 6),
     "player_girl_run_right.png":  (1, 6),
@@ -55,6 +59,21 @@ SPRITE_GRID = {
     "player_girl_fall_right.png": (1, 3),
     "player_girl_stun_left.png":  (1, 2),
     "player_girl_stun_right.png": (1, 2),
+}
+
+# Only these grid rows become frames (0-based). The boy's 2026-09-23 walk sheet
+# draws the cycle three times; the designer chose row 1 (its row 3 also carries
+# a generator watermark over the last frame's foot).
+SPRITE_ROWS = {
+    "player_boy_walk_right.png": (0,),
+}
+
+# Left-facing strips are the right-facing strip mirrored FRAME BY FRAME (Phase 6f):
+# flipping the whole strip would also reverse the frame order and play the cycle
+# backwards. Regenerated whenever its right-facing source is processed.
+MIRRORED_FROM = {
+    "player_boy_walk_left.png":  "player_boy_walk_right.png",
+    "player_girl_walk_left.png": "player_girl_walk_right.png",
 }
 
 FRAME_W    = 128   # Output frame width (px)
@@ -94,6 +113,41 @@ def remove_white_bg(cell):
     for (x, y) in bg:
         cpix[x, y] = (0, 0, 0, 0)
 
+    return cell
+
+
+def is_magenta(pixel):
+    """Magenta key colour, including its JPEG-softened fringe: strong R and B, low G."""
+    r, g, b = pixel[:3]
+    return r > 150 and b > 150 and g < min(r, b) - 70
+
+
+def remove_magenta_bg(cell):
+    """Key out a magenta background — everywhere, not just from the edges.
+
+    Unlike white, magenta never occurs in the character (white cloth, brown skin,
+    black hair, brown sandals), so it is safe to erase enclosed pockets too, e.g.
+    the gap between the legs. Only used when the sheet's corner is magenta, so a
+    white-background sheet with pink in it is never touched. Then two passes erase
+    pink-tinted fringe pixels that sit on the new transparent edge.
+    """
+    cw, ch = cell.size
+    cpix = cell.load()
+    for y in range(ch):
+        for x in range(cw):
+            if is_magenta(cpix[x, y]):
+                cpix[x, y] = (0, 0, 0, 0)
+    for _ in range(2):
+        fringe = []
+        for y in range(ch):
+            for x in range(cw):
+                r, g, b, a = cpix[x, y]
+                if a and r > 120 and b > 120 and g < min(r, b) - 25:
+                    if any(0 <= x + dx < cw and 0 <= y + dy < ch and cpix[x + dx, y + dy][3] == 0
+                           for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                        fringe.append((x, y))
+        for x, y in fringe:
+            cpix[x, y] = (0, 0, 0, 0)
     return cell
 
 
@@ -189,14 +243,15 @@ def process_sprite(filename, rows, cols):
 
     cell_w = W // cols
     cell_h = H // rows
+    magenta_bg = is_magenta(img.getpixel((2, 2)))
 
     frames = []
-    for r in range(rows):
+    for r in SPRITE_ROWS.get(filename, range(rows)):
         for c in range(cols):
             left   = c * cell_w
             top    = r * cell_h
             cell   = img.crop((left, top, left + cell_w, top + cell_h)).copy()
-            cell   = remove_white_bg(cell)
+            cell   = remove_magenta_bg(cell) if magenta_bg else remove_white_bg(cell)
             cell   = sweep_ground_shadow(cell)
             cell   = tight_crop(cell)
             if cell is None:
@@ -217,8 +272,31 @@ def process_sprite(filename, rows, cols):
     print(f"  OK: {filename}  ({len(frames)} frames, {strip.width}x{strip.height})")
 
 
+def mirror_strip(src_name, dst_name):
+    """Write dst as src with every FRAME mirrored in place (order kept)."""
+    src = Image.open(os.path.join(SPRITES_DIR, src_name)).convert("RGBA")
+    W, H = src.size
+    if H != FRAME_H or W % FRAME_H:
+        print(f"  SKIP mirror: {src_name} is not a normalized strip yet ({W}x{H}).")
+        return
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for i in range(W // FRAME_W):
+        frame = src.crop((i * FRAME_W, 0, (i + 1) * FRAME_W, H))
+        out.paste(ImageOps.mirror(frame), (i * FRAME_W, 0))
+    out.save(os.path.join(SPRITES_DIR, dst_name), "PNG")
+    print(f"  OK: {dst_name}  (mirrored per frame from {src_name}, {W // FRAME_W} frames)")
+
+
 if __name__ == "__main__":
-    print("=== Preparing player boy sprites ===")
-    for filename, (rows, cols) in SPRITE_GRID.items():
-        process_sprite(filename, rows, cols)
+    wanted = sys.argv[1:] or list(SPRITE_GRID)
+    unknown = [f for f in wanted if f not in SPRITE_GRID and f not in MIRRORED_FROM]
+    if unknown:
+        sys.exit(f"Not in SPRITE_GRID or MIRRORED_FROM: {unknown}")
+    print("=== Preparing player sprites ===")
+    for filename in wanted:
+        if filename in SPRITE_GRID:
+            process_sprite(filename, *SPRITE_GRID[filename])
+    for left, right in MIRRORED_FROM.items():
+        if left in wanted or right in wanted:
+            mirror_strip(right, left)
     print("=== Done ===")

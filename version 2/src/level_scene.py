@@ -958,9 +958,13 @@ class LevelScene(Scene):
             new_state = "jump"
         elif not p.on_ground and p.vy >= 0:
             new_state = "fall"
-        elif abs(p.vx) > PLAYER_SPEED * 0.6:
+        elif abs(p.vx) > PLAYER_SPEED:
+            # Faster than normal speed. Nothing moves the devotee that fast today,
+            # so the run strip is dormant until something (e.g. a speed boost) does.
             new_state = "run"
         elif abs(p.vx) > 0.5:
+            # Walk is the normal-speed look (designer, 2026-09-23). It used to give
+            # way to "run" above 0.6 * PLAYER_SPEED, so it showed for ~50ms per start.
             new_state = "walk"
         else:
             new_state = "idle"

@@ -85,3 +85,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         and rise again on the last golden platform/petal you stood on — never back in
         the water. No box ever appears down in the lake, and there are no hazard
         blocks anywhere in Level 3.
+43. [ ] **Boy walk (2026-09-23):** hold left/right as the boy — the new 6-frame walk
+        plays the whole time you move (not a run), faces the right way both directions,
+        no pink/magenta edges, no size jump between standing and walking. Note whether
+        the feet look like they slide; if so, flag it (frame-time tweak, see DECISION_LOG
+        Phase 8).
