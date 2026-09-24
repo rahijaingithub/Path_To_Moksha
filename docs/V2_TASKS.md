@@ -24,7 +24,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | B2 | Rebuild `_build_level3` platforms against the art — **done 2026-09-23** (traced lines + one-way slopes; Monk fixed in the pavilion; Monk-fade → Mahavir reveal → offering). Pending: `mahavir_bhagwan.png` art | `level_layouts.py` | M | A2 + playtest #8 |
 | B3 | Disappearing marble tiles: new `TimedPlatform` type with fade cycle; Lakshan (Lion) reveals all for 10s | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
 | B4 | Hazards — **done 2026-09-23 (designer):** no hazard blocks in Level 3; the lake floor itself drowns | `hazards.py` | S | A2 |
-| B5 | Transition 3→4: `mahavir.png` + bow animation entry in `TRANSITION_DATA[4]` | `transition_scene.py`, assets | S (+art) | playtest #10 |
+| B5 | Transition 3→4: show `mahavir.png` in `TRANSITION_DATA[4]` (currently `jsot_temple.png`). **No bow** — since 2026-09-23 the devotee bows to Mahavir Bhagwan inside Level 3, so 3→4 walks in without bowing (`NO_BOW_TRANSITIONS`, DECISION_LOG Phase 9) | `transition_scene.py`, assets | S (+art) | playtest #10, #47 |
 
 ## Epic C — Level 4: The Summit (Moksha) — P0
 | ID | Task | Files | Effort | Verify |

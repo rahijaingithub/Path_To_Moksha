@@ -15,7 +15,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 7. [ ] Kid / standard / developer modes each reach the intended last level.
 8. [ ] Level 3 completable start-to-finish without developer mode.
 9. [ ] Level 4 completable start-to-finish without developer mode.
-10. [ ] Transition 3→4 shows Mahavir and the bow animation.
+10. [ ] Transition 3→4 shows Mahavir and the devotee walks in **without** bowing (the bow
+        now happens inside Level 3 — see #47).
 11. [ ] Transition 4→Victory shows Adinath, glow, then Victory with the Garbhalaya image.
 
 ## Mechanics

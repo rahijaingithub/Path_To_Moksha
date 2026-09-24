@@ -2,9 +2,10 @@
 bird.py — Level 3's bird (Jiv Daya twist).
 
 It flies across the sky until the Akshat is found, then falls onto a lotus and
-lies there tired. The devotee may help it — share some Akshat and chant the
-Namokar Mantra (orchestrated by level_scene) — and it revives and flies away.
-Ignoring it carries no penalty. Purely visual: the bird never collides.
+lies there tired. The devotee may help it — share some Akshat, then put the
+Namokar Mantra's shuffled lines in order (the puzzle lives in level_scene) — and
+it revives and flies away. Skipping the puzzle or ignoring the bird carries no
+penalty. Purely visual: the bird never collides.
 
 States: waiting -> flying -> (waiting ...) ; fall(): falling -> fallen ;
 revive(): reviving -> leaving -> gone.
