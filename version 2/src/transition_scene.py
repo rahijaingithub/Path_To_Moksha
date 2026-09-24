@@ -6,6 +6,7 @@ import os
 import math
 import random
 import pygame
+from sprite_utils import extract_bow_frames
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, IMAGES_DIR,
     COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_WHITE, COLOR_SAFFRON,
@@ -13,6 +14,10 @@ from settings import (
     SCENE_LEVEL, SCENE_TITLE,
 )
 
+
+# Transitions that walk in without bowing: 1->2, and 3->4 because Level 3 now
+# ends with the devotee bowing to Mahavir Bhagwan in the level itself (2026-09-23).
+NO_BOW_TRANSITIONS = {2, 4}
 
 TRANSITION_DATA = {
     2: {
@@ -98,35 +103,10 @@ class TransitionScene:
         # 2. Load bowing sprite — 2D mask island extraction (prevents row-split foot bleed)
         bow_img_name = f"player_{char_type}_bowing.png"
         self.bow_strip = self.assets.load_image(bow_img_name, "sprites", alpha=True)
-        self.bow_frames = []
-
-        if self.bow_strip:
-            mask = pygame.mask.from_surface(self.bow_strip, threshold=8)
-            island_rects = mask.get_bounding_rects()
-
-            # Filter out tiny 1x1 noise dots and sort poses top-to-bottom, left-to-right
-            valid_rects = [r for r in island_rects if r.width > 20 and r.height > 20]
-            valid_rects.sort(key=lambda r: (0 if r.y < 400 else 1, r.x))
-
-            raw_cropped = []
-            standing_h = None
-
-            for rect in valid_rects:
-                cell = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-                cell.blit(self.bow_strip, (0, 0), rect)
-                raw_cropped.append(cell)
-                if standing_h is None:
-                    standing_h = rect.height  # Pose 0 standing height reference (~377px)
-
-            scale_ratio = 150.0 / standing_h if (standing_h and standing_h > 0) else 0.40
-
-            for cropped in raw_cropped:
-                tw = max(10, int(cropped.get_width() * scale_ratio))
-                th = max(10, int(cropped.get_height() * scale_ratio))
-                scaled = pygame.transform.smoothscale(cropped, (tw, th))
-                self.bow_frames.append(scaled)
-
-            print(f"[Transition] Perfect 2D Mask Extraction: {len(self.bow_frames)} frames (standing_h={standing_h}px, scale={scale_ratio:.3f})")
+        # Shared with Level 3's in-level bow (level_scene), so both cut it the same way.
+        self.bow_frames = extract_bow_frames(self.bow_strip, 150.0)
+        if self.bow_frames:
+            print(f"[Transition] Perfect 2D Mask Extraction: {len(self.bow_frames)} frames")
 
 
 
@@ -190,7 +170,7 @@ class TransitionScene:
         self.particles = [p for p in self.particles if p["age"] < p["lifetime"]]
 
         # Spawn new prayer sparkles from devotee up towards Bhagwan image when bowing
-        is_t1 = (self.next_level == 2)
+        is_t1 = self.next_level in NO_BOW_TRANSITIONS
         if not is_t1 and self.elapsed > 2.5 and random.random() < 0.5:
             img_left = (LOGICAL_WIDTH // 2 - 220) if self.bg_image else 180
             target_x = img_left + 60
@@ -246,7 +226,7 @@ class TransitionScene:
 
         img_left = (LOGICAL_WIDTH // 2 - 220) if self.bg_image else 180
         char_cy = LOGICAL_HEIGHT // 2 + 140
-        is_transition_1 = (self.next_level == 2)
+        is_transition_1 = self.next_level in NO_BOW_TRANSITIONS  # walk in, no bow
 
         if is_transition_1:
             # TRANSITION 1: Walk from left side (-30) to image's left endpoint (img_left + 40), NO bowing

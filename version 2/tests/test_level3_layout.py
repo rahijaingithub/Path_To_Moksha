@@ -466,6 +466,8 @@ class Level3SceneTests(unittest.TestCase):
                 self.assertEqual(len(self.scene.box_system.boxes), 6)
                 for box in self.scene.box_system.boxes:
                     self.assertNotEqual(box.y + box.SIZE + 5, floor_top)
+                    self.assertFalse(box.y + box.SIZE + 5 == LOGICAL_HEIGHT - 259 and box.x > 1650,
+                                     "the bird's lotus (14) is kept clear of boxes")
 
     def test_monk_fades_before_bhagwan_appears_and_offering_waits_for_it(self) -> None:
         s = self.scene
@@ -487,12 +489,100 @@ class Level3SceneTests(unittest.TestCase):
         self.run_frames(self.ls.BHAGWAN_APPEAR_SECONDS)
         self.assertEqual(s.reveal_phase, "ready")
         self.assertTrue(s._at_level3_offering_spot())
+        self.press_action()
+        self.assertFalse(s.level_complete, "the devotee bows before the level ends")
+        self.assertGreater(s.bow_timer, 0)
+        self.run_frames(self.ls.BOW_DOWN_SECONDS + self.ls.BOW_HOLD_SECONDS + self.ls.BOW_UP_SECONDS)
+        self.assertTrue(s.level_complete)
+
+    # ── Jiv Daya twist: the bird ────────────────────────────────────────────
+    def press_action(self):
         self.input.just_pressed[self.input.ACTION] = True
         try:
-            s.handle_events([], self.input)
+            self.scene.handle_events([], self.input)
         finally:
             self.input.just_pressed[self.input.ACTION] = False
+
+    def find_akshat(self):
+        s = self.scene
+        goal = next(b for b in s.box_system.boxes if b.item["cat"] == self.CAT_GOAL)
+        s.item_popup = {"item": goal.item, "time_delta": 0, "freeze_dur": 0, "message": "", "timer": 5.0}
+        s._dismiss_item_popup()
+
+    def stand_by_the_bird(self):
+        s = self.scene
+        s.player.x = s.bird.rest_x - 60
+        s.player.y = s.bird.rest_y - PLAYER_HEIGHT
+        s.player.vx = s.player.vy = 0
+        self.run_frames(0.1)
+        self.assertTrue(s._at_fallen_bird(), "should be able to help from lotus 14")
+
+    def test_bird_flies_across_the_sky_before_the_akshat(self) -> None:
+        bird = self.scene.bird
+        self.assertIsNotNone(bird)
+        states, xs = set(), []
+        for _ in range(60 * 8):
+            self.scene.update(1 / 60)
+            states.add(bird.state)
+            if bird.state == "flying":
+                xs.append(bird.x)
+        self.assertIn("flying", states)
+        self.assertGreater(max(xs) - min(xs), 300, "the bird should cross the sky")
+        self.assertNotIn("fallen", states, "it only falls once the Akshat is found")
+
+    def test_finding_the_akshat_makes_the_bird_fall_onto_lotus_14(self) -> None:
+        s = self.scene
+        self.find_akshat()
+        self.run_frames(2.0)
+        self.assertTrue(s.bird.is_fallen)
+        lotus14 = next(r for r in s.platforms if r.x == 1704)
+        self.assertTrue(lotus14.left <= s.bird.rest_x <= lotus14.right)
+        self.assertEqual(s.bird.rest_y, lotus14.top)
+
+    def test_saving_the_bird_pauses_the_clock_and_adds_four_minutes(self) -> None:
+        s = self.scene
+        self.find_akshat()
+        self.run_frames(2.0)
+        self.stand_by_the_bird()
+        before = s.time_remaining
+        self.press_action()
+        self.assertEqual(s.rescue_phase, "feeding")
+        self.run_frames(self.ls.BIRD_FEED_SECONDS)
+        self.assertEqual(s.rescue_phase, "chanting")
+        self.assertEqual(s.time_remaining, before, "the clock is paused while helping")
+        for line in range(len(s.mantra_lines)):
+            self.assertEqual(s.mantra_chanted, line)
+            self.run_frames(0.3)               # waits, but nothing advances without a chant
+            self.assertEqual(s.mantra_chanted, line)
+            self.press_action()
+        self.assertEqual(s.rescue_phase, "reviving")
+        for _ in range(180):                    # until the bird has revived (clock still paused)
+            if s.rescue_phase is None:
+                break
+            self.assertEqual(s.time_remaining, before)
+            s.update(1 / 60)
+        self.assertIsNone(s.rescue_phase)
+        self.assertTrue(s.bird_saved)
+        self.assertIn(s.bird.state, ("leaving", "gone"))
+        self.assertAlmostEqual(s.time_remaining - before, 240, delta=0.2)
+        self.assertEqual(s.jiv_daya_bonus, 240, "recorded time must not count the bonus")
+
+    def test_the_mantra_is_five_lines(self) -> None:
+        self.assertEqual(len(self.scene.mantra_lines), 5)
+
+    def test_ignoring_the_bird_has_no_penalty(self) -> None:
+        s = self.scene
+        self.find_akshat()
+        self.run_frames(self.ls.MONK_FADE_SECONDS + self.ls.BHAGWAN_APPEAR_SECONDS + 0.2)
+        self.assertTrue(s.bird.is_fallen)
+        s.player.x, s.player.y = s.monk.x + 20, LOGICAL_HEIGHT - 454 - PLAYER_HEIGHT
+        self.run_frames(0.1)
+        before = s.time_remaining
+        self.press_action()
+        self.run_frames(self.ls.BOW_DOWN_SECONDS + self.ls.BOW_HOLD_SECONDS + self.ls.BOW_UP_SECONDS)
         self.assertTrue(s.level_complete)
+        self.assertFalse(s.bird_saved)
+        self.assertEqual(s.time_remaining, before, "no penalty, and the bow does not cost time")
 
 
 if __name__ == "__main__":

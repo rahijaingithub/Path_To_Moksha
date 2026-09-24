@@ -111,6 +111,8 @@ class AssetPortabilityTests(unittest.TestCase):
         "assets/images/backgrounds/level1_background.png",
         "assets/images/backgrounds/level2_background.png",
         "assets/images/backgrounds/level3_background.png",
+        "assets/images/sprites/bird_fly_right.png",
+        "assets/images/sprites/bird_fly_left.png",
         "assets/images/transitions/jsot_temple.png",
         "assets/images/transitions/parshvanath.png",
         "assets/images/items/monk_sprite.png",
@@ -153,6 +155,9 @@ class AssetPortabilityTests(unittest.TestCase):
         # lands the reveal shows AssetManager's pink placeholder. Remove this
         # line when the file is added.
         "assets/images/items/mahavir_bhagwan.png",
+        # Optional Level 3 art for the tired bird (loaded only if present; until
+        # then a wings-folded flight frame is used). Prompt: image_generation_prompts.md.
+        "assets/images/sprites/bird_fallen.png",
     }
 
     @staticmethod

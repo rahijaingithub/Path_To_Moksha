@@ -12,7 +12,9 @@ from monk_system import create_monk, choice_rects
 from hazards import (create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION,
                      DROWN_TIME_PENALTY)
 from level_layouts import (build_level_platforms, build_level_slopes,
-                           LEVEL3_BHAGWAN_RECT, WALL as WALL_THICKNESS)
+                           LEVEL3_BHAGWAN_RECT, LEVEL3_BIRD_REST, WALL as WALL_THICKNESS)
+from bird import Bird
+from sprite_utils import extract_bow_frames
 from slopes import find_slope_contact, SLOPE_REACH
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, GRAVITY, PLAYER_SPEED,
@@ -22,7 +24,7 @@ from settings import (
     COLOR_RED, COLOR_GREEN, COLOR_SAFFRON, COLOR_GOLD_DIM,
     GAME_FONT_SIZE_HUD, GAME_FONT_SIZE_SUBTITLE, GAME_FONT_SIZE_BODY, GAME_FONT_SIZE_SMALL,
     SCENE_TITLE, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY,
-    DEFAULT_GAME_MODE, ASSETS_DIR,
+    DEFAULT_GAME_MODE, ASSETS_DIR, JIV_DAYA_TIME_BONUS,
 )
 
 
@@ -31,6 +33,12 @@ MONK_FADE_SECONDS = 1.5
 BHAGWAN_APPEAR_SECONDS = 1.5
 # Level 3: how long the devotee sinks before rising again on the last golden surface.
 DROWN_SECONDS = 1.5
+# Level 3 bird rescue: how long the Akshat is shared before the chant begins.
+BIRD_FEED_SECONDS = 1.5
+# Level 3 offering bow: down, hold, rise (seconds). The level ends when it finishes.
+BOW_DOWN_SECONDS = 1.0
+BOW_HOLD_SECONDS = 1.2
+BOW_UP_SECONDS = 0.8
 
 
 def strip_frame_count(strip):
@@ -395,6 +403,35 @@ class LevelScene(Scene):
             if os.path.exists(os.path.join(IMAGES_DIR, "sprites", name)):
                 self.drown_strip = self.assets.load_image(name, "sprites", alpha=True)
 
+        # Level 3 Jiv Daya twist: a bird crosses the sky; when the Akshat is found
+        # it falls onto lotus 14. Helping it (share Akshat, chant the Namokar
+        # Mantra) is optional: rescue_phase None -> "feeding" -> "chanting" ->
+        # "reviving" -> None. The clock is paused throughout.
+        self.bird = None
+        self.rescue_phase = None
+        self.rescue_timer = 0.0
+        self.mantra_lines = []
+        self.mantra_chanted = 0
+        self.bird_saved = False
+        self.jiv_daya_bonus = 0.0     # added to the clock but NOT counted as time taken
+        # Level 3 offering: the devotee bows (BOW_*_SECONDS) before the level ends.
+        self.bow_timer = 0.0
+        self.bow_frames = []
+        if self.level == 3:
+            fallen = None
+            if os.path.exists(os.path.join(IMAGES_DIR, "sprites", "bird_fallen.png")):
+                fallen = self.assets.load_image("bird_fallen.png", "sprites", alpha=True)
+            self.bird = Bird(self.assets.load_image("bird_fly_right.png", "sprites", alpha=True),
+                             self.assets.load_image("bird_fly_left.png", "sprites", alpha=True),
+                             LEVEL3_BIRD_REST, fallen)
+            self.mantra_lines = self.level_goals.get("3", {}).get("namokar_mantra", [])
+            char_type = self.manager.shared.get("character", "boy")
+            # Standing pose at the in-level figure's height (a 128px frame drawn
+            # PLAYER_HEIGHT tall, the character 120/128 of it).
+            self.bow_frames = extract_bow_frames(
+                self.assets.load_image(f"player_{char_type}_bowing.png", "sprites", alpha=True),
+                PLAYER_HEIGHT * 120 / 128)
+
         # Instantiation Order for fully randomized safe Q&A Monk and Box Roulette systems:
         # 1. Build hazards first
         self.hazards = create_hazards_for_level(self.level, self.platforms)
@@ -621,15 +658,42 @@ class LevelScene(Scene):
                         self.complete_timer = 3.0
                         return
 
+        # Level 3: while bowing, or while helping the bird, nothing else responds.
+        if self.bow_timer > 0:
+            return
+        if self.rescue_phase is not None:
+            # Chanting is the devotee's own act: one press per line of the mantra.
+            if self.rescue_phase == "chanting" and (
+                    input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.JUMP]
+                    or input_mgr.just_pressed[input_mgr.UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]):
+                self.mantra_chanted += 1
+                self.assets.play_sound("correct.wav", volume=0.25)
+                if self.mantra_chanted >= len(self.mantra_lines):
+                    self.rescue_phase = "reviving"
+                    self.bird.revive()
+            return
+
+        level3_act = self.level == 3 and (
+            input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP]
+            or input_mgr.just_pressed[input_mgr.MENU_SELECT])
+
+        # Level 3: help the fallen bird — share Akshat, then chant the Namokar Mantra.
+        if level3_act and self._at_fallen_bird():
+            self.rescue_phase = "feeding"
+            self.rescue_timer = 0.0
+            self.mantra_chanted = 0
+            self.player.vx = 0
+            self.player.facing_right = self.player.rect.centerx < self.bird.rest_x
+            return
+
         # Level 3: offer the Akshat from the Monk's seat, only once Mahavir
-        # Bhagwan has fully appeared on the shikhar.
-        if self.level == 3 and self._at_level3_offering_spot():
-            if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
-                self.assets.play_sound("level_complete.wav")
-                self.assets.stop_music()
-                self.level_complete = True
-                self.complete_timer = 3.0
-                return
+        # Bhagwan has fully appeared on the shikhar. The devotee bows first; the
+        # level ends when the bow finishes (_update_bow).
+        if level3_act and self._at_level3_offering_spot():
+            self.assets.stop_music()
+            self.bow_timer = BOW_DOWN_SECONDS + BOW_HOLD_SECONDS + BOW_UP_SECONDS
+            self.player.vx = 0
+            return
 
         # Monk dialogue navigation
         if self.monk and self.monk.dialogue_active:
@@ -752,6 +816,9 @@ class LevelScene(Scene):
                 self.box_system.akshat_found = True
                 self.reveal_phase = "monk_fading"
                 self.reveal_timer = 0.0
+                # ...and a situation arises: the bird falls onto lotus 14.
+                if self.bird:
+                    self.bird.fall()
             else:
                 self.assets.play_sound("level_complete.wav")
                 self.assets.stop_music()
@@ -813,6 +880,14 @@ class LevelScene(Scene):
             # No auto-advance: wait for player to press Continue
             return
 
+        # Level 3: bowing and helping the bird both stop the clock.
+        if self.bow_timer > 0:
+            self._update_bow(dt)
+            return
+        if self.rescue_phase is not None:
+            self._update_rescue(dt)
+            return
+
         # Timer
         if not self.game_over:
             self.time_remaining -= dt
@@ -827,6 +902,8 @@ class LevelScene(Scene):
         # Level 3: sinking into the lake — no input, no physics until it ends.
         if self.drown_timer > 0:
             self._update_drowning(dt)
+            if self.bird:
+                self.bird.update(dt)
             return
 
         # Player input
@@ -949,6 +1026,8 @@ class LevelScene(Scene):
         else:
             # Fading or gone: he can no longer be spoken to.
             self.monk.show_prompt = False
+        if self.bird:
+            self.bird.update(dt)
 
         # ── Player animation state machine ──
         p = self.player
@@ -1072,6 +1151,35 @@ class LevelScene(Scene):
             gameplay_surf.blit(flash, pos)
         gameplay_surf.set_clip(None)
 
+    def _draw_mantra_panel(self, surface):
+        """Chanted lines glow gold, the next is white, the rest wait dimmed."""
+        n = len(self.mantra_lines)
+        line_h = 46
+        w, h = 760, 150 + n * line_h
+        panel = pygame.Surface((w, h), pygame.SRCALPHA)
+        pygame.draw.rect(panel, (15, 10, 25, 215), panel.get_rect(), border_radius=14)
+        pygame.draw.rect(panel, (*COLOR_GOLD[:3], 200), panel.get_rect(), width=2, border_radius=14)
+        title = self.font_title.render("Namokar Mantra", True, COLOR_GOLD_BRIGHT)
+        panel.blit(title, title.get_rect(center=(w // 2, 42)))
+        for i, line in enumerate(self.mantra_lines):
+            if i < self.mantra_chanted:
+                color = COLOR_GOLD_BRIGHT
+            elif i == self.mantra_chanted and self.rescue_phase == "chanting":
+                color = COLOR_WHITE
+            else:
+                color = (120, 110, 130)
+            text = self.font_body.render(line, True, color)
+            panel.blit(text, text.get_rect(center=(w // 2, 90 + i * line_h)))
+        if self.rescue_phase == "feeding":
+            hint = "Sharing the Akshat with the bird..."
+        elif self.rescue_phase == "chanting":
+            hint = "Press ACTION to chant the next line"
+        else:
+            hint = "The bird is reviving..."
+        hint_surf = self.font_small.render(hint, True, COLOR_CREAM)
+        panel.blit(hint_surf, hint_surf.get_rect(center=(w // 2, h - 30)))
+        surface.blit(panel, ((LOGICAL_WIDTH - w) // 2, 150))
+
     def _build_slope_glow(self, slope):
         """Pre-render a slope's glow + core line once; returns (surface, topleft)."""
         glow_ht = self.platform_glow_texture.get_height()
@@ -1085,6 +1193,75 @@ class LevelScene(Scene):
         points = [(x - left, y - top) for x, y in slope.points]
         pygame.draw.lines(surf, (255, 255, 200, 255), False, points, 2)
         return surf, (left, top)
+
+    def _at_fallen_bird(self):
+        """The devotee may help: bird lying on its lotus, devotee standing beside it."""
+        return (self.bird is not None and self.bird.is_fallen
+                and self.rescue_phase is None and not self.level_complete
+                and self.player.on_ground
+                and self.bird.help_zone.collidepoint(self.player.rect.center))
+
+    def _update_rescue(self, dt):
+        """Share the Akshat, chant (handle_events), then the bird revives and flies away."""
+        self.rescue_timer += dt
+        self.bird.update(dt)
+        if self.rescue_phase == "feeding":
+            if random.random() < 0.5:      # grains of Akshat from the devotee's hands to the bird
+                sx = self.player.x + self.player.width / 2
+                sy = self.player.y + self.player.height * 0.45
+                bx, by = self.bird.rest_center
+                t = random.uniform(0.5, 0.8)
+                self.particles.append({
+                    "x": sx, "y": sy, "vx": (bx - sx) / t, "vy": (by - sy) / t,
+                    "color": (250, 245, 225), "size": random.randint(2, 3),
+                    "lifetime": t, "age": 0.0,
+                })
+            if self.rescue_timer >= BIRD_FEED_SECONDS:
+                self.rescue_phase = "chanting"
+                if not self.mantra_lines:          # no text configured: nothing to chant
+                    self.rescue_phase = "reviving"
+                    self.bird.revive()
+        elif self.rescue_phase == "reviving":
+            if self.bird.state != "reviving":      # revived: now flying away
+                self.rescue_phase = None
+                self.bird_saved = True
+                self.time_remaining += JIV_DAYA_TIME_BONUS
+                self.jiv_daya_bonus += JIV_DAYA_TIME_BONUS
+                self.assets.play_sound("correct.wav")
+                self.box_system.message = "The bird is saved! Jiv Daya: +4:00"
+                self.box_system.message_timer = 3.0
+                self.box_system.message_color = COLOR_GREEN
+
+    def _update_bow(self, dt):
+        """The offering bow; prayer light rises to Mahavir Bhagwan. Ends the level."""
+        self.bow_timer -= dt
+        if random.random() < 0.4:
+            bx, by, bw, bh = LEVEL3_BHAGWAN_RECT
+            sx = self.player.x + self.player.width / 2 + random.uniform(-20, 20)
+            sy = self.player.y + self.player.height * 0.6
+            t = random.uniform(0.9, 1.4)
+            self.particles.append({
+                "x": sx, "y": sy, "vx": (bx + bw / 2 - sx) / t, "vy": (by + bh - sy) / t,
+                "color": random.choice([COLOR_GOLD_BRIGHT, COLOR_SAFFRON, COLOR_WHITE]),
+                "size": random.randint(2, 4), "lifetime": t, "age": 0.0,
+            })
+        if self.bow_timer <= 0:
+            self.bow_timer = 0.0
+            self.assets.play_sound("level_complete.wav")
+            self.level_complete = True
+            self.complete_timer = 3.0
+
+    def _bow_frame(self):
+        """Current bow pose: down, hold the deepest bow, then rise (as in the transitions)."""
+        n = len(self.bow_frames)
+        t = BOW_DOWN_SECONDS + BOW_HOLD_SECONDS + BOW_UP_SECONDS - self.bow_timer
+        if t < BOW_DOWN_SECONDS:
+            idx = int(t / BOW_DOWN_SECONDS * n)
+        elif t < BOW_DOWN_SECONDS + BOW_HOLD_SECONDS:
+            idx = n - 1
+        else:
+            idx = int((1.0 - (t - BOW_DOWN_SECONDS - BOW_HOLD_SECONDS) / BOW_UP_SECONDS) * (n - 1))
+        return self.bow_frames[max(0, min(n - 1, idx))]
 
     def _update_level3_reveal(self, dt):
         """Level 3 twist: Monk fades out, then Mahavir Bhagwan fades in.
@@ -1126,7 +1303,10 @@ class LevelScene(Scene):
 
     def _advance_level(self):
         """Move to next level or victory."""
-        time_spent = LEVEL_TIME_LIMIT.get(self.level, 120) - self.time_remaining
+        # The Jiv Daya bonus extends the clock and the score, but it is not time
+        # the devotee took: add it back so the recorded time is never understated
+        # (without this, finishing Level 3 in 1:30 after saving the bird recorded -2:30).
+        time_spent = LEVEL_TIME_LIMIT.get(self.level, 120) - self.time_remaining + self.jiv_daya_bonus
         self.manager.shared["level_times"][self.level] = time_spent
         self.manager.shared["total_time"] = self.manager.shared.get("total_time", 0.0) + time_spent
         self.manager.shared["monk_correct"][self.level] = (
@@ -1299,12 +1479,32 @@ class LevelScene(Scene):
         # Monk
         self.monk.draw(gameplay_surf, self.font_body, self.font_small)
 
+        # Level 3 bird (sky, then fallen on lotus 14), with its help prompt.
+        if self.bird:
+            self.bird.draw(gameplay_surf)
+            if self._at_fallen_bird():
+                prompt_surf = self.font_hud.render("[ Press UP or ACTION to help the bird ]", True, COLOR_GOLD_BRIGHT)
+                bx, by = self.bird.rest_center
+                px = min(bx - prompt_surf.get_width() // 2, LOGICAL_WIDTH - 40 - prompt_surf.get_width())
+                py = int(by) - 90
+                bg_surf = pygame.Surface((prompt_surf.get_width() + 20, prompt_surf.get_height() + 10), pygame.SRCALPHA)
+                pygame.draw.rect(bg_surf, (0, 0, 0, 180), bg_surf.get_rect(), border_radius=6)
+                gameplay_surf.blit(bg_surf, (px - 10, py - 5))
+                gameplay_surf.blit(prompt_surf, (px, py))
+
         # ── Player Devotee sprite rendering ──
         facing = "right" if self.player.facing_right else "left"
         strip_key = f"{self.anim_state}_{facing}"
         strip = self.player_strips.get(strip_key)
 
-        if strip:
+        if self.bow_timer > 0 and self.bow_frames:
+            # Level 3 offering: the bow replaces the normal sprite, feet on the ground.
+            pose = self._bow_frame()
+            if not self.player.facing_right:
+                pose = pygame.transform.flip(pose, True, False)
+            feet = (int(self.player.x + self.player.width / 2), int(self.player.y + self.player.height))
+            gameplay_surf.blit(pose, pose.get_rect(midbottom=feet))
+        elif strip:
             # Auto-detect frame size: frames are SQUARE with side = strip height.
             # Boy strips: 128px tall → 128×128 frames.
             # Girl strips: 416–720px tall → larger square frames.
@@ -1374,7 +1574,7 @@ class LevelScene(Scene):
             gameplay_surf.blit(frame, (bw_rect.x - 4, bw_rect.y - 4))
             gameplay_surf.blit(img, bw_rect.topleft)
 
-            if self.reveal_phase == "ready":
+            if self.reveal_phase == "ready" and self.bow_timer == 0 and not self.level_complete:
                 # Where to offer: the Monk's empty seat in the centre arch.
                 seat = self.monk.rect
                 if self._at_level3_offering_spot():
@@ -1403,6 +1603,8 @@ class LevelScene(Scene):
                 goal_text = lvl_goals.get("key_found", "Goal: Unlock and enter the Temple Gate!")
             elif self.level == 2 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Fly to the Bhagwan and offer Akshat!")
+            elif self.level == 3 and self.bird and self.bird.is_fallen:
+                goal_text = lvl_goals.get("bird_fallen", "A bird has fallen! Help it, or offer the Akshat.")
             elif self.level == 3 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Offer the Akshat to Mahavir Bhagwan!")
             else:
@@ -1675,6 +1877,10 @@ class LevelScene(Scene):
         # Monk dialogue overlay (drawn last, on top)
         if self.monk:
             self.monk.draw_dialogue(surface, self.font_title, self.font_body, self.font_small, self.acharya_img)
+
+        # ── Level 3: Namokar Mantra panel while helping the bird ──
+        if self.rescue_phase is not None:
+            self._draw_mantra_panel(surface)
 
         # ── Item Pop-up Overlay (drawn on top of dialogue/gameplay) ──
         if self.item_popup is not None:

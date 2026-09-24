@@ -14,6 +14,11 @@ PH = 8   # platform thickness — thin to blend with building rooftops
 # bar; the world is drawn 80px up, so world y 128 is screen y 48.
 LEVEL3_BHAGWAN_RECT = (883, 128, 150, 150)
 
+# Level 3: where the fallen bird lies — centre-bottom on white lotus 14 (x 1704-1853,
+# top H - 259), toward its right end so the devotee walks up to it from the left.
+# Far from the pavilion on purpose: helping is a real detour.
+LEVEL3_BIRD_REST = (1815, LOGICAL_HEIGHT - 259)
+
 
 def build_level_platforms(level):
     """Returns a list of pygame.Rect platforms for the given level."""

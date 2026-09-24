@@ -90,3 +90,16 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         no pink/magenta edges, no size jump between standing and walking. Note whether
         the feet look like they slide; if so, flag it (frame-time tweak, see DECISION_LOG
         Phase 8).
+44. [ ] **Level 3 bird:** a bird crosses the sky every few seconds, both directions,
+        and never blocks you. When you find the Akshat it tumbles onto the white lotus
+        at the far right and lies there, and the goal line offers both choices.
+45. [ ] **Helping the bird:** stand beside it, press ACTION: grains fly to it, then the
+        Namokar Mantra appears — each ACTION chants the next line (nothing advances by
+        itself). The clock does not move while helping. After the last line the bird
+        glows, flies away, and the clock gains exactly 4:00 ("Jiv Daya: +4:00").
+46. [ ] **Ignoring the bird:** offer the Akshat without helping — no penalty, no message
+        about the bird. Your Level 3 time on the results/Victory screen is your real time
+        either way (never negative after the bonus).
+47. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
+        light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
+        walks in WITHOUT a second bow. Check both the boy and the girl.

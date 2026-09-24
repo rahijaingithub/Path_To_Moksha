@@ -392,6 +392,13 @@ LEVEL 3: THE HALL  (Valor)
     pavilion. Once the Akshat is found he fades away, then Mahavir Bhagwan
     appears on the shikhar; only then is the Akshat offered, from the
     Monk's empty seat, which completes the level.
+    AMENDMENT (2026-09-23, designer): offering plays the devotee's bow
+    before the level ends; the 3->4 transition then walks in without bowing.
+    JIV DAYA TWIST (2026-09-23, designer): a bird crosses the sky; when the
+    Akshat is found it falls onto a lotus. The devotee may help it (share
+    Akshat, chant the Namokar Mantra line by line; clock paused) for +4:00
+    on the clock and score (not counted as time taken), or simply offer the
+    Akshat — no penalty either way.
     Question: "What is the weapon of the Tirthankara?"
       Choice A: Ahimsa   [Correct — non-violence is the supreme force]
       Choice B: Sword    [Incorrect]
@@ -683,3 +690,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 Monk fixed in the pavilion's centre arch; Akshat now triggers Monk fade -> Mahavir Bhagwan reveal on the shikhar -> offering at the Monk's seat.
 - Level 3 floor is the lake: touching it drowns (-30s) and respawns on the last golden surface; start on lily pad 18; floor fire pits removed; no boxes on the floor.
 - Level 3 water pools removed (no hazard blocks); drowning shows the same red danger flicker as other hazards; drown-sprite prompts added to image_generation_prompts.md.
+- Level 3 Jiv Daya twist (bird falls when the Akshat is found; help it with Akshat + Namokar Mantra for +4:00) and the offering bow; 3->4 transition no longer bows.

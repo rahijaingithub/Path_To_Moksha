@@ -9,7 +9,15 @@
   },
   "3": {
     "default": "Goal: Find the Akshat (Sacred Rice)!",
-    "akshat_found": "Goal: Offer the Akshat to Mahavir Bhagwan from the pavilion!"
+    "akshat_found": "Goal: Offer the Akshat to Mahavir Bhagwan from the pavilion!",
+    "bird_fallen": "A bird has fallen! Help it, or offer the Akshat to Mahavir Bhagwan.",
+    "namokar_mantra": [
+      "Namo Arihantanam",
+      "Namo Siddhanam",
+      "Namo Airiyanam",
+      "Namo Uvajjhayanam",
+      "Namo Loe Savva Sahunam"
+    ]
   },
   "4": {
     "default": "Goal: Find the Akshat (Sacred Rice)!"

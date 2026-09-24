@@ -420,3 +420,37 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     girl's strips** that were never normalized (idle/jump/run/fall/stun, 416–720 px
     tall), overwriting her art. This install processed only the boy's walk; git confirms
     only his three walk files changed.
+
+## Phase 9: Level 3 Jiv Daya twist — the bird; the offering bow (2026-09-23, designer)
+* **Decision (designer):** a bird crosses the Level 3 sky. When the Akshat is found it
+  **falls onto white lotus 14** (fixed, far from the pavilion so helping is a real
+  detour). The devotee may **help it** — share some Akshat, then chant the **Namokar
+  Mantra one line per ACTION press** — and it revives and flies away: **+4:00**. Or they
+  may simply offer the Akshat; the bird is then never mentioned (no penalty, no shaming).
+  * *Rationale:* compassion for every living being (Jiv Daya) and the Namokar Mantra
+    heard by a creature in need — the mantra the Parshvanath story turns on. The clock is
+    **paused** while helping, so devotion is not rushed. Boxes are never placed on lotus 14.
+* **Decision:** the 4:00 bonus adds to the **clock and the level score**, but **not** to
+  the recorded time: `time_spent` adds `jiv_daya_bonus` back.
+  * *Rationale:* recorded time was `limit − remaining`, so the bonus made it negative
+    (finish in 1:30 → −2:30) and inflated the Victory score by 3,600. Levels 1–2 scoring
+    (including the +15s support items) is unchanged.
+* **Decision (designer):** the offering now plays the **bow** (down 1.0s, hold 1.2s,
+  rise 0.8s, clock paused, prayer light rising to Mahavir Bhagwan) and the level ends
+  when it finishes. The **3→4 transition no longer bows** (`NO_BOW_TRANSITIONS = {2, 4}`),
+  so the devotee does not bow twice in a row.
+  * *Rationale:* designer's ruling. The bow-sheet extraction moved from
+    `transition_scene` into `sprite_utils.extract_bow_frames` so both use one cutter;
+    verified the transition's 18 bow frames are byte-identical before and after.
+* **Art:** the bird flight strip is the designer's (Downloads, cleaned by
+  `tools/bird_sprite_cleanup.py`); raw sheet in `sprites/_source/bird_sheet.jpg`;
+  `tools/prepare_bird_sprites.py` re-centres its 132×211 cells on square frames (the
+  game derives frame counts from square frames). **Note:** that sheet traces a
+  third-party web sprite sheet (a robin); the designer set licensing aside because the
+  game is not shared publicly — revisit before any public release.
+  No fallen-bird art yet: a wings-folded flight frame is tilted onto the lotus; the
+  optional `sprites/bird_fallen.png` is used automatically once it exists.
+* **Open:** mantra text is the Digambar form in Roman letters
+  (`level_goals.json` → `3.namokar_mantra`, editable without code): *Namo Arihantanam /
+  Namo Siddhanam / Namo Airiyanam / Namo Uvajjhayanam / Namo Loe Savva Sahunam* — spelling
+  to be confirmed by the Paathshala. Devanagari would need a bundled font.

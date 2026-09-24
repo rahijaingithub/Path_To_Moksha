@@ -6,6 +6,7 @@ from settings import LOGICAL_WIDTH
 import random
 import math
 import pygame
+from level_layouts import LEVEL3_BIRD_REST
 from settings import (
     COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GOLD_DIM, COLOR_WHITE, COLOR_CREAM,
     COLOR_RED, COLOR_GREEN, COLOR_SAFFRON, COLOR_BLUE_WATER, COLOR_LOTUS_PINK,
@@ -216,7 +217,10 @@ class BoxSystem:
         candidates = [platforms[0]] + [p for p in platforms[4:] if p.width >= 100]
         if self.level == 3:
             # Level 3's floor is the lake: touching it drowns, so no boxes there.
-            candidates = candidates[1:]
+            # Nor on the lotus the bird falls onto — that spot is kept clear for it.
+            bird_x, bird_y = LEVEL3_BIRD_REST
+            candidates = [p for p in candidates[1:]
+                          if not (p.top == bird_y and p.left <= bird_x <= p.right)]
 
         for item_def in shuffled:
             placed = False

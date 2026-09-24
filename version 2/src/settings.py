@@ -126,6 +126,7 @@ LEVEL_TIME_LIMIT = {
     4: 300,
 }
 SUPPORT_TIME_BONUS = 15      # seconds added
+JIV_DAYA_TIME_BONUS = 240    # Level 3: seconds added for saving the fallen bird (clock + score, not recorded time)
 DISTRACTION_TIME_PENALTY = 30  # seconds lost
 DISTRACTION_FREEZE_DURATION = 5.0  # seconds of control freeze
 
