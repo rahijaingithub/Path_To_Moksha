@@ -539,7 +539,8 @@ class Level3SceneTests(unittest.TestCase):
         self.assertTrue(lotus14.left <= s.bird.rest_x <= lotus14.right)
         self.assertEqual(s.bird.rest_y, lotus14.top)
 
-    def test_saving_the_bird_pauses_the_clock_and_adds_four_minutes(self) -> None:
+    def open_puzzle(self):
+        """Find the Akshat, go to the bird, help it, and wait for the puzzle."""
         s = self.scene
         self.find_akshat()
         self.run_frames(2.0)
@@ -548,13 +549,65 @@ class Level3SceneTests(unittest.TestCase):
         self.press_action()
         self.assertEqual(s.rescue_phase, "feeding")
         self.run_frames(self.ls.BIRD_FEED_SECONDS)
-        self.assertEqual(s.rescue_phase, "chanting")
+        self.assertEqual(s.rescue_phase, "puzzle")
         self.assertEqual(s.time_remaining, before, "the clock is paused while helping")
-        for line in range(len(s.mantra_lines)):
-            self.assertEqual(s.mantra_chanted, line)
-            self.run_frames(0.3)               # waits, but nothing advances without a chant
-            self.assertEqual(s.mantra_chanted, line)
-            self.press_action()
+        return before
+
+    def choose_row(self, row):
+        self.scene.puzzle_cursor = row
+        self.press_action()
+
+    def row_of_line(self, line):
+        """The row where the mantra's line number `line` (0-based) is shown."""
+        return self.scene.puzzle_order.index(line)
+
+    def wait_out_pause(self):
+        self.run_frames(1.1)
+
+    def test_puzzle_shows_every_line_shuffled_out_of_order(self) -> None:
+        s = self.scene
+        self.open_puzzle()
+        self.assertEqual(sorted(s.puzzle_order), list(range(5)))
+        self.assertNotEqual(s.puzzle_order, list(range(5)), "must not start already solved")
+        self.assertEqual(s.puzzle_numbers, {})
+
+    def test_numbers_go_by_choice_order_and_turn_green_or_red(self) -> None:
+        s = self.scene
+        self.open_puzzle()
+        # Choose the true 2nd line first: it is numbered 1, which is wrong -> red.
+        r2 = self.row_of_line(1)
+        self.choose_row(r2)
+        self.assertEqual(s.puzzle_numbers[r2], 1)
+        self.assertFalse(s._puzzle_row_is_correct(r2))
+        # Then the true 1st line: numbered 2 -> also red. Choosing a numbered row again does nothing.
+        r1 = self.row_of_line(0)
+        self.choose_row(r1)
+        self.assertEqual(s.puzzle_numbers[r1], 2)
+        self.choose_row(r1)
+        self.assertEqual(len(s.puzzle_numbers), 2)
+        # The true 3rd line now gets 3 -> green.
+        r3 = self.row_of_line(2)
+        self.choose_row(r3)
+        self.assertEqual(s.puzzle_numbers[r3], 3)
+        self.assertTrue(s._puzzle_row_is_correct(r3))
+
+    def test_wrong_bars_clear_green_bars_stay_then_solving_saves_the_bird(self) -> None:
+        s = self.scene
+        before = self.open_puzzle()
+        # Right: lines 1 and 2. Wrong: 4 before 3. Right: 5.
+        for line in (0, 1, 3, 2, 4):
+            self.choose_row(self.row_of_line(line))
+        self.assertEqual(len(s.puzzle_numbers), 5)
+        self.choose_row(self.row_of_line(0))            # ignored during the colour pause
+        self.wait_out_pause()
+        self.assertEqual(s.rescue_phase, "puzzle", "not solved yet")
+        kept = {s.puzzle_order[r] for r in s.puzzle_numbers}
+        self.assertEqual(kept, {0, 1, 4}, "greens stay, reds clear")
+        self.assertEqual(s.time_remaining, before, "clock still paused")
+        # Try again: the next choices take the lowest missing numbers, 3 then 4.
+        self.choose_row(self.row_of_line(2))
+        self.choose_row(self.row_of_line(3))
+        self.wait_out_pause()
         self.assertEqual(s.rescue_phase, "reviving")
         for _ in range(180):                    # until the bird has revived (clock still paused)
             if s.rescue_phase is None:
@@ -566,6 +619,32 @@ class Level3SceneTests(unittest.TestCase):
         self.assertIn(s.bird.state, ("leaving", "gone"))
         self.assertAlmostEqual(s.time_remaining - before, 240, delta=0.2)
         self.assertEqual(s.jiv_daya_bonus, 240, "recorded time must not count the bonus")
+
+    def test_skipping_ends_the_bonus_round_and_the_bird_stays(self) -> None:
+        s = self.scene
+        before = self.open_puzzle()
+        self.choose_row(self.row_of_line(0))
+        self.choose_row(len(s.puzzle_order))    # the Skip tab
+        self.assertIsNone(s.rescue_phase)
+        self.assertTrue(s.bird_help_declined)
+        self.assertTrue(s.bird.is_fallen, "the bird stays resting")
+        self.assertFalse(s._at_fallen_bird(), "no help prompt after skipping")
+        self.press_action()                     # standing right next to it: nothing restarts
+        self.assertIsNone(s.rescue_phase)
+        self.run_frames(0.5)
+        self.assertLess(s.time_remaining, before, "the clock runs again")
+        self.assertEqual(s.jiv_daya_bonus, 0)
+
+    def test_up_down_moves_the_highlight_and_wraps_through_skip(self) -> None:
+        s = self.scene
+        self.open_puzzle()
+        n = len(s.puzzle_order)
+        self.input.just_pressed[self.input.MENU_UP] = True
+        try:
+            s.handle_events([], self.input)
+        finally:
+            self.input.just_pressed[self.input.MENU_UP] = False
+        self.assertEqual(s.puzzle_cursor, n, "up from the first line lands on Skip")
 
     def test_the_mantra_is_five_lines(self) -> None:
         self.assertEqual(len(self.scene.mantra_lines), 5)

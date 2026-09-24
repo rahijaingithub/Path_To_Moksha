@@ -404,15 +404,19 @@ class LevelScene(Scene):
                 self.drown_strip = self.assets.load_image(name, "sprites", alpha=True)
 
         # Level 3 Jiv Daya twist: a bird crosses the sky; when the Akshat is found
-        # it falls onto lotus 14. Helping it (share Akshat, chant the Namokar
-        # Mantra) is optional: rescue_phase None -> "feeding" -> "chanting" ->
-        # "reviving" -> None. The clock is paused throughout.
+        # it falls onto lotus 14. Helping it is optional: share the Akshat, then put
+        # the Namokar Mantra's lines in order. rescue_phase None -> "feeding" ->
+        # "puzzle" -> "reviving" -> None (or skip -> None). Clock paused throughout.
         self.bird = None
         self.rescue_phase = None
         self.rescue_timer = 0.0
-        self.mantra_lines = []
-        self.mantra_chanted = 0
+        self.mantra_lines = []        # the mantra, in its true order
+        self.puzzle_order = []        # row r shows mantra_lines[puzzle_order[r]]
+        self.puzzle_numbers = {}      # row -> number the player gave it (1-based)
+        self.puzzle_cursor = 0        # highlighted row; len(puzzle_order) is "Skip"
+        self.puzzle_pause = 0.0       # brief hold to show green/red before clearing/solving
         self.bird_saved = False
+        self.bird_help_declined = False   # skipped the puzzle: the bonus round is over
         self.jiv_daya_bonus = 0.0     # added to the clock but NOT counted as time taken
         # Level 3 offering: the devotee bows (BOW_*_SECONDS) before the level ends.
         self.bow_timer = 0.0
@@ -662,26 +666,19 @@ class LevelScene(Scene):
         if self.bow_timer > 0:
             return
         if self.rescue_phase is not None:
-            # Chanting is the devotee's own act: one press per line of the mantra.
-            if self.rescue_phase == "chanting" and (
-                    input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.JUMP]
-                    or input_mgr.just_pressed[input_mgr.UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]):
-                self.mantra_chanted += 1
-                self.assets.play_sound("correct.wav", volume=0.25)
-                if self.mantra_chanted >= len(self.mantra_lines):
-                    self.rescue_phase = "reviving"
-                    self.bird.revive()
+            if self.rescue_phase == "puzzle":
+                self._handle_puzzle_input(events, input_mgr)
             return
 
         level3_act = self.level == 3 and (
             input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP]
             or input_mgr.just_pressed[input_mgr.MENU_SELECT])
 
-        # Level 3: help the fallen bird — share Akshat, then chant the Namokar Mantra.
+        # Level 3: help the fallen bird — share Akshat, then order the Namokar Mantra.
         if level3_act and self._at_fallen_bird():
             self.rescue_phase = "feeding"
             self.rescue_timer = 0.0
-            self.mantra_chanted = 0
+            self._start_puzzle()
             self.player.vx = 0
             self.player.facing_right = self.player.rect.centerx < self.bird.rest_x
             return
@@ -1152,33 +1149,55 @@ class LevelScene(Scene):
         gameplay_surf.set_clip(None)
 
     def _draw_mantra_panel(self, surface):
-        """Chanted lines glow gold, the next is white, the rest wait dimmed."""
-        n = len(self.mantra_lines)
-        line_h = 46
-        w, h = 760, 150 + n * line_h
-        panel = pygame.Surface((w, h), pygame.SRCALPHA)
-        pygame.draw.rect(panel, (15, 10, 25, 215), panel.get_rect(), border_radius=14)
+        """The Namokar Mantra puzzle: number the shuffled lines in their true order."""
+        rects = self._puzzle_rects()
+        n = len(self.puzzle_order)
+        frame = rects[0].unionall(rects).inflate(80, 190).move(0, -30)
+        panel = pygame.Surface(frame.size, pygame.SRCALPHA)
+        pygame.draw.rect(panel, (15, 10, 25, 225), panel.get_rect(), border_radius=14)
         pygame.draw.rect(panel, (*COLOR_GOLD[:3], 200), panel.get_rect(), width=2, border_radius=14)
+        surface.blit(panel, frame.topleft)
         title = self.font_title.render("Namokar Mantra", True, COLOR_GOLD_BRIGHT)
-        panel.blit(title, title.get_rect(center=(w // 2, 42)))
-        for i, line in enumerate(self.mantra_lines):
-            if i < self.mantra_chanted:
-                color = COLOR_GOLD_BRIGHT
-            elif i == self.mantra_chanted and self.rescue_phase == "chanting":
-                color = COLOR_WHITE
-            else:
-                color = (120, 110, 130)
-            text = self.font_body.render(line, True, color)
-            panel.blit(text, text.get_rect(center=(w // 2, 90 + i * line_h)))
+        surface.blit(title, title.get_rect(center=(frame.centerx, frame.top + 40)))
         if self.rescue_phase == "feeding":
-            hint = "Sharing the Akshat with the bird..."
-        elif self.rescue_phase == "chanting":
-            hint = "Press ACTION to chant the next line"
+            sub = "Sharing the Akshat with the bird..."
+        elif self.rescue_phase == "reviving":
+            sub = "The bird is reviving..."
         else:
-            hint = "The bird is reviving..."
-        hint_surf = self.font_small.render(hint, True, COLOR_CREAM)
-        panel.blit(hint_surf, hint_surf.get_rect(center=(w // 2, h - 30)))
-        surface.blit(panel, ((LOGICAL_WIDTH - w) // 2, 150))
+            sub = "Put the lines in order: choose the first line, then the second..."
+        sub_surf = self.font_small.render(sub, True, COLOR_CREAM)
+        surface.blit(sub_surf, sub_surf.get_rect(center=(frame.centerx, frame.top + 78)))
+
+        for row in range(n):
+            r = rects[row]
+            number = self.puzzle_numbers.get(row)
+            if number is None:
+                fill, edge = (45, 38, 60), (110, 100, 130)
+            elif self._puzzle_row_is_correct(row):
+                fill, edge = (30, 110, 55), (120, 230, 150)
+            else:
+                fill, edge = (130, 35, 35), (240, 120, 120)
+            if self.rescue_phase == "puzzle" and row == self.puzzle_cursor:
+                edge = COLOR_GOLD_BRIGHT
+            pygame.draw.rect(surface, fill, r, border_radius=10)
+            pygame.draw.rect(surface, edge, r, width=3, border_radius=10)
+            badge = pygame.Rect(r.x + 10, r.y + 7, 36, 36)
+            pygame.draw.rect(surface, (20, 15, 30), badge, border_radius=8)
+            if number is not None:
+                num = self.font_body.render(str(number), True, COLOR_WHITE)
+                surface.blit(num, num.get_rect(center=badge.center))
+            text = self.font_body.render(self.mantra_lines[self.puzzle_order[row]], True, COLOR_WHITE)
+            surface.blit(text, text.get_rect(center=r.center))
+
+        skip = rects[n]
+        if self.rescue_phase == "puzzle":
+            on_skip = self.puzzle_cursor == n
+            pygame.draw.rect(surface, (60, 50, 40) if on_skip else (35, 30, 40), skip, border_radius=10)
+            pygame.draw.rect(surface, COLOR_GOLD_BRIGHT if on_skip else (110, 100, 130), skip, width=3, border_radius=10)
+            skip_text = self.font_small.render("Skip - go on to the offering", True, COLOR_CREAM)
+            surface.blit(skip_text, skip_text.get_rect(center=skip.center))
+            hint = self.font_small.render("UP / DOWN to choose  -  ACTION to number it", True, (170, 160, 185))
+            surface.blit(hint, hint.get_rect(center=(frame.centerx, frame.bottom - 24)))
 
     def _build_slope_glow(self, slope):
         """Pre-render a slope's glow + core line once; returns (surface, topleft)."""
@@ -1197,9 +1216,71 @@ class LevelScene(Scene):
     def _at_fallen_bird(self):
         """The devotee may help: bird lying on its lotus, devotee standing beside it."""
         return (self.bird is not None and self.bird.is_fallen
+                and not self.bird_help_declined
                 and self.rescue_phase is None and not self.level_complete
                 and self.player.on_ground
                 and self.bird.help_zone.collidepoint(self.player.rect.center))
+
+    def _start_puzzle(self):
+        """Shuffle the lines (never already in order) and clear all numbers."""
+        n = len(self.mantra_lines)
+        order = list(range(n))
+        while n > 1 and order == list(range(n)):
+            random.shuffle(order)
+        self.puzzle_order = order
+        self.puzzle_numbers = {}
+        self.puzzle_cursor = 0
+        self.puzzle_pause = 0.0
+
+    def _puzzle_row_is_correct(self, row):
+        return self.puzzle_numbers.get(row) == self.puzzle_order[row] + 1
+
+    def _puzzle_rects(self):
+        """Screen rects of the line tabs, then the Skip tab (shared by draw and clicks)."""
+        n = len(self.puzzle_order)
+        x, w, h, gap = (LOGICAL_WIDTH - 640) // 2, 640, 50, 12
+        top = 250
+        rects = [pygame.Rect(x, top + i * (h + gap), w, h) for i in range(n)]
+        rects.append(pygame.Rect(x + 150, top + n * (h + gap) + 24, w - 300, h))
+        return rects
+
+    def _handle_puzzle_input(self, events, input_mgr):
+        """UP/DOWN (or hover) moves the highlight; ACTION (or click) numbers a line or skips."""
+        if self.puzzle_pause > 0:
+            return                                   # showing green/red for a moment
+        n = len(self.puzzle_order)
+        rects = self._puzzle_rects()
+        chosen = None
+        if input_mgr.just_pressed[input_mgr.MENU_UP]:
+            self.puzzle_cursor = (self.puzzle_cursor - 1) % (n + 1)
+            self.assets.play_sound("jump.wav", volume=0.08)
+        elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
+            self.puzzle_cursor = (self.puzzle_cursor + 1) % (n + 1)
+            self.assets.play_sound("jump.wav", volume=0.08)
+        for event in events:
+            if event.type in (pygame.MOUSEMOTION, pygame.MOUSEBUTTONDOWN):
+                for i, r in enumerate(rects):
+                    if r.collidepoint(input_mgr.mouse_x, input_mgr.mouse_y):
+                        self.puzzle_cursor = i
+                        if event.type == pygame.MOUSEBUTTONDOWN:
+                            chosen = i
+        if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+            chosen = self.puzzle_cursor
+        if chosen is None:
+            return
+        if chosen == n:
+            # Skip: the bonus round is over; the bird stays resting, no prompt returns.
+            self.rescue_phase = None
+            self.bird_help_declined = True
+            return
+        if chosen in self.puzzle_numbers:
+            return                                   # already numbered
+        taken = set(self.puzzle_numbers.values())
+        self.puzzle_numbers[chosen] = min(k for k in range(1, n + 1) if k not in taken)
+        right = self._puzzle_row_is_correct(chosen)
+        self.assets.play_sound("correct.wav" if right else "wrong.wav", volume=0.25)
+        if len(self.puzzle_numbers) == n:
+            self.puzzle_pause = 1.0                  # let the colours be seen
 
     def _update_rescue(self, dt):
         """Share the Akshat, chant (handle_events), then the bird revives and flies away."""
@@ -1217,10 +1298,21 @@ class LevelScene(Scene):
                     "lifetime": t, "age": 0.0,
                 })
             if self.rescue_timer >= BIRD_FEED_SECONDS:
-                self.rescue_phase = "chanting"
-                if not self.mantra_lines:          # no text configured: nothing to chant
+                self.rescue_phase = "puzzle"
+                if not self.mantra_lines:          # no text configured: nothing to order
                     self.rescue_phase = "reviving"
                     self.bird.revive()
+        elif self.rescue_phase == "puzzle" and self.puzzle_pause > 0:
+            self.puzzle_pause -= dt
+            if self.puzzle_pause <= 0:
+                self.puzzle_pause = 0.0
+                if all(self._puzzle_row_is_correct(r) for r in range(len(self.puzzle_order))):
+                    self.rescue_phase = "reviving"   # every bar green: solved
+                    self.bird.revive()
+                else:
+                    # Keep what is right, clear what is wrong, and try again.
+                    self.puzzle_numbers = {r: k for r, k in self.puzzle_numbers.items()
+                                           if self._puzzle_row_is_correct(r)}
         elif self.rescue_phase == "reviving":
             if self.bird.state != "reviving":      # revived: now flying away
                 self.rescue_phase = None
@@ -1603,7 +1695,7 @@ class LevelScene(Scene):
                 goal_text = lvl_goals.get("key_found", "Goal: Unlock and enter the Temple Gate!")
             elif self.level == 2 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Fly to the Bhagwan and offer Akshat!")
-            elif self.level == 3 and self.bird and self.bird.is_fallen:
+            elif self.level == 3 and self.bird and self.bird.is_fallen and not self.bird_help_declined:
                 goal_text = lvl_goals.get("bird_fallen", "A bird has fallen! Help it, or offer the Akshat.")
             elif self.level == 3 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Offer the Akshat to Mahavir Bhagwan!")

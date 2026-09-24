@@ -93,10 +93,14 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 44. [ ] **Level 3 bird:** a bird crosses the sky every few seconds, both directions,
         and never blocks you. When you find the Akshat it tumbles onto the white lotus
         at the far right and lies there, and the goal line offers both choices.
-45. [ ] **Helping the bird:** stand beside it, press ACTION: grains fly to it, then the
-        Namokar Mantra appears — each ACTION chants the next line (nothing advances by
-        itself). The clock does not move while helping. After the last line the bird
-        glows, flies away, and the clock gains exactly 4:00 ("Jiv Daya: +4:00").
+45. [ ] **Helping the bird — mantra puzzle:** stand beside it, press ACTION: grains fly
+        to it, then the Namokar Mantra's 5 lines appear shuffled. UP/DOWN (or the mouse)
+        moves the highlight; ACTION numbers a line 1, 2, 3... in the order you pick them.
+        A line turns green if its number is its true place, red if not. With all five
+        numbered, reds clear after a moment and greens stay; keep going until all green.
+        The clock never moves meanwhile. All green: the bird glows, flies away, +4:00.
+        **Skip** ends the bonus round: the bird stays resting, the help prompt never
+        returns, no bonus, and the clock runs again. Try keyboard, gamepad and mouse.
 46. [ ] **Ignoring the bird:** offer the Akshat without helping — no penalty, no message
         about the bird. Your Level 3 time on the results/Victory screen is your real time
         either way (never negative after the bonus).

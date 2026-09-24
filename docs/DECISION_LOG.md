@@ -454,3 +454,17 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   (`level_goals.json` → `3.namokar_mantra`, editable without code): *Namo Arihantanam /
   Namo Siddhanam / Namo Airiyanam / Namo Uvajjhayanam / Namo Loe Savva Sahunam* — spelling
   to be confirmed by the Paathshala. Devanagari would need a bundled font.
+* **Decision (designer, same day) — the chant becomes a puzzle:** the Namokar Mantra's
+  five lines appear shuffled (never already in order); the player numbers them in the
+  order they pick them, and each tab turns **green** if the number is its true place,
+  **red** if not. With all five numbered, **reds clear and greens stay** (designer's pick),
+  and the player continues until every bar is green — which saves the bird (+4:00). A
+  **Skip** tab ends the bonus round: the bird stays resting, the help prompt never returns,
+  no bonus (designer's pick). Clock paused throughout, as before.
+  * *Rationale:* turns recitation into recall of the mantra's order — learning, not just
+    pressing — while greens-stay keeps it kind to children and Skip keeps it optional
+    ("Guidance over Gating"). Keyboard/gamepad (UP/DOWN + ACTION) and mouse/touch both work.
+* **Mantra spelling confirmed by the designer** (Digambar form, Roman letters) — closes
+  the Phase 9 open item.
+* **Backlogged (designer):** Mahavir Bhagwan image, tired-bird art, bird-art licensing —
+  `docs/V2_TASKS.md` → Backlog BL1–BL3.

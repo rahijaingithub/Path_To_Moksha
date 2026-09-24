@@ -396,7 +396,8 @@ LEVEL 3: THE HALL  (Valor)
     before the level ends; the 3->4 transition then walks in without bowing.
     JIV DAYA TWIST (2026-09-23, designer): a bird crosses the sky; when the
     Akshat is found it falls onto a lotus. The devotee may help it (share
-    Akshat, chant the Namokar Mantra line by line; clock paused) for +4:00
+    Akshat, then put the Namokar Mantra's shuffled lines in order — green if
+    right, red if wrong, until all green — or Skip; clock paused) for +4:00
     on the clock and score (not counted as time taken), or simply offer the
     Akshat — no penalty either way.
     Question: "What is the weapon of the Tirthankara?"
@@ -691,3 +692,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 floor is the lake: touching it drowns (-30s) and respawns on the last golden surface; start on lily pad 18; floor fire pits removed; no boxes on the floor.
 - Level 3 water pools removed (no hazard blocks); drowning shows the same red danger flicker as other hazards; drown-sprite prompts added to image_generation_prompts.md.
 - Level 3 Jiv Daya twist (bird falls when the Akshat is found; help it with Akshat + Namokar Mantra for +4:00) and the offering bow; 3->4 transition no longer bows.
+- Level 3 bird: the chant is now an ordering puzzle (green/red tabs, reds clear, Skip ends the bonus round). Mantra spelling confirmed.
