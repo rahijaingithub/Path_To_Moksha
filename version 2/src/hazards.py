@@ -180,11 +180,9 @@ def create_hazards_for_level(level, platforms):
             hazards.append(Hazard(1000, H - 320, 120, 24, "snake", patrol_range=(950, 1350), move_speed=65))
 
     elif level == 3:
-        # No floor fire pits: the Level 3 floor is the lake itself, and touching
-        # it drowns the devotee (level_scene._start_drowning).
-        # Water: overflowing pools — old skeleton positions, re-author in task B4
-        hazards.append(Hazard(550, H - 500, 50, 80, "water"))
-        hazards.append(Hazard(1100, H - 650, 50, 60, "water"))
+        # No hazard blocks (designer): the Level 3 floor is the lake itself, and
+        # touching it drowns the devotee (level_scene._start_drowning).
+        pass
 
     elif level == 4:
         # Water: sacred water channels

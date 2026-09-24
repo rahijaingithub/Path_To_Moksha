@@ -1053,12 +1053,19 @@ class LevelScene(Scene):
             n_frames = strip_frame_count(self.drown_strip)
             idx = min(n_frames - 1, int(progress * n_frames))
             frame = self.drown_strip.subsurface((idx * frame_h, 0, frame_h, frame_h))
-            frame = pygame.transform.smoothscale(frame, scaled.get_size())
-            gameplay_surf.blit(frame, (blit_x, blit_y))
-            return
-        sink = int(progress * scaled.get_height())
-        gameplay_surf.set_clip(pygame.Rect(0, 0, LOGICAL_WIDTH, self.floor.top))
-        gameplay_surf.blit(scaled, (blit_x, blit_y + sink))
+            sprite = pygame.transform.smoothscale(frame, scaled.get_size())
+            pos = (blit_x, blit_y)
+        else:
+            sprite = scaled
+            pos = (blit_x, blit_y + int(progress * scaled.get_height()))
+            gameplay_surf.set_clip(pygame.Rect(0, 0, LOGICAL_WIDTH, self.floor.top))
+        gameplay_surf.blit(sprite, pos)
+        # The same red flicker as a stun from fire / water / distraction (see the
+        # frozen overlay in draw) — drowning is a danger like those.
+        if int(self.elapsed * 8) % 2:
+            flash = pygame.Surface(sprite.get_size(), pygame.SRCALPHA)
+            flash.fill((255, 80, 80, 90))
+            gameplay_surf.blit(flash, pos)
         gameplay_surf.set_clip(None)
 
     def _build_slope_glow(self, slope):

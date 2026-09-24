@@ -374,6 +374,8 @@ LEVEL 3: THE HALL  (Valor)
     AMENDMENT (2026-09-23, designer): no floor fire pits. The floor is the
           lake — touching it drowns the devotee (-30s) and they rise again on
           the last golden surface they stood on. Water = attachment/Samsara.
+          No water pools or other hazard blocks either: the lake is the only
+          danger in Level 3.
     Water: Reflecting pools that overflow, creating slippery water patches
            that slow the player and drain time on contact.
     Platform Challenge: Disappearing marble tiles ("Illusions of permanence").
@@ -680,3 +682,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 setting amended to the lotus-lake pavilion; platforms traced from the designer's art; one-way slopes added for curved petals (src/slopes.py).
 - Level 3 Monk fixed in the pavilion's centre arch; Akshat now triggers Monk fade -> Mahavir Bhagwan reveal on the shikhar -> offering at the Monk's seat.
 - Level 3 floor is the lake: touching it drowns (-30s) and respawns on the last golden surface; start on lily pad 18; floor fire pits removed; no boxes on the floor.
+- Level 3 water pools removed (no hazard blocks); drowning shows the same red danger flicker as other hazards; drown-sprite prompts added to image_generation_prompts.md.

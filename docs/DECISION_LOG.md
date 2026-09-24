@@ -387,3 +387,9 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
 * **Open:** drown art `player_<boy|girl>_drown.png` (4 square frames, front view, water
   drawn in) is optional. Until it exists the sink clips the current sprite below the
   waterline, so nothing is blocked on art. Prompts were given to the designer in chat.
+* **Decision (designer, same day):** Level 3 has **no hazard blocks** — the old skeleton
+  water pools are removed; the lake is the only danger. Drowning shows the **same red
+  flicker** as a stun from fire/water/distractions.
+  * *Rationale:* designer's ruling; the pools floated in the sky and one sat on ledge 5a.
+    Reusing the stun overlay keeps one visual language for "danger". Levels 1, 2 and 4
+    hazards are untouched. Drown-sprite prompts are in `image_generation_prompts.md` §6.

@@ -428,6 +428,34 @@ class Level3SceneTests(unittest.TestCase):
         self.assertTrue(p.on_ground)
         self.assertEqual(self.scene.drown_timer, 0, "rose again straight into the lake")
 
+    def test_level3_has_no_hazard_blocks(self) -> None:
+        self.assertEqual(self.scene.hazards, [], "the lake itself is the only danger in Level 3")
+
+    def test_drowning_shows_the_red_danger_flicker(self) -> None:
+        s = self.scene
+        self.run_frames(0.5)
+        s.player.x, s.player.y = 1000, 700
+        while s.drown_timer <= 0:
+            s.update(1 / 60)
+        for _ in range(20):                       # partly sunk, still visible above the water
+            s.update(1 / 60)
+        # The sprite region just above the waterline, in screen space (world is drawn 80px up).
+        region = self.pygame.Rect(int(s.player.x) - 30, s.floor.top - 60 - 80, 90, 55)
+
+        def redness(elapsed):
+            s.elapsed = elapsed
+            surf = self.pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT))
+            s.draw(surf)
+            total = 0
+            for x in range(region.left, region.right, 3):
+                for y in range(region.top, region.bottom, 3):
+                    r, g, b, *_ = surf.get_at((x, y))
+                    total += r - (g + b) / 2
+            return total
+
+        # int(elapsed * 8) odd -> flash on; even -> off (same rule as the stun flicker).
+        self.assertGreater(redness(0.125), redness(0.25) + 1000)
+
     def test_no_box_is_ever_placed_in_the_lake(self) -> None:
         import random
         floor_top = self.scene.floor.top
