@@ -46,7 +46,13 @@ class PlayerWalkTests(unittest.TestCase):
         sys.path.remove(str(SRC))
 
     def test_holding_a_direction_shows_the_walk_not_the_run(self) -> None:
+        for who in ("boy", "girl"):
+            with self.subTest(character=who):
+                self._check_walk(who)
+
+    def _check_walk(self, who) -> None:
         s = self.scene
+        self.manager.shared["character"] = who
         s.on_enter(level=1, input_mgr=self.input)
         s.hazards = []                       # a stun would switch the animation to "stun"
         for _ in range(30):

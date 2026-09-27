@@ -30,11 +30,11 @@ SPRITES_DIR = os.path.join(
 # frame size is derived from strip height — but any code that assumed 128 px
 # counted her frames roughly 4x over. See level_scene.strip_frame_count().
 #
-# The BOY's walk is a 6-frame cycle from the 2026-09-23 magenta sheet (row 1 of
-# 3 — see SPRITE_ROWS); the GIRL's is an 8-frame cycle. Left walks are mirrored
-# from the right (MIRRORED_FROM), so they have no grid entry. Her replacement must have bold dark outlines — her white kurta is the
-# same value as the white background, so remove_white_bg() floods straight
-# through the edge and eats holes in her clothing.
+# Both walks are 6-frame cycles from 3x6 magenta sheets (row 1 — see SPRITE_ROWS):
+# the boy's from 2026-09-23, the girl's from 2026-09-26. Left walks are mirrored
+# from the right (MIRRORED_FROM), so they have no grid entry. A WHITE-background
+# sheet needs bold dark outlines: white cloth is the same value as the background,
+# so remove_white_bg() floods through an unoutlined edge and eats holes in it.
 SPRITE_GRID = {
     "player_boy_idle_left.png":  (2, 2),
     "player_boy_idle_right.png": (2, 2),
@@ -50,7 +50,7 @@ SPRITE_GRID = {
 
     "player_girl_idle_left.png":  (1, 4),
     "player_girl_idle_right.png": (1, 4),
-    "player_girl_walk_right.png": (1, 8),
+    "player_girl_walk_right.png": (3, 6),  # 2026-09-26 sheet: same layout as the boy's
     "player_girl_run_left.png":   (1, 6),
     "player_girl_run_right.png":  (1, 6),
     "player_girl_jump_left.png":  (1, 4),
@@ -61,11 +61,12 @@ SPRITE_GRID = {
     "player_girl_stun_right.png": (1, 2),
 }
 
-# Only these grid rows become frames (0-based). The boy's 2026-09-23 walk sheet
-# draws the cycle three times; the designer chose row 1 (its row 3 also carries
-# a generator watermark over the last frame's foot).
+# Only these grid rows become frames (0-based). Both walk sheets draw the cycle
+# three times; the designer chose row 1 (row 3 also carries a generator watermark
+# over the last frame's foot).
 SPRITE_ROWS = {
     "player_boy_walk_right.png": (0,),
+    "player_girl_walk_right.png": (0,),
 }
 
 # Left-facing strips are the right-facing strip mirrored FRAME BY FRAME (Phase 6f):
@@ -148,6 +149,33 @@ def remove_magenta_bg(cell):
                         fringe.append((x, y))
         for x, y in fringe:
             cpix[x, y] = (0, 0, 0, 0)
+    # Dark edges (hair, outlines) pick up magenta as a purple tint the pass above
+    # cannot catch (it only looks at light pixels) — measured on both 2026-09 walk
+    # sheets as ~40% of edge pixels. In a 2px band along the edge, turn any
+    # purple-tinted pixel into the neutral grey of the same brightness: dark hair
+    # stays dark, white cloth stays light; skin and sandals are never purple.
+    band = set()
+    for y in range(ch):
+        for x in range(cw):
+            if cpix[x, y][3] == 0:
+                for dx in range(-2, 3):
+                    for dy in range(-2, 3):
+                        if abs(dx) + abs(dy) <= 2 and 0 <= x + dx < cw and 0 <= y + dy < ch:
+                            band.add((x + dx, y + dy))
+    for x, y in band:
+        r, g, b, a = cpix[x, y]
+        if a and min(r, b) - g > 25:
+            grey = int(0.30 * r + 0.59 * g + 0.11 * b)
+            cpix[x, y] = (grey, grey, grey, a)
+    # Long hair lets the magenta show through BETWEEN strands, deeper than that
+    # band. Dark purple occurs nowhere in the characters (black hair, brown
+    # sandals, warm skin), so neutralise it anywhere.
+    for y in range(ch):
+        for x in range(cw):
+            r, g, b, a = cpix[x, y]
+            if a and max(r, g, b) < 140 and min(r, b) - g > 20:
+                grey = int(0.30 * r + 0.59 * g + 0.11 * b)
+                cpix[x, y] = (grey, grey, grey, a)
     return cell
 
 

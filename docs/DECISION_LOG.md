@@ -486,3 +486,15 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   ("महाविरा भगवात्") — the designer's revision removed it; captions stay out of the art.
   Original kept in `assets/images/items/_source/mahavir_bhagwan_original.jpg`. The asset
   test now requires the file (dropped from `ALLOWED_MISSING_LITERAL_ASSETS`).
+
+## Phase 8b: girl's walk cycle; purple fringe removed from both walks (2026-09-26, designer)
+* **Decision (designer):** adopt the girl's new walk sheet — same 3×6 magenta layout as
+  the boy's, **row 1** (6 frames), left mirrored per frame. Her walk goes from the old
+  8-frame white-background cycle to 6 frames, matching the boy. The boy sheet the designer
+  re-sent was pixel-identical to the one already installed (Phase 8).
+* **Fix:** both walks carried a **purple fringe** — magenta bleeding into dark edges and,
+  on the girl, through gaps between hair strands (measured: ~40% of edge pixels on each).
+  `remove_magenta_bg()` now greys out purple tint in a 2px edge band, and dark purple
+  anywhere (it never occurs in the characters). Result: 10 purple pixels left on the boy,
+  1 on the girl. The boy's strips were regenerated from his unchanged source with the
+  improved tool, so the committed art matches what the tool produces.
