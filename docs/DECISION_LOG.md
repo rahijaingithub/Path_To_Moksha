@@ -478,3 +478,11 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   * *Rationale:* Level 3 itself teaches that the bull is the wrong lanchhan there
     ("Wrong Lakshan (Bull)" is a no-effect box), so a bull on the Mahavir reveal would
     contradict the level's own lesson.
+* **BL1 closed (designer, 2026-09-26):** Mahavir Bhagwan's reveal image is the designer's
+  **lion**-lanchhan marble image (revised version: uniform white marble, no caption).
+  Square-cropped full-width with the bottom at the pedestal's lower edge, so the whole
+  figure and the lion plaque show at 150×150; the generator watermark's corner is covered
+  with neighbouring marble. An earlier draft carried a misspelled Devanagari caption
+  ("महाविरा भगवात्") — the designer's revision removed it; captions stay out of the art.
+  Original kept in `assets/images/items/_source/mahavir_bhagwan_original.jpg`. The asset
+  test now requires the file (dropped from `ALLOWED_MISSING_LITERAL_ASSETS`).

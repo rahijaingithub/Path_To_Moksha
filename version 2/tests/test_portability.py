@@ -151,10 +151,6 @@ class AssetPortabilityTests(unittest.TestCase):
     # rather than a content-completeness gate.
     ALLOWED_MISSING_LITERAL_ASSETS = {
         "assets/images/transitions/digambar_garbhalaya.png",
-        # Level 3 reveal art — pending from the designer (2026-09-23). Until it
-        # lands the reveal shows AssetManager's pink placeholder. Remove this
-        # line when the file is added.
-        "assets/images/items/mahavir_bhagwan.png",
         # Optional Level 3 art for the tired bird (loaded only if present; until
         # then a wings-folded flight frame is used). Prompt: image_generation_prompts.md.
         "assets/images/sprites/bird_fallen.png",
