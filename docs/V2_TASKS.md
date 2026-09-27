@@ -67,9 +67,10 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 ## Backlog (designer, 2026-09-23)
 | ID | Item | Where | Verify |
 |---|---|---|---|
-| BL1 | Mahavir Bhagwan image for the Level 3 reveal (pink placeholder until then); then drop it from `ALLOWED_MISSING_LITERAL_ASSETS` | `assets/images/items/mahavir_bhagwan.png`, `tests/test_portability.py` | asset test + playtest #41 |
+| BL1 | Mahavir Bhagwan image for the Level 3 reveal (pink placeholder until then); then drop it from `ALLOWED_MISSING_LITERAL_ASSETS`. **Must show the lion lanchhan.** Three lion candidates exist in the designer's Downloads (`image_23a06c88`, `image_5a5df1a0`, `image_f0af1a03`, 2026-09-24) — designer to pick one; crop to the square shikhar slot | `assets/images/items/mahavir_bhagwan.png`, `tests/test_portability.py` | asset test + playtest #41 |
 | BL2 | Tired-bird art (optional; prompt in `image_generation_prompts.md` §7) | `assets/images/sprites/bird_fallen.png` | playtest #44 |
 | BL3 | Bird flight art traces a third-party web sprite sheet — re-source or license it **before any public release** | `assets/images/sprites/bird_fly_*.png`, `_source/bird_sheet.jpg` | licence on file |
+| BL4 | Show Adinath Bhagwan in the Level 4 → Victory transition (playtest #11) using `assets/images/transitions/adinath.jpg` (stored 2026-09-26, unused so far). Crop the Gemini watermark (bottom-right) when wiring it. Nothing plays a 4→Victory transition today (`_advance_level` goes straight to Victory) | `transition_scene.py`, `level_scene.py`, assets | playtest #11 |
 
 ## Designer decisions (2026-09-06)
 - **Q1 Scoring:** points derived only from total time, so ordering matches the spec. (Bonuses remain optional/future.)

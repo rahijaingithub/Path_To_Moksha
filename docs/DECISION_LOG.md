@@ -468,3 +468,13 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   the Phase 9 open item.
 * **Backlogged (designer):** Mahavir Bhagwan image, tired-bird art, bird-art licensing —
   `docs/V2_TASKS.md` → Backlog BL1–BL3.
+
+## Phase 9c: a bull-lanchhan image kept for Adinath (2026-09-26, designer)
+* **Decision (designer):** the image offered for Mahavir Bhagwan carries a **bull** on
+  the pedestal — Rishabhdev (Adinath) Bhagwan's lanchhan, not Mahavir's (lion). It is
+  **kept for Adinath** (`assets/images/transitions/adinath.jpg`, original file, not yet
+  used) for the Level 4 → Victory transition (backlog BL4). Mahavir's reveal still needs
+  a lion image (BL1); three lion variants already exist in the designer's Downloads.
+  * *Rationale:* Level 3 itself teaches that the bull is the wrong lanchhan there
+    ("Wrong Lakshan (Bull)" is a no-effect box), so a bull on the Mahavir reveal would
+    contradict the level's own lesson.
