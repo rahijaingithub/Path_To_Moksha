@@ -421,6 +421,9 @@ LEVEL 3: THE HALL  (Valor)
     Screen: Full image of Mahavir Bhagwan.
     Animation: Player character approaches the idol and bows reverently.
                Screen holds on the image for a moment before fading.
+    AMENDMENT (2026-09-23, designer): no bow here — the devotee has just bowed
+               to Mahavir Bhagwan inside Level 3; the transition walks in and
+               holds on the image.
 
 ────────────────────────────────────────────────────────────────────────────────
 LEVEL 4: THE SUMMIT  (Moksha)
@@ -693,3 +696,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 water pools removed (no hazard blocks); drowning shows the same red danger flicker as other hazards; drown-sprite prompts added to image_generation_prompts.md.
 - Level 3 Jiv Daya twist (bird falls when the Akshat is found; help it with Akshat + Namokar Mantra for +4:00) and the offering bow; 3->4 transition no longer bows.
 - Level 3 bird: the chant is now an ordering puzzle (green/red tabs, reds clear, Skip ends the bonus round). Mantra spelling confirmed.
+- Transitions: 3->4 shows Mahavir Bhagwan (no bow); new final transition 4->Victory shows Moolnayak Adinath Bhagwan with bow and golden glow, then Victory.

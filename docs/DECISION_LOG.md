@@ -498,3 +498,20 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   anywhere (it never occurs in the characters). Result: 10 purple pixels left on the boy,
   1 on the girl. The boy's strips were regenerated from his unchanged source with the
   improved tool, so the committed art matches what the tool produces.
+
+## Phase 9d: Mahavir and Adinath transitions (B5, BL4 — 2026-09-27)
+* **Decision:** the Level 3→4 transition shows **Mahavir Bhagwan** (`transitions/mahavir.png`,
+  from the designer's lion-lanchhan image) and keeps walking in **without** a bow (the bow
+  happens in Level 3, Phase 9). Level 4 no longer jumps straight to Victory: it plays a new
+  **final transition (5)** — **Moolnayak Adinath Bhagwan** (`transitions/adinath.png`, the
+  bull-lanchhan image kept in Phase 9c), the devotee **bows**, a **golden glow** grows from
+  the start of the bow, then it fades to **Victory** — exactly the spec's "Transition to
+  Victory" and summary row 4→V.
+  * *Rationale:* closes B5 and BL4 against the spec of record. Both portraits are 3:4 crops
+    (the slot is shown 360×480) that leave the generator watermark out or cover it with the
+    marble beside it; all three Bhagwan images now come from one reproducible tool,
+    `tools/prepare_bhagwan_images.py` (it reproduces the committed Level 3 square exactly).
+  * *Text to confirm with the Paathshala:* the new transition captions — Mahavir, "the great
+    hero, whose victory was over himself" / "True valor is not conquering others, but
+    conquering anger, pride, deceit and greed within"; Adinath, "the first Tirthankara of our
+    age, who first taught the way to Moksha" / "Jai Jinendra".

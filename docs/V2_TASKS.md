@@ -24,7 +24,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | B2 | Rebuild `_build_level3` platforms against the art — **done 2026-09-23** (traced lines + one-way slopes; Monk fixed in the pavilion; Monk-fade → Mahavir reveal → offering). Pending: `mahavir_bhagwan.png` art | `level_layouts.py` | M | A2 + playtest #8 |
 | B3 | Disappearing marble tiles: new `TimedPlatform` type with fade cycle; Lakshan (Lion) reveals all for 10s | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
 | B4 | Hazards — **done 2026-09-23 (designer):** no hazard blocks in Level 3; the lake floor itself drowns | `hazards.py` | S | A2 |
-| B5 | Transition 3→4: show `mahavir.png` in `TRANSITION_DATA[4]` (currently `jsot_temple.png`). **No bow** — since 2026-09-23 the devotee bows to Mahavir Bhagwan inside Level 3, so 3→4 walks in without bowing (`NO_BOW_TRANSITIONS`, DECISION_LOG Phase 9) | `transition_scene.py`, assets | S (+art) | playtest #10, #47 |
+| B5 | Transition 3→4 — **done 2026-09-27**: shows Mahavir Bhagwan (`transitions/mahavir.png`, lion lanchhan) and walks in **without** bowing (the bow is inside Level 3) | `transition_scene.py`, assets | playtest #10 |
 
 ## Epic C — Level 4: The Summit (Moksha) — P0
 | ID | Task | Files | Effort | Verify |
@@ -70,7 +70,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | BL1 | ~~Mahavir Bhagwan image for the Level 3 reveal~~ — **done 2026-09-26**: designer's lion-lanchhan image, square-cropped to the shikhar slot (`assets/images/items/mahavir_bhagwan.png`; original in `items/_source/`) | — | asset test + playtest #41 |
 | BL2 | Tired-bird art (optional; prompt in `image_generation_prompts.md` §7) | `assets/images/sprites/bird_fallen.png` | playtest #44 |
 | BL3 | Bird flight art traces a third-party web sprite sheet — re-source or license it **before any public release** | `assets/images/sprites/bird_fly_*.png`, `_source/bird_sheet.jpg` | licence on file |
-| BL4 | Show Adinath Bhagwan in the Level 4 → Victory transition (playtest #11) using `assets/images/transitions/adinath.jpg` (stored 2026-09-26, unused so far). Crop the Gemini watermark (bottom-right) when wiring it. Nothing plays a 4→Victory transition today (`_advance_level` goes straight to Victory) | `transition_scene.py`, `level_scene.py`, assets | playtest #11 |
+| BL4 | ~~Adinath in the Level 4 → Victory transition~~ — **done 2026-09-27**: Level 4 now ends in transition 5 (Moolnayak Adinath Bhagwan, bow, golden glow) which fades to Victory; image `transitions/adinath.png` (original in `transitions/_source/`) | `transition_scene.py`, `level_scene.py` | playtest #11 |
 
 ## Designer decisions (2026-09-06)
 - **Q1 Scoring:** points derived only from total time, so ordering matches the spec. (Bonuses remain optional/future.)

@@ -115,6 +115,8 @@ class AssetPortabilityTests(unittest.TestCase):
         "assets/images/sprites/bird_fly_left.png",
         "assets/images/transitions/jsot_temple.png",
         "assets/images/transitions/parshvanath.png",
+        "assets/images/transitions/mahavir.png",
+        "assets/images/transitions/adinath.png",
         "assets/images/items/monk_sprite.png",
         "assets/images/items/temple_key.png",
         "assets/images/items/ttc_bus.png",

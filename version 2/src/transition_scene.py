@@ -11,13 +11,15 @@ from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, IMAGES_DIR,
     COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_WHITE, COLOR_SAFFRON,
     GAME_FONT_SIZE_SUBTITLE, GAME_FONT_SIZE_BODY, GAME_FONT_SIZE_SMALL,
-    SCENE_LEVEL, SCENE_TITLE,
+    SCENE_LEVEL, SCENE_TITLE, SCENE_VICTORY,
 )
 
 
 # Transitions that walk in without bowing: 1->2, and 3->4 because Level 3 now
 # ends with the devotee bowing to Mahavir Bhagwan in the level itself (2026-09-23).
 NO_BOW_TRANSITIONS = {2, 4}
+# Level 4 -> Victory: Moolnayak Adinath Bhagwan, bow, golden glow, then Victory.
+FINAL_TRANSITION = 5
 
 TRANSITION_DATA = {
     2: {
@@ -40,12 +42,23 @@ TRANSITION_DATA = {
         ],
     },
     4: {
-        "title": "Level 3 Complete — Final Steps",
-        "subtitle": "The summit of enlightenment approaches.",
-        "image": "jsot_temple.png",
+        "title": "Level 3 Complete — Reverence to Bhagwan Mahavir",
+        "subtitle": "Mahavir, the great hero, whose victory was over himself.",
+        "image": "mahavir.png",
         "story": [
-            "The ultimate destination is near.",
-            "Focus your mind on supreme peace.",
+            "True valor is not conquering others,",
+            "but conquering anger, pride, deceit and greed within.",
+            "Carry that courage to the summit.",
+        ],
+    },
+    5: {  # Level 4 -> Victory (the spec's final transition)
+        "title": "Level 4 Complete — Moolnayak Adinath Bhagwan",
+        "subtitle": "At the feet of the first Tirthankara.",
+        "image": "adinath.png",
+        "story": [
+            "The pilgrimage ends where the path began:",
+            "with Adinath, the first Tirthankara of our age, who first taught the way to Moksha.",
+            "Jai Jinendra.",
         ],
     },
 }
@@ -149,6 +162,9 @@ class TransitionScene:
             ProfileManager().save_profile(player_name, character=character, score=final_score, level_reached=self.next_level - 1)
             self.manager.shared["final_score"] = final_score
             self.manager.switch_to(SCENE_LEADERBOARD, input_mgr=self.input_mgr)
+        elif self.next_level > 4:
+            # After the final transition (Adinath), the pilgrimage ends: Victory.
+            self.manager.switch_to(SCENE_VICTORY, input_mgr=self.input_mgr)
         else:
             self.manager.switch_to(SCENE_LEVEL, level=self.next_level, input_mgr=self.input_mgr)
 
@@ -207,6 +223,15 @@ class TransitionScene:
         glow2 = pygame.Surface((glow_r2 * 2, glow_r2 * 2), pygame.SRCALPHA)
         pygame.draw.circle(glow2, (255, 140, 40, 36), (glow_r2, glow_r2), glow_r2)
         surface.blit(glow2, (LOGICAL_WIDTH // 2 - glow_r2, LOGICAL_HEIGHT // 2 - glow_r2 - 70))
+
+        # Final transition (Adinath): "a soft golden glow emanates" as the devotee bows —
+        # a warm aura that grows in from the start of the bow.
+        if self.next_level == FINAL_TRANSITION and self.elapsed > 2.5:
+            strength = min(1.0, (self.elapsed - 2.5) / 2.0)
+            glow_r3 = 300 + int(20 * math.sin(self.elapsed * 1.5))
+            glow3 = pygame.Surface((glow_r3 * 2, glow_r3 * 2), pygame.SRCALPHA)
+            pygame.draw.circle(glow3, (255, 225, 120, int(70 * strength)), (glow_r3, glow_r3), glow_r3)
+            surface.blit(glow3, (LOGICAL_WIDTH // 2 - glow_r3, LOGICAL_HEIGHT // 2 - glow_r3 - 70))
 
         # Bhagwan / Temple image with subtle floating Ken Burns zoom
         if self.bg_image:

@@ -1430,8 +1430,12 @@ class LevelScene(Scene):
             tbc = True
 
         if next_level > 4:
+            # Level 4 done: bow to Moolnayak Adinath Bhagwan first (transition 5),
+            # which then fades into Victory. Straight to Victory if no transition scene.
+            if SCENE_TRANSITION in self.manager.scenes:
+                self.manager.switch_to(SCENE_TRANSITION, next_level=next_level, to_be_continued=False, input_mgr=self.input_mgr)
             # Check if victory scene is registered, else go to title
-            if SCENE_VICTORY in self.manager.scenes:
+            elif SCENE_VICTORY in self.manager.scenes:
                 self.manager.switch_to(SCENE_VICTORY, input_mgr=self.input_mgr)
             else:
                 from settings import SCENE_LEADERBOARD
