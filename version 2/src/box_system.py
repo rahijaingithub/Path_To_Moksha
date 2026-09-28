@@ -51,7 +51,9 @@ LEVEL_BOX_DEFS = {
         # Level 3 has no fire, so the Chanvar keeps its puja meaning: waved down, then
         # up — whoever bows in humility rises higher (designer, 2026-09-27).
         {"cat": CAT_SUPPORT, "name": "Chanvar", "desc": "Who bows in humility, rises higher! +{t}s"},
-        {"cat": CAT_SUPPORT, "name": "Lakshan (Lion)", "desc": "Lion reveals the path! +{t}s"},
+        # No hidden path in Level 3 any more, so the Lion rewards recognising Mahavir's
+        # Lakshan — the counterpart to the Wrong Lakshan (Bull) (designer, 2026-09-27).
+        {"cat": CAT_SUPPORT, "name": "Lakshan (Lion)", "desc": "You know Mahavir's Lakshan: the Lion! +{t}s"},
         {"cat": CAT_NO_EFFECT, "name": "Wrong Lakshan (Bull)", "desc": "A Bull Lakshan... nothing happens."},
         {"cat": CAT_DISTRACTION, "name": "Mobile Phone", "desc": "Checking notifications! -{t}s"},
         {"cat": CAT_DISTRACTION, "name": "Foe", "desc": "A foe provokes you! -{t}s"},

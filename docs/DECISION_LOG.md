@@ -532,3 +532,7 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     the Paathshala.
 * **Flagged, not changed:** Level 3's **Lion** box still says "Lion reveals the path!", but
   with the tiles gone there is no hidden path to reveal. Needs its own meaning (designer).
+* **Decision (designer, same day):** the Lion now says **"You know Mahavir's Lakshan: the
+  Lion!"** — it rewards recognising the correct symbol, the counterpart to the Wrong
+  Lakshan (Bull) box that teaches discernment. Still adds time (D1). Wording is Claude's;
+  confirm with the Paathshala.
