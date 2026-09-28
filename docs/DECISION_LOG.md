@@ -515,3 +515,20 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     hero, whose victory was over himself" / "True valor is not conquering others, but
     conquering anger, pride, deceit and greed within"; Adinath, "the first Tirthankara of our
     age, who first taught the way to Moksha" / "Jai Jinendra".
+
+## Phase 9e: tiles move to Level 4; a new meaning for Level 3's Chanvar (2026-09-27, designer)
+* **Decision (designer):** the spec's disappearing marble tiles ("Illusions of
+  permanence", old task B3) are **dropped from Level 3** and **moved to Level 4** (task C8).
+  * *Rationale:* designer's ruling for the lake level, which already has drowning as its
+    challenge. Open for C8: which support reveals the tiles in Level 4 (the spec's reveal
+    was Mahavir's Lion; Level 4's correct Lakshan is the Bull) and how they combine with
+    C3's crumbling blocks.
+* **Decision (designer):** Level 3's **Chanvar** no longer says "fire cleared" (there is
+  no fire). It carries its puja meaning — the Chanvar is waved down, then up, before
+  Bhagwan: **"Who bows in humility, rises higher!"** It still adds time, like every support
+  today (distinct effects are task D1). Level 4 keeps "fire cleared" — it still has fire.
+  * *Rationale:* fits Level 3's theme — valor as humility, not force — and the Chanvar is
+    one of the eight Pratiharyas honouring a Tirthankara. Wording is Claude's; confirm with
+    the Paathshala.
+* **Flagged, not changed:** Level 3's **Lion** box still says "Lion reveals the path!", but
+  with the tiles gone there is no hidden path to reveal. Needs its own meaning (designer).

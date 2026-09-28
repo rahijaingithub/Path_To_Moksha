@@ -21,7 +21,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 
 ## Mechanics
 12. [ ] Each Support item does its *specific* thing (bus/car boost, bell repel, snake water
-        immunity, chanvar fire clear, lion reveal, bull jump).
+        immunity, chanvar fire clear in L4 / "who bows, rises" text in L3, lion reveal,
+        bull jump).
 13. [ ] Distraction: −30s and 5s freeze, stun sprite shown, input ignored during freeze.
 14. [ ] Score on Victory, Leaderboard, and saved profile all agree with each other.
 15. [ ] Monk: answer correctly → goal + one support box highlighted; wrong → nothing; not

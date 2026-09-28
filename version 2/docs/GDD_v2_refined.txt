@@ -378,6 +378,8 @@ LEVEL 3: THE HALL  (Valor)
           danger in Level 3.
     Water: Reflecting pools that overflow, creating slippery water patches
            that slow the player and drain time on contact.
+    AMENDMENT (2026-09-27, designer): the disappearing tiles below are NOT in
+          Level 3 (the lake level); they move to Level 4 (task C8).
     Platform Challenge: Disappearing marble tiles ("Illusions of permanence").
            Tiles fade in and out. The player must memorise the safe path
            or use the Lakshan (Lion) support to reveal it temporarily.
@@ -408,6 +410,9 @@ LEVEL 3: THE HALL  (Valor)
 
   Box Contents (5–6 boxes total):
     Goal (1x):        Samagri (Akshat) — required to exit to Level 4.
+    AMENDMENT (2026-09-27, designer): Level 3 has no fire, so its Chanvar keeps
+          its puja meaning instead — waved down, then up: "Who bows in humility,
+          rises higher!" (adds time, like every support today).
     Support (2x):     Chanvar (Ceremonial Fan) — clears fire hazards briefly;
                                                  adds time.
                       Lakshan (Lion) — reveals all invisible platforms for 10
@@ -697,3 +702,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 Jiv Daya twist (bird falls when the Akshat is found; help it with Akshat + Namokar Mantra for +4:00) and the offering bow; 3->4 transition no longer bows.
 - Level 3 bird: the chant is now an ordering puzzle (green/red tabs, reds clear, Skip ends the bonus round). Mantra spelling confirmed.
 - Transitions: 3->4 shows Mahavir Bhagwan (no bow); new final transition 4->Victory shows Moolnayak Adinath Bhagwan with bow and golden glow, then Victory.
+- Level 3: disappearing tiles moved to Level 4 (C8); Level 3 Chanvar means "Who bows in humility, rises higher!".

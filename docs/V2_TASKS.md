@@ -21,8 +21,8 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
 | B1 | Background art `level3_background.png` — **done 2026-09-23 as the Jal Mandir lotus lake** (spec amended; see DECISION_LOG Phase 7) | `assets/images/backgrounds/`, `image_generation_prompts.md` | M (art) | asset test |
-| B2 | Rebuild `_build_level3` platforms against the art — **done 2026-09-23** (traced lines + one-way slopes; Monk fixed in the pavilion; Monk-fade → Mahavir reveal → offering). Pending: `mahavir_bhagwan.png` art | `level_layouts.py` | M | A2 + playtest #8 |
-| B3 | Disappearing marble tiles: new `TimedPlatform` type with fade cycle; Lakshan (Lion) reveals all for 10s | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
+| B2 | Rebuild `_build_level3` platforms against the art — **done 2026-09-23** (traced lines + one-way slopes; Monk fixed in the pavilion; Monk-fade → Mahavir reveal → offering; Mahavir art added 2026-09-26) | `level_layouts.py` | M | A2 + playtest #8 |
+| B3 | ~~Disappearing tiles in Level 3~~ — **moved to Level 4 as C8** (designer, 2026-09-27) | — | — | — |
 | B4 | Hazards — **done 2026-09-23 (designer):** no hazard blocks in Level 3; the lake floor itself drowns | `hazards.py` | S | A2 |
 | B5 | Transition 3→4 — **done 2026-09-27**: shows Mahavir Bhagwan (`transitions/mahavir.png`, lion lanchhan) and walks in **without** bowing (the bow is inside Level 3) | `transition_scene.py`, assets | playtest #10 |
 
@@ -33,14 +33,15 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | C2 | Rebuild `_build_level4` against the art | `level_layouts.py` | M | A2 + playtest #9 |
 | C3 | Crumbling blocks: `CrumblingPlatform` breaks 1s after landing, respawns after N s | `level_layouts.py`, `level_scene.py` | M | unit test + playtest |
 | C4 | Hazards: water channels + flame pillars against art | `hazards.py` | S | A2 |
-| C5 | Transition 4→Victory: `adinath.png`, bow, golden glow, then Victory | `transition_scene.py`, `level_scene.py` (`next_level > 4` branch) | M (+art) | playtest #11 |
+| C5 | Transition 4→Victory — **done 2026-09-27** (same work as backlog BL4): Moolnayak Adinath Bhagwan, bow, golden glow, then Victory | `transition_scene.py`, `level_scene.py` | M | playtest #11 |
 | C6 | Victory: `digambar_garbhalaya.png`; remove from `ALLOWED_MISSING_LITERAL_ASSETS` | `victory_scene.py`, `tests/test_portability.py`, assets | S (+art) | asset test |
 | C7 | Open Levels 3–4 to kid/standard modes once B and C are complete (Q2: gated only because L3/L4 are unfinished) | `level_scene.py:810` | S | playtest #7 |
+| C8 | Disappearing tiles ("Illusions of permanence" — moved here from Level 3, designer 2026-09-27): `TimedPlatform` fading in/out on a cycle. **Open:** which support reveals them in Level 4 — the spec's reveal was Mahavir's Lion (Level 3), while Level 4's correct Lakshan is the Bull; and how it combines with C3's crumbling blocks | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
 
 ## Epic D — Spec fidelity for Levels 1–2 — P1
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
-| D1 | Support items get distinct effects: TTC Bus/Car speed boost; Ghanta hazard repel; Snake water immunity; Chanvar fire clear; Lion reveal; Bull jump boost | `box_system.py`, `level_scene.py` (Player), `hazards.py` | L | unit tests per effect + playtest #12 |
+| D1 | Support items get distinct effects: TTC Bus/Car speed boost; Ghanta hazard repel; Snake water immunity; Chanvar fire clear (Level 4; in Level 3 the Chanvar means "who bows in humility, rises higher" — effect to choose); Lion reveal; Bull jump boost | `box_system.py`, `level_scene.py` (Player), `hazards.py` | L | unit tests per effect + playtest #12 |
 | D2 | Level 2: snakes are the hazard set (Q3 decided). No water/fire in L2. Spec amended: hazards are designer-defined per level | `hazards.py` | M | A2 + playtest #6 |
 | D3 | Level 2 moving stone platforms | `level_layouts.py`, `level_scene.py` | M | playtest #6 |
 | D4 | Distinct hazard behaviour: water slows + drains; fire stuns | `hazards.py`, `level_scene.py` | S | unit test |

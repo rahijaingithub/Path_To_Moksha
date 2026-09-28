@@ -48,7 +48,9 @@ LEVEL_BOX_DEFS = {
     ],
     3: [
         {"cat": CAT_GOAL, "name": "Akshat", "desc": "You found the Akshat (sacred rice)!"},
-        {"cat": CAT_SUPPORT, "name": "Chanvar", "desc": "Ceremonial Fan! +{t}s fire cleared!"},
+        # Level 3 has no fire, so the Chanvar keeps its puja meaning: waved down, then
+        # up — whoever bows in humility rises higher (designer, 2026-09-27).
+        {"cat": CAT_SUPPORT, "name": "Chanvar", "desc": "Who bows in humility, rises higher! +{t}s"},
         {"cat": CAT_SUPPORT, "name": "Lakshan (Lion)", "desc": "Lion reveals the path! +{t}s"},
         {"cat": CAT_NO_EFFECT, "name": "Wrong Lakshan (Bull)", "desc": "A Bull Lakshan... nothing happens."},
         {"cat": CAT_DISTRACTION, "name": "Mobile Phone", "desc": "Checking notifications! -{t}s"},
