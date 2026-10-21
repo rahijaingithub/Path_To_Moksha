@@ -617,8 +617,12 @@ class Level3SceneTests(unittest.TestCase):
         self.assertIsNone(s.rescue_phase)
         self.assertTrue(s.bird_saved)
         self.assertIn(s.bird.state, ("leaving", "gone"))
-        self.assertAlmostEqual(s.time_remaining - before, 240, delta=0.2)
-        self.assertEqual(s.jiv_daya_bonus, 240, "recorded time must not count the bonus")
+        # The flat +4:00 is gone (Q6): those four minutes became the bonus level's own
+        # clock, and the devotee banks what is left of it. No bonus scene is registered
+        # on this bare manager, so the bird is simply saved and the clock is untouched;
+        # the routing into the bonus level and the banking live in test_bonus_scene.
+        self.assertAlmostEqual(s.time_remaining, before, delta=0.2, msg="no flat bonus")
+        self.assertEqual(s.jiv_daya_bonus, 0.0)
 
     def test_skipping_ends_the_bonus_round_and_the_bird_stays(self) -> None:
         s = self.scene

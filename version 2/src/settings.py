@@ -126,7 +126,10 @@ LEVEL_TIME_LIMIT = {
     4: 300,
 }
 SUPPORT_TIME_BONUS = 15      # seconds added
-JIV_DAYA_TIME_BONUS = 240    # Level 3: seconds added for saving the fallen bird (clock + score, not recorded time)
+# Level 3 Jiv Daya: saving the fallen bird no longer pays a flat bonus. Its four
+# minutes became the bonus level's own clock, and the devotee banks whatever is
+# left on it when both rescues are done — so 240 is still the ceiling (Epic G, Q6).
+BONUS_TIME_LIMIT = 240       # the bonus level's clock, and the most that can be banked
 DISTRACTION_TIME_PENALTY = 30  # seconds lost
 DISTRACTION_FREEZE_DURATION = 5.0  # seconds of control freeze
 
@@ -145,6 +148,7 @@ SCENE_CHARACTER_SELECT = "character_select"
 SCENE_LEVEL = "level"
 SCENE_TRANSITION = "transition"
 SCENE_VICTORY = "victory"
+SCENE_BONUS = "bonus"        # Level 3's Karuna bonus level (Epic G)
 
 # ─── Game Modes ───────────────────────────────────────────────────────────────
 # "kid"       — Platforms visible (black lines). Game Over enabled.

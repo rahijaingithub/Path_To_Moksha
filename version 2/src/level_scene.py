@@ -24,7 +24,7 @@ from settings import (
     COLOR_RED, COLOR_GREEN, COLOR_SAFFRON, COLOR_GOLD_DIM,
     GAME_FONT_SIZE_HUD, GAME_FONT_SIZE_SUBTITLE, GAME_FONT_SIZE_BODY, GAME_FONT_SIZE_SMALL,
     SCENE_TITLE, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY,
-    DEFAULT_GAME_MODE, ASSETS_DIR, JIV_DAYA_TIME_BONUS,
+    DEFAULT_GAME_MODE, ASSETS_DIR, SCENE_BONUS,
 )
 
 
@@ -1345,12 +1345,17 @@ class LevelScene(Scene):
             if self.bird.state != "reviving":      # revived: now flying away
                 self.rescue_phase = None
                 self.bird_saved = True
-                self.time_remaining += JIV_DAYA_TIME_BONUS
-                self.jiv_daya_bonus += JIV_DAYA_TIME_BONUS
                 self.assets.play_sound("correct.wav")
-                self.box_system.message = "The bird is saved! Jiv Daya: +4:00"
+                self.box_system.message = "The bird is saved! Jiv Daya bears fruit..."
                 self.box_system.message_timer = 3.0
                 self.box_system.message_color = COLOR_GREEN
+                # The flat +4:00 is gone (Q6): those four minutes are the bonus
+                # level's own clock, and the devotee banks what is left of it. This
+                # level keeps its state and its paused clock while that plays out,
+                # and is resumed in place afterwards (G1).
+                if SCENE_BONUS in self.manager.scenes:
+                    self.manager.switch_to(SCENE_BONUS, input_mgr=self.input_mgr)
+                    return
 
     def _update_bow(self, dt):
         """The offering bow; prayer light rises to Mahavir Bhagwan. Ends the level."""

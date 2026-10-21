@@ -8,7 +8,7 @@ import pygame
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, GAME_TITLE, FPS,
     DEFAULT_WINDOWED_SIZE, COLOR_BG_DARK,
-    SCENE_TITLE, SCENE_OPTIONS, SCENE_PLAYER_SELECT, SCENE_LEADERBOARD, SCENE_TUTORIAL, SCENE_CHARACTER_SELECT, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY,
+    SCENE_TITLE, SCENE_OPTIONS, SCENE_PLAYER_SELECT, SCENE_LEADERBOARD, SCENE_TUTORIAL, SCENE_CHARACTER_SELECT, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY, SCENE_BONUS,
 )
 from scene_manager import SceneManager
 from input_manager import InputManager
@@ -21,6 +21,7 @@ from character_select import CharacterSelect
 from level_scene import LevelScene
 from transition_scene import TransitionScene
 from victory_scene import VictoryScene
+from bonus_scene import BonusScene
 from tutorial_scene import TutorialScene
 
 
@@ -73,6 +74,7 @@ class Game:
         self.scene_mgr.register(SCENE_LEVEL, LevelScene(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_TRANSITION, TransitionScene(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_VICTORY, VictoryScene(self.scene_mgr, self.assets, self.input_mgr))
+        self.scene_mgr.register(SCENE_BONUS, BonusScene(self.scene_mgr, self.assets, self.input_mgr))
 
 
 
