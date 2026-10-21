@@ -258,6 +258,17 @@ class LevelScene(Scene):
         self.item_popup = None         # Active box item pop-up dict
 
     def on_enter(self, **kwargs):
+        # Coming back from the bonus level (Epic G): this is still the same scene
+        # object that was playing — SceneManager keeps one instance per key and
+        # LevelScene has no on_exit — so a resume only restarts the music and fades
+        # back in, leaving the player, clock, boxes, Monk and bird exactly as they
+        # were. Anything that cannot be resumed falls through to a normal build.
+        if kwargs.get("resume") and self._can_resume(kwargs.get("level", self.level)):
+            self.manager.shared["current_level"] = self.level
+            self.fade_alpha = 255
+            self._play_level_music()
+            return
+
         self.level = kwargs.get("level", 1)
         self.manager.shared["current_level"] = self.level
         # Read game mode from shared state (set by title screen)
@@ -323,9 +334,7 @@ class LevelScene(Scene):
                                          scale=(LOGICAL_WIDTH, LOGICAL_HEIGHT))
 
         # Play level-specific background music
-        vol = self.manager.shared.get("music_volume", 0.35)
-        bgm_track = f"level{self.level}_bgm.wav" if os.path.exists(os.path.join(ASSETS_DIR, "audio", "bgm", f"level{self.level}_bgm.wav")) else "bgm_loop.ogg"
-        self.assets.play_music(bgm_track, volume=vol)
+        self._play_level_music()
 
         self._score_registered = False
 
@@ -510,6 +519,25 @@ class LevelScene(Scene):
         # NOTE: Music is already started above at line 261 with the correct level-specific
         #       track and the volume saved in Options. This duplicate call has been removed
         #       so that the Options volume slider correctly controls level BGM as well.
+
+    def _can_resume(self, level):
+        """True when this scene still holds a playable `level` to go back to.
+
+        A resume is only meaningful for the level that is already built and still
+        in play; a fresh run (no player yet), a different level, or a level that
+        has already ended must be built from scratch instead.
+        """
+        return (self.player is not None
+                and self.level == level
+                and not self.level_complete
+                and not self.game_over)
+
+    def _play_level_music(self):
+        """Start this level's BGM — its own track when there is one, else the shared loop."""
+        track = f"level{self.level}_bgm.wav"
+        if not os.path.exists(os.path.join(ASSETS_DIR, "audio", "bgm", track)):
+            track = "bgm_loop.ogg"
+        self.assets.play_music(track, volume=self.manager.shared.get("music_volume", 0.35))
 
     def handle_events(self, events, input_mgr):
         self.mouse_clicked_this_frame = False

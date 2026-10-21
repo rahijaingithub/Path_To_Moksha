@@ -45,6 +45,15 @@ devotee banks **whatever is left on it** when both rescues are done. Reward ther
 scales with how efficiently the player helps, and still caps at 240s — so Q1 scoring and
 the Level 3 balance are unchanged.
 
+**Narrative frame (designer, 2026-10-20):** the Jiv Daya of saving the bird creates so much
+**punya** that the soul is born as a compassionate spiritual doctor — who then gets the
+chance to save an injured man's **body** (carry him to hospital and treat him) and a lost
+man's **soul** (guide him to the temple). So the bonus level is a *next birth*, not a side
+area: its setting, and arguably its player sprite (a doctor, not the devotee), are its own.
+Note this adds a third verb beyond carry/lead — **treating** at the hospital. See the
+DECISION_LOG for the one doctrinal wrinkle to put to the Paathshala (returning from a next
+birth into the same Level 3 life).
+
 Flow: mantra solved → bird revives and flies off → bonus level loads automatically →
 carry the injured man to the hospital **and** lead the lost man to the temple → Level 3
 resumes **at the exact position left**, with the banked seconds added. Bonus clock reaches
@@ -53,7 +62,7 @@ forfeited). The bird stays saved either way, since it revives before the bonus b
 
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
-| G1 | **Resume plumbing.** `resume=True` kwarg on `LevelScene.on_enter` that early-returns instead of rebuilding (restoring BGM only). Safe because `LevelScene` has no `on_exit` and `SceneManager` holds one instance per key, so the state survives the round trip — no snapshot/serialisation needed | `level_scene.py` | S | unit test: mutate player x/y + open a box, round-trip through another scene, assert position and box state unchanged; assert `resume=False` still rebuilds (fresh box placement) |
+| G1 | ~~Resume plumbing~~ — **done 2026-10-20**: `on_enter(resume=True)` early-returns (restores `current_level`, re-fades, restarts BGM via the new `_play_level_music`); `_can_resume` refuses and falls through to a normal build when nothing is built yet, the level differs, or the level already ended | `level_scene.py` | S | `tests/test_level_resume.py` (7 tests) |
 | G2 | **Bonus scene skeleton.** `SCENE_BONUS` key, `bonus_scene.py`, registered in `main.py`; 4:00 clock with its own HUD; Level 3's clock stays paused throughout; any-key return for now | `settings.py`, `main.py`, `bonus_scene.py` | M | unit test: clock counts down, 0:00 returns with 0 banked; scene registered |
 | G3 | **The two rescues.** NPC escort — two verbs the game does not have yet: *carry* (injured man) and *lead/follow* (lost man). Hospital and temple destination triggers; both delivered → bank remaining time | `bonus_scene.py`, new NPC module | L | unit test per rescue + per destination; both-done banks `time_remaining`, one-done banks 0 |
 | G4 | **Bank the reward through `jiv_daya_bonus`** (or an equivalent excluded field) so the banked seconds raise the clock and score but are **not** counted as time taken. Without this, Level 3's recorded time goes negative — the exact bug fixed on 2026-09-23 (see `_advance_level`'s comment) | `level_scene.py` | S | unit test: bank 240s, finish L3 in 1:30, assert `level_times[3]` is 1:30 and never negative |

@@ -590,3 +590,33 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   eyes to suffering nearby, extending the bird's Jiv Daya from animal to human — is Claude's
   wording and should be confirmed with the Paathshala.
 
+## 2026-10-20 — G1: resume a level without rebuilding it
+* **Built (Epic G1).** `LevelScene.on_enter(resume=True)` early-returns instead of rebuilding:
+  it restores `shared["current_level"]`, re-fades in, and restarts the level BGM. The player,
+  clock, boxes, Monk, bird and platforms are left untouched, so the devotee comes back to the
+  exact spot he left.
+  * *Why it works without a snapshot:* `SceneManager` keeps one scene instance per key and
+    `LevelScene` has no `on_exit`, so the state already survives the trip — it was only ever
+    lost because `on_enter` rebuilt it.
+  * *Refusals are deliberate:* `_can_resume` falls through to a normal build when nothing is
+    built yet (`player is None`), the requested level differs, or the level already ended
+    (`level_complete` / `game_over`). A resume can therefore never leave a half-built level.
+  * The BGM selection moved into `_play_level_music` so the normal and resume paths cannot
+    drift apart.
+  * *Verified:* `tests/test_level_resume.py`, 7 tests — state kept on resume, and each refusal
+    case builds instead. Full suite 61 green.
+* **Narrative frame for the bonus level (designer):** the Jiv Daya of saving the bird creates
+  so much punya that the soul is **born as a compassionate spiritual doctor**, who saves an
+  injured man's body (hospital, and treating him there) and a lost man's soul (guiding him to
+  the temple). This replaces Claude's earlier placeholder reading and is much stronger: the
+  bonus level is a *next birth*, which justifies its own setting and its own player sprite,
+  and it ties the two rescues to body and soul respectively.
+  * *Consequence for G3:* a third verb appears — **treating** at the hospital, not merely
+    delivering. G3's estimate should carry it.
+  * **Flagged for the Paathshala (doctrinal):** if the bonus level is a next birth, returning
+    from it into the *same* Level 3 life at the same spot does not sit easily — a soul does
+    not come back from a rebirth into the life before it. A frame that keeps both the doctrine
+    and the resume mechanic: what the devotee sees is a **glimpse of the punya's fruit** — a
+    darshan of the life that merit will earn — rather than the rebirth itself. Recommended,
+    but the Paathshala should settle the wording, as with the Chanvar and Lion.
+
