@@ -15,8 +15,9 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 7. [ ] Kid / standard / developer modes each reach the intended last level.
 8. [ ] Level 3 completable start-to-finish without developer mode.
 9. [ ] Level 4 completable start-to-finish without developer mode.
-10. [ ] Transition 3→4 shows Mahavir and the devotee walks in **without** bowing (the bow
-        now happens inside Level 3 — see #47).
+10. [ ] Transition 3→4 shows Mahavir and the devotee walks in and **bows** (a second bow
+        after Level 3's in-level one — intended, see #47). On 1→2 the devotee walks to the
+        temple door and then **stands still** — no stepping on the spot. Boy and girl.
 11. [ ] Transition 4→Victory shows Adinath, glow, then Victory with the Garbhalaya image.
 
 ## Mechanics
@@ -108,4 +109,4 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         either way (never negative after the bonus).
 47. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
-        walks in WITHOUT a second bow. Check both the boy and the girl.
+        walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.

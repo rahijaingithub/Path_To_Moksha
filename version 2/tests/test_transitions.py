@@ -1,5 +1,6 @@
-"""Transition tests: Level 3 -> 4 shows Mahavir Bhagwan (no bow), Level 4 -> Victory
-shows Moolnayak Adinath Bhagwan (bow + golden glow) and then goes to Victory.
+"""Transition tests: Level 1 -> 2 walks to the temple door and stops there, Level 3 -> 4
+shows Mahavir Bhagwan (bow), Level 4 -> Victory shows Moolnayak Adinath Bhagwan
+(bow + golden glow) and then goes to Victory.
 
 Needs pygame, so it is skipped on the dependency-free CI worker and runs locally
 in the project venv (like ``test_level3_layout``'s scene tests).
@@ -70,10 +71,29 @@ class TransitionTests(unittest.TestCase):
         self.assertEqual(scene.bg_image.get_size(), (360, 480))
         self.assertNotEqual(scene.bg_image.get_at((0, 0))[:3], PINK, f"{name} is missing")
 
-    def test_level3_to_4_shows_mahavir_and_does_not_bow(self) -> None:
+    def test_level1_to_2_stops_walking_at_the_temple_door(self) -> None:
+        """The devotee walks in, then stands still — no stepping on the spot."""
+        manager, scene = self.enter(2)
+        self.assertIn(2, self.ts.NO_BOW_TRANSITIONS, "walk-in only, no bow")
+        surf = self.pygame.Surface((1920, 1080))
+
+        scene.update(1.0)                      # mid-walk (walk_duration is 4.0s)
+        scene.draw(surf)
+        self.assertFalse(scene.walk_arrived, "still walking one second in")
+
+        scene.update(3.5)                      # past the end of the walk
+        scene.draw(surf)
+        self.assertTrue(scene.walk_arrived, "arrived at the door")
+
+        scene.update(0.5)                      # and stays arrived while it holds
+        scene.draw(surf)
+        self.assertTrue(scene.walk_arrived)
+
+    def test_level3_to_4_shows_mahavir_and_bows(self) -> None:
         manager, scene = self.enter(4)
         self.assert_real_image(scene, "mahavir.png")
-        self.assertIn(4, self.ts.NO_BOW_TRANSITIONS, "the bow now happens inside Level 3")
+        self.assertNotIn(4, self.ts.NO_BOW_TRANSITIONS, "bows here as well as inside Level 3")
+        self.assertTrue(scene.bow_frames, "bow poses loaded")
         scene._advance()
         self.assertEqual(manager.switches, [(self.settings.SCENE_LEVEL, {"level": 4})])
 

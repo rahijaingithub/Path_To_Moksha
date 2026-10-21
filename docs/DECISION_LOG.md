@@ -536,3 +536,20 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   Lion!"** — it rewards recognising the correct symbol, the counterpart to the Wrong
   Lakshan (Bull) box that teaches discernment. Still adds time (D1). Wording is Claude's;
   confirm with the Paathshala.
+
+## 2026-10-20 — Transition arrivals: stop at the door, and bow to Mahavir twice
+* **Bug (reported by designer):** on the 1→2 transition the devotee reached the temple door
+  but kept stepping on the spot. The position clamped at the target; the walk-cycle frame
+  index did not, because it was driven straight off `elapsed`. Fixed: the walk freezes to
+  the standing pose on arrival (`TransitionScene.walk_arrived`).
+* **Decision (designer):** the 3→4 transition **bows again**, reversing the 2026-09-23
+  decision that skipped it because Level 3 now ends with an in-level bow on the shikhar.
+  The devotee therefore bows to Mahavir twice in a row — asked for explicitly, with the
+  alternative (bow only on the transition screen) declined.
+  * *Rationale:* consistency of the transition screens, which the designer reads as the
+    place reverence is shown; the repetition is accepted.
+  * `NO_BOW_TRANSITIONS` is now `{2}`. `test_level3_to_4_shows_mahavir_and_bows` asserts
+    the new behaviour, replacing the test that asserted the old one.
+* **Not changed:** the 4→Victory (Adinath) transition already walked in and bowed; the
+  designer's report that it "keeps walking" was not reproducible and a passing test
+  (`test_level4_to_victory_shows_adinath_bows_and_glows_then_victory`) covers it.

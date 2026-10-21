@@ -15,9 +15,10 @@ from settings import (
 )
 
 
-# Transitions that walk in without bowing: 1->2, and 3->4 because Level 3 now
-# ends with the devotee bowing to Mahavir Bhagwan in the level itself (2026-09-23).
-NO_BOW_TRANSITIONS = {2, 4}
+# Transitions that walk in without bowing: 1->2 only. The devotee reaches the
+# temple door and stands there in reverence. 3->4 bows again here by request
+# (2026-10-20), even though Level 3 already ends with a bow to Mahavir in-level.
+NO_BOW_TRANSITIONS = {2}
 # Level 4 -> Victory: Moolnayak Adinath Bhagwan, bow, golden glow, then Victory.
 FINAL_TRANSITION = 5
 
@@ -83,6 +84,7 @@ class TransitionScene:
         self.bow_strip = None
         self.idle_sprite = None
         self.particles = []
+        self.walk_arrived = False   # True once the devotee reaches the door/image
 
     def on_enter(self, **kwargs):
         self.next_level = kwargs.get("next_level", 2)
@@ -91,6 +93,7 @@ class TransitionScene:
         self.fade_alpha = 255
         self.auto_advance_timer = 8.5
         self.particles = []
+        self.walk_arrived = False
 
         self.data = TRANSITION_DATA.get(self.next_level, TRANSITION_DATA[2])
 
@@ -261,11 +264,16 @@ class TransitionScene:
 
             progress = min(1.0, self.elapsed / walk_duration)
             char_cx = int(start_x + (target_x - start_x) * progress)
+            # At the door the devotee stands still in reverence — the walk cycle
+            # stops instead of stepping on the spot (2026-10-20).
+            self.walk_arrived = progress >= 1.0
 
-            if self.walk_strip:
+            if self.walk_arrived and self.idle_sprite:
+                current_sprite = self.idle_sprite
+            elif self.walk_strip:
                 fh = self.walk_strip.get_height()
                 n_frames = max(1, self.walk_strip.get_width() // fh)
-                frame_idx = int(self.elapsed / 0.08) % n_frames
+                frame_idx = 0 if self.walk_arrived else int(self.elapsed / 0.08) % n_frames
                 frame_surf = pygame.Surface((fh, fh), pygame.SRCALPHA)
                 frame_surf.blit(self.walk_strip, (0, 0), (frame_idx * fh, 0, fh, fh))
                 current_sprite = pygame.transform.smoothscale(frame_surf, (150, 150))
