@@ -64,9 +64,9 @@ class BonusSceneTests(unittest.TestCase):
         import level_scene
         import settings
 
-        # The monitor is off by default and its writes are now encoding-safe
-        # (see tests/test_debug_monitor.py), but these tests must not depend on
-        # debug logging either way.
+        # Scene switching logs box-drawing characters, which raise
+        # UnicodeEncodeError when stdout is a pipe rather than a console. Tests
+        # must not depend on debug logging either way.
         cls._monitor = debug_monitor.monitor
         cls._monitor_was_enabled = cls._monitor.enabled
         cls._monitor.enabled = False
