@@ -261,6 +261,31 @@ class RescueTests(unittest.TestCase):
         self.step()
         self.assertIn("hospital", s.hint.lower())
 
+    # ── the G5 art drops in without a code change ─────────────────────────────
+
+    def test_art_is_used_for_each_pose_when_the_files_exist(self) -> None:
+        """RescueNPC prefers a pose image over its procedural figure, and scales it."""
+        npc = self.rescue_npc.RescueNPC(self.rescue_npc.KIND_INJURED, 400, 900,
+                                        {"sitting": self.pygame.Surface((300, 300), self.pygame.SRCALPHA),
+                                         "carried": self.pygame.Surface((300, 300), self.pygame.SRCALPHA)})
+        self.assertEqual(npc._pose_image("sitting", self.rescue_npc.SIT_DRAW_HEIGHT).get_height(),
+                         self.rescue_npc.SIT_DRAW_HEIGHT)
+        self.assertEqual(npc._pose_image("carried", self.rescue_npc.CARRY_DRAW_HEIGHT).get_height(),
+                         self.rescue_npc.CARRY_DRAW_HEIGHT)
+        self.assertIsNone(npc._pose_image("walk", 100), "absent poses fall back")
+
+    def test_a_four_frame_walk_strip_cycles_and_is_scaled(self) -> None:
+        strip = self.pygame.Surface((128 * 4, 128), self.pygame.SRCALPHA)
+        npc = self.rescue_npc.RescueNPC(self.rescue_npc.KIND_LOST, 400, 900, {"walk": strip})
+        frame = npc._walk_image()
+        self.assertEqual(frame.get_height(), self.rescue_npc.DRAW_HEIGHT)
+        self.assertEqual(frame.get_width(), self.rescue_npc.DRAW_HEIGHT, "square frames stay square")
+
+    def test_missing_art_never_draws_the_pink_placeholder(self) -> None:
+        """The scene checks the file exists first, so nothing loads a placeholder."""
+        self.assertEqual(self.scene.injured.poses, {}, "no G5 art on disk yet")
+        self.assertEqual(self.scene.lost.poses, {})
+
     def test_draws_with_people_carried_led_and_delivered(self) -> None:
         surf = self.pygame.Surface((1920, 1080))
         s = self.scene

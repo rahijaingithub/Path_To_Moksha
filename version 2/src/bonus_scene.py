@@ -16,11 +16,12 @@ G2 builds the frame: the clock, the HUD, and the round trip. The two rescues
 themselves are G3, so for now there is nothing to complete and nothing is banked.
 """
 import math
+import os
 import pygame
 from scene_manager import Scene
 from rescue_npc import RescueNPC, KIND_INJURED, KIND_LOST
 from settings import (
-    LOGICAL_WIDTH, LOGICAL_HEIGHT, BONUS_TIME_LIMIT, PLAYER_SPEED,
+    LOGICAL_WIDTH, LOGICAL_HEIGHT, BONUS_TIME_LIMIT, PLAYER_SPEED, IMAGES_DIR,
     SCENE_LEVEL, SCENE_TITLE,
     COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GOLD_DIM, COLOR_CREAM, COLOR_WHITE,
     COLOR_GREEN, COLOR_RED, COLOR_SAFFRON,
@@ -85,8 +86,11 @@ class BonusScene(Scene):
         self.treat_timer = 0.0
         self.hint = ""
 
-        self.injured = RescueNPC(KIND_INJURED, INJURED_START_X, GROUND_Y)
-        self.lost = RescueNPC(KIND_LOST, LOST_START_X, GROUND_Y)
+        self.injured = RescueNPC(KIND_INJURED, INJURED_START_X, GROUND_Y,
+                                 self._load_poses(sitting="injured_man_sitting.png",
+                                                  carried="injured_man_carried.png"))
+        self.lost = RescueNPC(KIND_LOST, LOST_START_X, GROUND_Y,
+                              self._load_poses(walk="lost_man_walk_right.png"))
 
         char = self.manager.shared.get("character", "boy")
         self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
@@ -99,6 +103,18 @@ class BonusScene(Scene):
 
         self.assets.play_music("bgm_loop.ogg",
                                volume=self.manager.shared.get("music_volume", 0.35))
+
+    def _load_poses(self, **names):
+        """The optional G5 art for one person, by pose.
+
+        Each file is checked for first: AssetManager answers a missing image with a
+        pink placeholder, which would be drawn rather than fall back to the figure.
+        """
+        poses = {}
+        for key, name in names.items():
+            if os.path.exists(os.path.join(IMAGES_DIR, "sprites", name)):
+                poses[key] = self.assets.load_image(name, "sprites", alpha=True)
+        return poses
 
     @property
     def injured_saved(self):

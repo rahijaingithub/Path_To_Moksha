@@ -257,28 +257,40 @@ the devotee helps an injured man's **body** and a lost man's **soul**. Until the
 the game draws both figures procedurally, the way it falls back for the Monk, so the
 level is playable without them.
 
-**House style applies.** These must match the existing sprites — flat colours, clean dark
-ink outlines, soft cel shading — not photoreal. Hurt stays gentle, as it does for the
-tired bird above ("tired, not injured — no blood, no wounds, no distress"): the injured
-man wears a bandage and holds his leg; there is never blood or visible injury. The
-audience is a Paathshala.
+**Style:** high-fidelity rendered illustration, matching the transition artwork
+(`transitions/mahavir.png`) and the player strips — soft volumetric shading, realistic
+human proportions and real fabric weight, fine detail, no flat cartoon fills and no
+heavy ink outline. The two men are **adult Indian men in kurta and dhoti**, so they
+stand beside the boy and girl pilgrims as the same world.
 
-*   **File:** `assets/images/sprites/injured_man_lying.png` — one image, **square**, head to
-    the **right**, transparent background (the game mirrors and scales it).
-    *   **Prompt:** `A single 2D game sprite of a grown Indian man lying on his side on flat ground, head to the right, resting on one elbow, one knee drawn up, holding his lower leg which is wrapped in a clean white cloth bandage. Simple warm terracotta kurta and cream dhoti, warm brown skin, short dark hair, tired but calm expression, eyes half closed. Gentle and kid-friendly: hurt and resting, not in pain — no blood, no wounds, no distress, no torn clothing. Flat colours with clean dark ink outlines and soft cel shading, matching a hand-drawn 2D cartoon game. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+**Hurt stays bloodless** (designer, 2026-10-20): the injured man is shown **sitting on the
+ground holding his lower leg**, or limping — never blood, wounds, gore or visible injury.
+The audience is a Paathshala. This is the one hard rule on these three.
 
-*   **File:** `assets/images/sprites/injured_man_carried.png` — one image, **square**, same man
-    limp and horizontal, to be drawn across the devotee's shoulders.
-    *   **Prompt:** `A single 2D game sprite of the same grown Indian man in a terracotta kurta and cream dhoti with a white bandage on his lower leg, held horizontally as if carried across someone's shoulders: body straight and relaxed, arms hanging down on one side, legs together on the other, head turned slightly up, eyes closed, calm. Gentle and kid-friendly — no blood, no wounds, no distress. Flat colours with clean dark ink outlines and soft cel shading. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+*   **File:** `assets/images/sprites/injured_man_sitting.png` — one image, **square**, facing
+    **right**, transparent background (the game mirrors and scales it).
+    *   **Prompt:** `A single high-fidelity 2D game sprite of an adult Indian man, about 40, sitting on flat ground facing right, one knee drawn up with both hands clasped around his lower shin, the other leg folded beneath him, leaning back slightly on one hip. His lower leg is neatly wrapped in a clean white cotton bandage. He wears a warm terracotta cotton kurta and a cream dhoti with natural fabric folds and weight, has warm brown skin, short dark hair greying at the temples, a short beard, and a tired but calm and patient expression. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, subtle cel-shaded finish, realistic human proportions, fine painterly detail. Gentle and dignified: resting and hurt, not in pain. No blood, no wound, no gore, no torn clothing, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+
+*   **File:** `assets/images/sprites/injured_man_carried.png` — one image, **square**, the same
+    man held horizontally, to be drawn across the devotee's shoulders.
+    *   **Prompt:** `A single high-fidelity 2D game sprite of the same adult Indian man in a terracotta kurta and cream dhoti with a clean white bandage on his lower leg, held horizontally as if carried across someone's shoulders: body straight and relaxed, arms hanging loosely down on one side, legs together on the other, head turned slightly upward, eyes closed, a calm and trusting expression. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture with natural fabric drape and gravity, realistic human proportions, fine painterly detail. No blood, no wound, no gore, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
 
 *   **File:** `assets/images/sprites/lost_man_walk_right.png` — a **4-frame horizontal strip**,
     four equal square frames, facing **right** (the game mirrors it for left).
-    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of a grown Indian man walking slowly to the right while looking lost: a simple blue-grey kurta and white dhoti, warm brown skin, short dark hair, a small cloth bundle in one hand. He is searching for somewhere, not distressed. Frame 1: stepping forward, head turned over his shoulder looking back. Frame 2: mid-stride, head facing forward, free hand raised to shade his eyes as he scans ahead. Frame 3: stepping forward, head tilted and turned to the other side, brow slightly furrowed, searching. Frame 4: mid-stride, head facing forward, free hand open at his side in a small questioning gesture. The character is the same size and stands on the same ground line in every frame. Gentle and kid-friendly: puzzled and hopeful, never frightened or sad. Flat colours with clean dark ink outlines and soft cel shading. Isolated on a pure white background, no shadow, no text.`
+    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult Indian man, about 35, walking slowly to the right while searching for the way. He wears a blue-grey cotton kurta and a white dhoti with natural fabric folds, carries a small cloth bundle in one hand, has warm brown skin and short dark hair. Frame 1: stepping forward, head turned back over his shoulder. Frame 2: mid-stride, facing forward, free hand raised to shade his eyes as he scans the distance. Frame 3: stepping forward, head tilted and turned the other way, brow lightly furrowed, searching. Frame 4: mid-stride, facing forward, free hand open at his side in a small questioning gesture. The man is exactly the same size and stands on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. His expression is puzzled and hopeful, never frightened or sad. Isolated on a pure white background, no shadow, no text.`
+
+*   **Optional, if the designer wants the healing shown:**
+    `assets/images/sprites/injured_man_limp_right.png`, a 4-frame strip of the same man
+    walking away healed but still favouring the bandaged leg — a shorter step on that side,
+    a lower hip, one hand resting on the thigh. Not needed by the mechanic: the game
+    carries him in and stands him up when he is well.
 
 *   **Negative prompt:** use the standard block from Section 5, Part C, and add:
-    `blood, wound, injury, gore, bruises, bandage stains, hospital equipment, distress, crying, fear, photoreal, photographic, 3D render`
+    `blood, wound, open wound, gore, bruises, scars, stained bandage, crying, fear, agony, grimace, hospital equipment, flat vector, heavy black outline, cartoon`
 *   **Post-processing:** run `remove_backgrounds.py` to key the white out, then scale so the
-    lost man matches the player's on-screen height (the game draws the devotee 150px tall).
-    Drop the files in and `RescueNPC` picks them up — it already prefers a sprite over the
-    procedural figure.
-
+    lost man matches the devotee's on-screen height (the game draws him 150px tall) and the
+    sitting man is roughly 62px tall at that scale. Drop the files in and `RescueNPC` picks
+    them up — it already prefers a sprite over the procedural figure.
+*   **Licence note:** if any of these are sourced from the web rather than generated, add
+    them to **BL3** alongside the bird art — that backlog item gates public release on
+    clearing third-party art.

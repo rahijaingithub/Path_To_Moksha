@@ -704,3 +704,32 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   no wounds, no distress"*. The injured man therefore has a bandage and a held leg, never
   a wound. The audience is a Paathshala. Worth a designer's confirmation.
 
+## 2026-10-20 — G5 art direction: hyperrealistic, bloodless, and sourcing is allowed
+Both of Claude's recommendations on the previous entry were put to the designer and
+**overruled**, with reasons. Recorded so the reversal is not re-argued later.
+* **Decision (designer): hyperrealistic, matching the existing artwork.** Claude had
+  described the house style as "flat colours, ink outlines" and argued photoreal would
+  clash. That description was **wrong** — it was taken from the wording of the prompts in
+  `image_generation_prompts.md`, not from the art. `transitions/mahavir.png` and the player
+  strips are high-fidelity rendered illustration with soft volumetric shading and realistic
+  proportions. §8 is rewritten to match them.
+* **Decision (designer): sourcing from the web is acceptable**, accepting three assets
+  behind the BL3 release gate rather than one. BL3 is widened to name them.
+  * *Practical finding, not an objection:* a search turned up no realistic limping or
+    carried-injured cycle, licensed or otherwise, and nothing showing an Indian man in
+    kurta and dhoti — so sourcing is unlikely to produce art that matches these characters
+    even with the gate accepted. Generation remains the likelier route; the choice is the
+    designer's either way.
+* **Decision (designer): no blood — the injured man sits holding his leg, or limps.** This
+  keeps the Paathshala-appropriate line the tired-bird prompt set, without giving up the
+  realism. It is the one hard rule written into §8's prompts and negative prompt.
+  * *Code followed the art:* the injured man now **sits** while waiting rather than lying
+    down (`RescueNPC.SITTING_HEIGHT`), so the placeholder matches the art that will replace
+    it.
+* **Art loading wired and tested.** `RescueNPC` now takes a dict of poses —
+  `sitting`/`carried` for the injured man, a square-framed `walk` strip for the lost one —
+  prefers them over the procedural figure, and scales each to its on-screen height. The
+  scene checks each file exists before loading, because `AssetManager` answers a missing
+  image with a pink placeholder that would be drawn instead of falling back. Dropping the
+  three files in needs no code change; `tests/test_rescues.py` covers that path.
+

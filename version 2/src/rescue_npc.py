@@ -20,6 +20,11 @@ from settings import (
 KIND_INJURED = "injured"
 KIND_LOST = "lost"
 
+# On-screen heights for the G5 art. The devotee is drawn 150px tall beside them.
+DRAW_HEIGHT = 150
+SIT_DRAW_HEIGHT = 96
+CARRY_DRAW_HEIGHT = 130
+
 # How close the devotee must be to pick someone up or be followed.
 REACH = 90
 # The lost man keeps this far behind the devotee, and never outruns him.
@@ -36,12 +41,15 @@ class RescueNPC:
     WIDTH = 52
     HEIGHT = 96
 
-    def __init__(self, kind, x, ground_y, sprite=None):
+    def __init__(self, kind, x, ground_y, poses=None):
         self.kind = kind
         self.x = float(x)
         self.home_x = float(x)
         self.ground_y = ground_y
-        self.sprite = sprite          # G5 art, when it exists
+        # G5 art, when it exists: "sitting"/"carried" for the injured man, "walk"
+        # (a square-framed strip) for the lost one. Missing poses fall back to the
+        # procedural figure, one pose at a time.
+        self.poses = poses or {}
         self.state = "waiting"        # waiting | carried | following | treating | delivered
         self.facing_right = True
         self.anim = 0.0
@@ -49,12 +57,14 @@ class RescueNPC:
 
     # ── geometry ──────────────────────────────────────────────────────────────
 
+    SITTING_HEIGHT = 62       # he sits holding his leg until he is picked up
+
     @property
     def rect(self):
-        """Standing box. The injured man lies down until he is picked up."""
-        if self.kind == KIND_INJURED and self.state == "waiting":
-            return pygame.Rect(int(self.x - self.HEIGHT // 2), self.ground_y - self.WIDTH,
-                               self.HEIGHT, self.WIDTH)
+        """Standing box, except the injured man, who sits until he is carried."""
+        if self.kind == KIND_INJURED and self.state in ("waiting", "treating"):
+            return pygame.Rect(int(self.x - self.WIDTH // 2), self.ground_y - self.SITTING_HEIGHT,
+                               self.WIDTH, self.SITTING_HEIGHT)
         return pygame.Rect(int(self.x - self.WIDTH // 2), self.ground_y - self.HEIGHT,
                            self.WIDTH, self.HEIGHT)
 
@@ -110,12 +120,23 @@ class RescueNPC:
         if self.state == "carried" and player_x is not None:
             # Across the shoulders, at nearly full size — shrunk much further he
             # stops reading as a person being carried at all.
-            self._draw_figure(surface, player_x + (26 if self.facing_right else -26),
-                              player_top + 58, lying=True, scale=0.95)
+            cx = player_x + (26 if self.facing_right else -26)
+            art = self._pose_image("carried", CARRY_DRAW_HEIGHT)
+            if art:
+                self._blit(surface, art, cx, player_top + 58)
+            else:
+                self._draw_figure(surface, cx, player_top + 58, lying=True, scale=0.95)
             return
 
-        lying = self.kind == KIND_INJURED and self.state in ("waiting", "treating")
-        self._draw_figure(surface, self.x, self.ground_y, lying=lying)
+        sitting = self.kind == KIND_INJURED and self.state in ("waiting", "treating")
+        if sitting:
+            art = self._pose_image("sitting", SIT_DRAW_HEIGHT)
+        else:
+            art = self._walk_image()
+        if art:
+            self._blit(surface, art, self.x, self.ground_y)
+        else:
+            self._draw_figure(surface, self.x, self.ground_y, sitting=sitting)
 
         if self.state == "waiting":
             self._draw_call(surface, font)
@@ -126,16 +147,40 @@ class RescueNPC:
         mark = "!" if self.kind == KIND_INJURED else "?"
         color = COLOR_SAFFRON if self.kind == KIND_INJURED else COLOR_GOLD_BRIGHT
         glyph = font.render(mark, True, color)
-        top = self.ground_y - (self.WIDTH if self.kind == KIND_INJURED else self.HEIGHT)
+        top = self.ground_y - (self.SITTING_HEIGHT if self.kind == KIND_INJURED else self.HEIGHT)
         surface.blit(glyph, glyph.get_rect(center=(int(self.x), int(top - 24 + bob))))
 
-    def _draw_figure(self, surface, cx, base_y, lying=False, scale=1.0):
-        """A plain figure — stand-in until G5. Flat colours, like the rest of the art."""
-        if self.sprite:
-            img = self.sprite if self.facing_right else pygame.transform.flip(self.sprite, True, False)
-            surface.blit(img, img.get_rect(midbottom=(int(cx), int(base_y))))
-            return
+    def _pose_image(self, key, target_h):
+        """One still pose, scaled to `target_h`. None when that art is not present."""
+        img = self.poses.get(key)
+        return self._to_height(img, target_h) if img else None
 
+    def _walk_image(self):
+        """The current frame of the walk strip — square frames, left to right."""
+        strip = self.poses.get("walk")
+        if not strip:
+            return None
+        fh = strip.get_height()
+        frames = max(1, strip.get_width() // fh)
+        moving = self.state in ("waiting", "following")
+        idx = int(self.anim / 0.14) % frames if moving else 0
+        cell = pygame.Surface((fh, fh), pygame.SRCALPHA)
+        cell.blit(strip, (0, 0), (idx * fh, 0, fh, fh))
+        return self._to_height(cell, DRAW_HEIGHT)
+
+    @staticmethod
+    def _to_height(img, target_h):
+        ratio = target_h / img.get_height()
+        return pygame.transform.smoothscale(
+            img, (max(1, int(img.get_width() * ratio)), int(target_h)))
+
+    def _blit(self, surface, img, cx, base_y):
+        if not self.facing_right:
+            img = pygame.transform.flip(img, True, False)
+        surface.blit(img, img.get_rect(midbottom=(int(cx), int(base_y))))
+
+    def _draw_figure(self, surface, cx, base_y, lying=False, sitting=False, scale=1.0):
+        """A plain figure — a stand-in until the art of G5 arrives."""
         h = int(self.HEIGHT * scale)
         w = int(self.WIDTH * scale)
         skin = (214, 176, 134)
@@ -159,7 +204,10 @@ class RescueNPC:
             pygame.draw.circle(body, (*COLOR_GREEN[:3], 120),
                                (c, c - h // 4 - int(10 * scale)), halo, width=3)
 
-        if lying:
+        if lying:                     # carried across the shoulders
             body = pygame.transform.rotate(body, 90)
+        elif sitting:                 # on the ground, holding his leg
+            body = pygame.transform.smoothscale(
+                body, (body.get_width(), int(body.get_height() * 0.66)))
 
         surface.blit(body, body.get_rect(midbottom=(int(cx), int(base_y))))
