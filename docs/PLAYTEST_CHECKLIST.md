@@ -16,7 +16,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 8. [ ] Level 3 completable start-to-finish without developer mode.
 9. [ ] Level 4 completable start-to-finish without developer mode.
 10. [ ] Transition 3→4 shows Mahavir and the devotee walks in and **bows** (a second bow
-        after Level 3's in-level one — intended, see #47). On 1→2 the devotee walks to the
+        after Level 3's in-level one — intended, see #48). On 1→2 the devotee walks to the
         temple door and then **stands still** — no stepping on the spot. Boy and girl.
 11. [ ] Transition 4→Victory shows Adinath, glow, then Victory with the Garbhalaya image.
 
@@ -107,6 +107,12 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 46. [ ] **Ignoring the bird:** offer the Akshat without helping — no penalty, no message
         about the bird. Your Level 3 time on the results/Victory screen is your real time
         either way (never negative after the bonus).
-47. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
+47. [ ] **Karuna bonus level:** solving the Namokar Mantra drops you into "A Glimpse of
+        the Punya's Fruit" on its own 4:00 clock. Carry the injured man to the hospital and
+        ACT to treat him; lead the lost man to the temple (he needs no press). Both done →
+        the time left is shown and you land back in the Hall exactly where you stood, its
+        clock untouched. Let the clock run out once: you return with nothing banked and
+        nothing lost. Figures are placeholders until G5 art lands.
+48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.

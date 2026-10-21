@@ -676,3 +676,31 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   "folders replace branches, single `main`". Two loaded constitutions that contradict each
   other on where work lands is worse than one. The root `CLAUDE.md` is the only copy; it
   already says the game root is `version 2/` and that it itself lives one level up.
+
+## 2026-10-20 — G3: the two rescues, and how their art will be made
+* **Built (Epic G3).** `rescue_npc.py` holds `RescueNPC`
+  (waiting → carried/following → treating → delivered). Three verbs, because the two
+  kinds of help are genuinely different:
+  * the **injured** man cannot move — he is **carried**, then **treated** at the hospital
+    (2.5s), saving his *body*;
+  * the **lost** man can walk but not find the way — he is **led**, and **recognises the
+    temple himself** on arrival, saving his *soul*. No second button press: the guiding
+    was the whole of the help.
+  * Carrying slows the devotee to 0.72× — compassion costs effort. The lost man wanders
+    while unhelped, so "looking lost" reads before anyone speaks to him. The two start on
+    opposite sides of their destinations, so the errands cross and the order is a choice.
+  * *Verified:* `tests/test_rescues.py`, 10 tests, driven through the real scene with a stub
+    input device. Full suite 81 green.
+* **Decision — art is generated, not downloaded.** The designer asked for sourced sprites,
+  "the way we found the flying bird". That method is exactly what **BL3** already flags:
+  the bird art traces a third-party sheet and must be re-sourced or licensed before any
+  public release. Searching CC0 sources turned up no injured-carried or looking-lost cycle
+  anyway (OpenGameArt is near-entirely pixel art). So these go through the project's own
+  documented pipeline instead — prompts added as `image_generation_prompts.md` §8 — which
+  is how every other sprite here was made, and carries no licence to clear.
+* **Decision — not photoreal.** "Hyperrealistic" was asked for, but it would clash twice:
+  with the flat-colour, ink-outlined 128px sprites beside it, and with this project's own
+  art direction for hurt, set by the tired-bird prompt — *"tired, not injured — no blood,
+  no wounds, no distress"*. The injured man therefore has a bandage and a held leg, never
+  a wound. The audience is a Paathshala. Worth a designer's confirmation.
+

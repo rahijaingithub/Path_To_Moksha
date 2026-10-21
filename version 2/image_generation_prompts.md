@@ -250,3 +250,35 @@ The bird that falls onto the lotus in Level 3. **Optional** — until it exists 
 *   **File:** `assets/images/sprites/bird_fallen.png` — one image, **square**, bird facing **right**, transparent background (the game mirrors it when needed and scales it to 84×84).
 *   **Prompt:** `A single 2D game sprite of a small songbird matching this style: dark brown-grey wings and back, warm orange breast, dark head, small yellow beak, flat colours with a clean dark-brown outline. The bird is resting tired on its side on a flat surface, wings folded, eyes half closed, facing right. Gentle and kid-friendly: tired, not injured — no blood, no wounds, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
 *   **Negative prompt:** use the standard block from Section 5, Part C.
+
+## 8. Level 3 Karuna Bonus Level — the two souls helped (Epic G5)
+The bonus level opened by the Namokar Mantra: a glimpse of the punya's fruit, in which
+the devotee helps an injured man's **body** and a lost man's **soul**. Until these exist
+the game draws both figures procedurally, the way it falls back for the Monk, so the
+level is playable without them.
+
+**House style applies.** These must match the existing sprites — flat colours, clean dark
+ink outlines, soft cel shading — not photoreal. Hurt stays gentle, as it does for the
+tired bird above ("tired, not injured — no blood, no wounds, no distress"): the injured
+man wears a bandage and holds his leg; there is never blood or visible injury. The
+audience is a Paathshala.
+
+*   **File:** `assets/images/sprites/injured_man_lying.png` — one image, **square**, head to
+    the **right**, transparent background (the game mirrors and scales it).
+    *   **Prompt:** `A single 2D game sprite of a grown Indian man lying on his side on flat ground, head to the right, resting on one elbow, one knee drawn up, holding his lower leg which is wrapped in a clean white cloth bandage. Simple warm terracotta kurta and cream dhoti, warm brown skin, short dark hair, tired but calm expression, eyes half closed. Gentle and kid-friendly: hurt and resting, not in pain — no blood, no wounds, no distress, no torn clothing. Flat colours with clean dark ink outlines and soft cel shading, matching a hand-drawn 2D cartoon game. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+
+*   **File:** `assets/images/sprites/injured_man_carried.png` — one image, **square**, same man
+    limp and horizontal, to be drawn across the devotee's shoulders.
+    *   **Prompt:** `A single 2D game sprite of the same grown Indian man in a terracotta kurta and cream dhoti with a white bandage on his lower leg, held horizontally as if carried across someone's shoulders: body straight and relaxed, arms hanging down on one side, legs together on the other, head turned slightly up, eyes closed, calm. Gentle and kid-friendly — no blood, no wounds, no distress. Flat colours with clean dark ink outlines and soft cel shading. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+
+*   **File:** `assets/images/sprites/lost_man_walk_right.png` — a **4-frame horizontal strip**,
+    four equal square frames, facing **right** (the game mirrors it for left).
+    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of a grown Indian man walking slowly to the right while looking lost: a simple blue-grey kurta and white dhoti, warm brown skin, short dark hair, a small cloth bundle in one hand. He is searching for somewhere, not distressed. Frame 1: stepping forward, head turned over his shoulder looking back. Frame 2: mid-stride, head facing forward, free hand raised to shade his eyes as he scans ahead. Frame 3: stepping forward, head tilted and turned to the other side, brow slightly furrowed, searching. Frame 4: mid-stride, head facing forward, free hand open at his side in a small questioning gesture. The character is the same size and stands on the same ground line in every frame. Gentle and kid-friendly: puzzled and hopeful, never frightened or sad. Flat colours with clean dark ink outlines and soft cel shading. Isolated on a pure white background, no shadow, no text.`
+
+*   **Negative prompt:** use the standard block from Section 5, Part C, and add:
+    `blood, wound, injury, gore, bruises, bandage stains, hospital equipment, distress, crying, fear, photoreal, photographic, 3D render`
+*   **Post-processing:** run `remove_backgrounds.py` to key the white out, then scale so the
+    lost man matches the player's on-screen height (the game draws the devotee 150px tall).
+    Drop the files in and `RescueNPC` picks them up — it already prefers a sprite over the
+    procedural figure.
+

@@ -18,8 +18,9 @@ themselves are G3, so for now there is nothing to complete and nothing is banked
 import math
 import pygame
 from scene_manager import Scene
+from rescue_npc import RescueNPC, KIND_INJURED, KIND_LOST
 from settings import (
-    LOGICAL_WIDTH, LOGICAL_HEIGHT, BONUS_TIME_LIMIT,
+    LOGICAL_WIDTH, LOGICAL_HEIGHT, BONUS_TIME_LIMIT, PLAYER_SPEED,
     SCENE_LEVEL, SCENE_TITLE,
     COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GOLD_DIM, COLOR_CREAM, COLOR_WHITE,
     COLOR_GREEN, COLOR_RED, COLOR_SAFFRON,
@@ -31,6 +32,21 @@ HOME_LEVEL = 3
 
 # How long the closing card is held before the devotee is returned (seconds).
 OUTCOME_HOLD_SECONDS = 3.0
+
+# The ground, and where the two errands begin and end. The injured man starts to
+# the right of the hospital and the lost man to the left of the temple, so the two
+# errands cross and the devotee has to choose an order.
+GROUND_Y = LOGICAL_HEIGHT - 120
+HOSPITAL_X = 300
+TEMPLE_X = LOGICAL_WIDTH - 300
+INJURED_START_X = 1150
+LOST_START_X = 700
+PLAYER_START_X = LOGICAL_WIDTH // 2
+
+PLAYER_HALF_W = 32            # half the drawn sprite, for the walls
+CARRY_SPEED_FACTOR = 0.72     # carrying a man is slower than walking free
+DESTINATION_REACH = 120       # how close counts as "at" the hospital or the temple
+TREAT_SECONDS = 2.5           # tending to the injured man once he is at the hospital
 
 
 class BonusScene(Scene):
@@ -46,8 +62,13 @@ class BonusScene(Scene):
         self.outcome = None          # None while playing, then "saved" or "out_of_time"
         self.outcome_timer = 0.0
         self.banked = 0.0            # seconds handed back to Level 3
-        self.injured_saved = False   # G3
-        self.lost_saved = False      # G3
+        self.player_x = float(PLAYER_START_X)
+        self.facing_right = True
+        self.walking = False
+        self.treat_timer = 0.0       # counting down while tending the injured man
+        self.injured = None
+        self.lost = None
+        self.hint = ""               # what ACTION would do right now
 
     # ── lifecycle ─────────────────────────────────────────────────────────────
 
@@ -58,8 +79,18 @@ class BonusScene(Scene):
         self.outcome = None
         self.outcome_timer = 0.0
         self.banked = 0.0
-        self.injured_saved = False
-        self.lost_saved = False
+        self.player_x = float(PLAYER_START_X)
+        self.facing_right = True
+        self.walking = False
+        self.treat_timer = 0.0
+        self.hint = ""
+
+        self.injured = RescueNPC(KIND_INJURED, INJURED_START_X, GROUND_Y)
+        self.lost = RescueNPC(KIND_LOST, LOST_START_X, GROUND_Y)
+
+        char = self.manager.shared.get("character", "boy")
+        self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
+        self.idle_strip = self.assets.load_image(f"player_{char}_idle_right.png", "sprites", alpha=True)
 
         self.font_title = self.assets.load_font(None, GAME_FONT_SIZE_SUBTITLE)
         self.font_body = self.assets.load_font(None, GAME_FONT_SIZE_BODY)
@@ -70,9 +101,24 @@ class BonusScene(Scene):
                                volume=self.manager.shared.get("music_volume", 0.35))
 
     @property
+    def injured_saved(self):
+        return self.injured is not None and self.injured.helped
+
+    @property
+    def lost_saved(self):
+        return self.lost is not None and self.lost.helped
+
+    @property
     def both_rescued(self):
-        """Both rescues done. Nothing can set these until G3, so this is False for now."""
+        """A body saved and a soul guided — the detour is complete (Q8: both, or nothing)."""
         return self.injured_saved and self.lost_saved
+
+    @property
+    def carrying(self):
+        return self.injured is not None and self.injured.state == "carried"
+
+    def _at(self, x):
+        return abs(self.player_x - x) <= DESTINATION_REACH
 
     # ── input ─────────────────────────────────────────────────────────────────
 
@@ -92,6 +138,45 @@ class BonusScene(Scene):
         # is still held in memory is abandoned with it, exactly as ESC from a level.
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
             self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
+            return
+
+        if self.treat_timer > 0:          # hands busy tending him
+            return
+
+        if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+            self._act()
+
+    def _act(self):
+        """One button, whichever kind of help is within reach."""
+        # Tending the injured man, once he has been carried to the hospital.
+        if self.carrying and self._at(HOSPITAL_X):
+            self.injured.state = "treating"
+            self.injured.x = HOSPITAL_X
+            self.treat_timer = TREAT_SECONDS
+            self.assets.play_sound("box_open.wav", volume=0.3)
+            return
+
+        # Taking someone up: carried if he cannot walk, led if he can.
+        for npc in (self.injured, self.lost):
+            if npc.state == "waiting" and npc.is_near(self.player_x):
+                npc.take()
+                self.assets.play_sound("jump.wav", volume=0.2)
+                return
+
+    def _current_hint(self):
+        """What ACTION would do from here — shown so the verbs are never guessed at."""
+        if self.treat_timer > 0:
+            return "Tending to him..."
+        if self.carrying:
+            return ("ACT: treat him at the hospital" if self._at(HOSPITAL_X)
+                    else "Carry him to the hospital")
+        if self.injured.state == "waiting" and self.injured.is_near(self.player_x):
+            return "ACT: lift the injured man"
+        if self.lost.state == "waiting" and self.lost.is_near(self.player_x):
+            return "ACT: offer to show him the way"
+        if self.lost.state == "following":
+            return "Lead him to the temple"
+        return ""
 
     # ── update ────────────────────────────────────────────────────────────────
 
@@ -107,11 +192,53 @@ class BonusScene(Scene):
             return
 
         self.time_remaining -= dt
+        self._move_devotee(dt)
+        self._update_rescues(dt)
+        self.hint = self._current_hint()
+
         if self.both_rescued:
             self._finish("saved")
         elif self.time_remaining <= 0:
             self.time_remaining = 0.0
             self._finish("out_of_time")
+
+    def _move_devotee(self, dt):
+        """Walk left and right along the ground. Carrying a man is slower."""
+        self.walking = False
+        if self.treat_timer > 0:
+            return
+
+        speed = PLAYER_SPEED * 60.0 * (CARRY_SPEED_FACTOR if self.carrying else 1.0)
+        inp = self.input_mgr
+        if inp.actions[inp.LEFT] and not inp.actions[inp.RIGHT]:
+            self.player_x -= speed * dt
+            self.facing_right = False
+            self.walking = True
+        elif inp.actions[inp.RIGHT] and not inp.actions[inp.LEFT]:
+            self.player_x += speed * dt
+            self.facing_right = True
+            self.walking = True
+
+        self.player_x = max(PLAYER_HALF_W, min(LOGICAL_WIDTH - PLAYER_HALF_W, self.player_x))
+
+    def _update_rescues(self, dt):
+        for npc in (self.injured, self.lost):
+            npc.update(dt, self.player_x, self.facing_right)
+
+        # The injured man: tended to at the hospital, then he is well.
+        if self.treat_timer > 0:
+            self.treat_timer -= dt
+            if self.treat_timer <= 0:
+                self.treat_timer = 0.0
+                self.injured.deliver()
+                self.assets.play_sound("correct.wav", volume=0.4)
+
+        # The lost man needs no prompting at the end: he knows the temple when he
+        # sees it. Guiding him there is the whole of the help.
+        if self.lost.state == "following" and abs(self.lost.x - TEMPLE_X) <= DESTINATION_REACH:
+            self.lost.x = TEMPLE_X
+            self.lost.deliver()
+            self.assets.play_sound("correct.wav", volume=0.4)
 
     def _finish(self, outcome):
         """Close the detour. Only both rescues bank time; running out banks nothing."""
@@ -155,30 +282,67 @@ class BonusScene(Scene):
             pygame.draw.rect(surface, (r, g, b), (0, y, LOGICAL_WIDTH, 2))
 
         # Dawn light sits low, where the sky is already warm — over the dark top of
-        # the gradient the same glow only reads as a grey smudge.
-        halo = 170 + int(12 * math.sin(self.elapsed * 1.4))
+        # the gradient the same glow only reads as a grey smudge. Stacked in many
+        # faint steps, because two or three leave visible rings.
+        halo = 190 + int(12 * math.sin(self.elapsed * 1.4))
         cy = LOGICAL_HEIGHT - 300
-        for radius, alpha in ((halo, 22), (halo // 2, 30)):
-            glow = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            pygame.draw.circle(glow, (255, 198, 120, alpha), (radius, radius), radius)
-            surface.blit(glow, (LOGICAL_WIDTH // 2 - radius, cy - radius))
+        glow = pygame.Surface((halo * 2, halo * 2), pygame.SRCALPHA)
+        for i in range(14):
+            radius = int(halo * (1.0 - i / 15.0))
+            pygame.draw.circle(glow, (255, 198, 120, 5), (halo, halo), radius)
+        surface.blit(glow, (LOGICAL_WIDTH // 2 - halo, cy - halo))
 
     def _draw_placeholder_world(self, surface):
-        """Stand-in staging until G3 and G5: the ground, and where the two errands go.
+        """The ground, the two destinations, the two people, and the devotee.
 
-        Drawn rather than left blank so the scene reads as a place, and so the
-        destinations sit where the rescues will need them.
+        Figures are drawn procedurally until the art of G5 arrives, the way the
+        Monk is, so the level is playable with no assets at all.
         """
-        ground_y = LOGICAL_HEIGHT - 120
-        pygame.draw.rect(surface, (92, 74, 58), (0, ground_y, LOGICAL_WIDTH, 120))
-        pygame.draw.line(surface, (126, 104, 80), (0, ground_y), (LOGICAL_WIDTH, ground_y), 3)
+        pygame.draw.rect(surface, (92, 74, 58), (0, GROUND_Y, LOGICAL_WIDTH, 120))
+        pygame.draw.line(surface, (126, 104, 80), (0, GROUND_Y), (LOGICAL_WIDTH, GROUND_Y), 3)
 
-        self._draw_marker(surface, 300, ground_y, "HOSPITAL", COLOR_CREAM, self.injured_saved)
-        self._draw_marker(surface, LOGICAL_WIDTH - 300, ground_y, "TEMPLE", COLOR_GOLD, self.lost_saved)
+        self._draw_marker(surface, HOSPITAL_X, GROUND_Y, "HOSPITAL", COLOR_CREAM, self.injured_saved)
+        self._draw_marker(surface, TEMPLE_X, GROUND_Y, "TEMPLE", COLOR_GOLD, self.lost_saved)
 
-        note = self.font_small.render(
-            "The two rescues arrive in G3 — this is the staging for them.", True, COLOR_GOLD_DIM)
-        surface.blit(note, note.get_rect(center=(LOGICAL_WIDTH // 2, ground_y + 60)))
+        player_top = GROUND_Y - 150
+        for npc in (self.lost, self.injured):
+            npc.draw(surface, self.font_title, self.player_x, player_top)
+        self._draw_devotee(surface)
+
+        if self.treat_timer > 0:
+            self._draw_treating(surface)
+        if self.hint:
+            tip = self.font_body.render(self.hint, True, COLOR_GOLD_BRIGHT)
+            surface.blit(tip, tip.get_rect(center=(int(self.player_x), player_top - 30)))
+
+    def _draw_devotee(self, surface):
+        """The devotee himself, from the walk strip — as the transition scenes do."""
+        strip = self.walk_strip if self.walking else self.idle_strip
+        sprite = None
+        if strip:
+            fh = strip.get_height()
+            frames = max(1, strip.get_width() // fh)
+            idx = int(self.elapsed / 0.1) % frames if self.walking else 0
+            cell = pygame.Surface((fh, fh), pygame.SRCALPHA)
+            cell.blit(strip, (0, 0), (idx * fh, 0, fh, fh))
+            sprite = pygame.transform.smoothscale(cell, (150, 150))
+            if not self.facing_right:
+                sprite = pygame.transform.flip(sprite, True, False)
+
+        if sprite:
+            surface.blit(sprite, sprite.get_rect(midbottom=(int(self.player_x), GROUND_Y + 18)))
+        else:                                  # no art at all: a plain marker
+            pygame.draw.rect(surface, COLOR_WHITE,
+                             (int(self.player_x) - 16, GROUND_Y - 110, 32, 110), border_radius=6)
+
+    def _draw_treating(self, surface):
+        """A bar while the injured man is tended to, so the wait reads as work."""
+        done = 1.0 - max(0.0, self.treat_timer) / TREAT_SECONDS
+        w, h = 260, 14
+        x, y = HOSPITAL_X - w // 2, GROUND_Y - 230
+        pygame.draw.rect(surface, (30, 26, 40), (x, y, w, h), border_radius=7)
+        pygame.draw.rect(surface, COLOR_GREEN, (x, y, int(w * done), h), border_radius=7)
+        pygame.draw.rect(surface, COLOR_CREAM, (x, y, w, h), width=2, border_radius=7)
 
     def _draw_marker(self, surface, cx, ground_y, label, color, done):
         """A destination: a plain plinth with its name, ticked once its errand is done."""

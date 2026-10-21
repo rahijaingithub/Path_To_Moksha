@@ -5,8 +5,8 @@ Its four minutes are the four that used to be a flat +4:00: both rescues done ba
 whatever is left, running the clock out banks nothing, and either way Level 3 is
 resumed in place with its own clock untouched.
 
-The two rescues are G3, so these tests set ``injured_saved`` / ``lost_saved`` by hand
-to stand in for them.
+The rescues themselves are exercised in ``test_rescues.py``; these tests deliver the
+two people outright to get at the clock and the round trip.
 
 Needs pygame, so it is skipped on the dependency-free CI worker and runs locally in
 the project venv (like ``test_transitions``).
@@ -143,8 +143,8 @@ class BonusSceneTests(unittest.TestCase):
         self.run_for(scene, 30.0)
         left = scene.time_remaining
 
-        scene.injured_saved = True          # G3 will set these
-        scene.lost_saved = True
+        scene.injured.deliver()
+        scene.lost.deliver()
         scene.update(1 / 60)
 
         self.assertEqual(scene.outcome, "saved")
@@ -160,7 +160,7 @@ class BonusSceneTests(unittest.TestCase):
     def test_one_rescue_alone_banks_nothing(self) -> None:
         """Q8: all or nothing."""
         _, scene = self.enter()
-        scene.injured_saved = True
+        scene.injured.deliver()
 
         self.run_for(scene, 30.0)
 
