@@ -620,3 +620,36 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
     darshan of the life that merit will earn — rather than the rebirth itself. Recommended,
     but the Paathshala should settle the wording, as with the Chanvar and Lion.
 
+## 2026-10-20 — G2: the Karuna bonus level's frame, and the flat +4:00 retired
+* **Decision (designer):** the bonus level is **a glimpse of the punya's fruit**, not an
+  actual rebirth — the devotee is shown the life of a compassionate spiritual doctor that
+  his Jiv Daya has earned. This settles the doctrinal question raised with G1: a glimpse can
+  end and return him to the same Level 3, standing where he left, which a rebirth could not.
+  The scene is titled "A Glimpse of the Punya's Fruit" on screen.
+* **Built (Epic G2).** `SCENE_BONUS` and `bonus_scene.py`, registered in `main.py`.
+  * `JIV_DAYA_TIME_BONUS` is **gone**, replaced by `BONUS_TIME_LIMIT = 240`: the same four
+    minutes, now the bonus level's clock rather than a flat award (Q6). Saving the bird
+    routes into the bonus scene instead of adding time.
+  * Outcomes: both rescues → bank `time_remaining`; clock to 0:00 → bank nothing (Q7); one
+    rescue alone banks nothing (Q8). Either way the closing card holds 3s, then
+    `switch_to(SCENE_LEVEL, level=3, resume=True)` — G1's resume.
+  * **Level 3's clock needed no work to pause:** `SceneManager` updates only the active
+    scene, so the Hall simply stops while the detour plays. Locked by a test rather than
+    left as an assumption.
+  * The banked seconds are published to `shared["bonus_banked_seconds"]`; adding them to
+    Level 3's clock without counting them as time taken is still **G4**.
+  * *Verified:* `tests/test_bonus_scene.py`, 10 tests; updated the Level 3 puzzle test that
+    asserted the old +240 payout. Full suite 71 green.
+* **Known gap while G3 is outstanding:** nothing can set `injured_saved` / `lost_saved`, so
+  solving the mantra currently banks nothing. Safe to land because Level 3 is still
+  developer-mode-only (C7), so no Paathshala player can reach it.
+
+## 2026-10-20 — Flagged: debug_monitor crashes when stdout is a pipe
+* `DebugMonitor.enabled` defaults to **True** and its log lines contain box-drawing
+  characters (`│`, `──►`). When stdout is a pipe rather than a console it is decoded as
+  cp1252 on Windows and every scene switch raises `UnicodeEncodeError` — so
+  `PathToMoksha.exe > log.txt`, or any redirected/CI run, dies on the first switch.
+  Found while writing the G2 tests (they disable the monitor rather than depend on it).
+* **Not fixed here** — out of scope for G2, and it wants its own decision: default the
+  monitor off, make the writes encoding-safe, or both.
+
