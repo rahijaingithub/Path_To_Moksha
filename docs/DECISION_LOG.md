@@ -670,3 +670,9 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   so the path is locked either way.
 * *Verified:* `tests/test_debug_monitor.py`, 7 tests. The crash test fails against the
   pre-fix module with `UnicodeEncodeError '│'` and passes after. Full suite 78 green.
+## 2026-10-20 — removed the duplicate `version 2/CLAUDE.md`
+* It was a stale copy of the root constitution: it still described the `main` / `v2-dev`
+  branch model and "Never commit directly to `main`", which the root file replaced with
+  "folders replace branches, single `main`". Two loaded constitutions that contradict each
+  other on where work lands is worse than one. The root `CLAUDE.md` is the only copy; it
+  already says the game root is `version 2/` and that it itself lives one level up.
