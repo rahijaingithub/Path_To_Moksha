@@ -1,5 +1,20 @@
+import os
 import time
 import pygame
+
+# Opt-in: set PATH_TO_MOKSHA_DEBUG_MONITOR=1 to get the input/scene trace.
+# Off by default so a shipped exe never spends frames on it — and never dies on it.
+_ENV_FLAG = "PATH_TO_MOKSHA_DEBUG_MONITOR"
+_TRUTHY = ("1", "true", "yes", "on")
+
+# Box-drawing glyphs are unprintable under cp1252 (Windows' locale encoding when
+# stdout is a pipe or a file rather than a console), so keep an ASCII spelling.
+_ASCII_FALLBACK = str.maketrans({"│": "|", "─": "-", "►": ">", "→": "->"})
+
+
+def _env_enabled():
+    return os.environ.get(_ENV_FLAG, "").strip().lower() in _TRUTHY
+
 
 class DebugMonitor:
     _instance = None
@@ -7,16 +22,29 @@ class DebugMonitor:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(DebugMonitor, cls).__new__(cls)
-            cls._instance.enabled = True
+            cls._instance.enabled = _env_enabled()
             cls._instance.start_time = time.time()
         return cls._instance
 
     def _get_time(self):
         return f"{time.time() - self.start_time:07.3f}s"
 
+    def _emit(self, line):
+        """Print a log line, or give up — a debug trace must never kill the game."""
+        try:
+            print(line)
+        except UnicodeEncodeError:
+            try:
+                print(line.translate(_ASCII_FALLBACK))
+            except Exception:
+                pass
+        except Exception:
+            # Closed/detached stdout (windowed exe), broken pipe, anything else.
+            pass
+
     def log_raw_event(self, event, scene_name="Unknown"):
         if not self.enabled: return
-        
+
         event_str = "UNKNOWN"
         if event.type == pygame.JOYBUTTONDOWN:
             event_str = f"JOYBUTTONDOWN btn={event.button}"
@@ -37,26 +65,26 @@ class DebugMonitor:
         else:
             return
 
-        print(f"[{self._get_time()}] RAW     │ {event_str:<30} │ Scene={scene_name}")
+        self._emit(f"[{self._get_time()}] RAW     │ {event_str:<30} │ Scene={scene_name}")
 
     def log_just_pressed(self, just_pressed_dict, scene_name="Unknown", extra_info=""):
         if not self.enabled: return
-        
+
         active_keys = [k for k, v in just_pressed_dict.items() if v]
         if not active_keys: return
 
         keys_str = " ".join([f"{k}=True" for k in active_keys])
-        print(f"[{self._get_time()}] FLAGGED │ {keys_str:<30} │ Scene={scene_name} {extra_info}")
+        self._emit(f"[{self._get_time()}] FLAGGED │ {keys_str:<30} │ Scene={scene_name} {extra_info}")
 
     def log_action(self, scene_name, description):
         if not self.enabled: return
-        print(f"[{self._get_time()}] ACTION  │ {scene_name:<15} → {description}")
+        self._emit(f"[{self._get_time()}] ACTION  │ {scene_name:<15} → {description}")
 
     def log_switch(self, from_scene, to_scene):
         if not self.enabled: return
         from_str = from_scene if from_scene else "None"
         to_str = to_scene if to_scene else "None"
-        print(f"[{self._get_time()}] SWITCH  │ {from_str} ──► {to_str}")
+        self._emit(f"[{self._get_time()}] SWITCH  │ {from_str} ──► {to_str}")
 
 # Global instance
 monitor = DebugMonitor()

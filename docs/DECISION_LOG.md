@@ -650,6 +650,23 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
   cp1252 on Windows and every scene switch raises `UnicodeEncodeError` — so
   `PathToMoksha.exe > log.txt`, or any redirected/CI run, dies on the first switch.
   Found while writing the G2 tests (they disable the monitor rather than depend on it).
-* **Not fixed here** — out of scope for G2, and it wants its own decision: default the
-  monitor off, make the writes encoding-safe, or both.
+* **Fixed on 2026-10-20** — see the entry below.
 
+## 2026-10-20 — debug_monitor: off by default, and its writes can no longer raise
+* **Chose both** of the options the flag above left open, because they fix different halves
+  of the problem and neither alone is enough:
+  * **Off by default.** `enabled` now comes from `PATH_TO_MOKSHA_DEBUG_MONITOR` (`1`/`true`/
+    `yes`/`on`), matching the existing `PATH_TO_MOKSHA_DATA_DIR` convention. A per-frame
+    input/scene trace is a developer tool; a shipped exe should not pay for it or print it.
+    Setting `monitor.enabled = True` in code still works, as the tests do.
+  * **Encoding-safe writes.** Every log method now goes through `DebugMonitor._emit`, which
+    retries the line with an ASCII spelling of the glyphs (`|`, `-->`) on
+    `UnicodeEncodeError` and swallows anything else (closed stdout in a windowed exe, broken
+    pipe). The default alone would not have been enough: anyone who *opts in* and redirects
+    output — exactly the person collecting a log — would still have hit the crash.
+* `log_action` had the same glyphs and was missed by the original report; it is covered too.
+* Left `SceneManager.switch_to`'s `except ImportError` alone — broadening it would hide real
+  errors, and the fix belongs at the source. The regression test drives the real `switch_to`,
+  so the path is locked either way.
+* *Verified:* `tests/test_debug_monitor.py`, 7 tests. The crash test fails against the
+  pre-fix module with `UnicodeEncodeError '│'` and passes after. Full suite 78 green.
