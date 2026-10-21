@@ -553,3 +553,40 @@ gamepad, which worked; adults sat at the keyboard, which largely did not.
 * **Not changed:** the 4→Victory (Adinath) transition already walked in and bowed; the
   designer's report that it "keeps walking" was not reproducible and a passing test
   (`test_level4_to_victory_shows_adinath_bows_and_glows_then_victory`) covers it.
+
+## 2026-10-20 — Level 3 bonus level (Karuna): specced, not built
+* **Idea (designer):** solving the Namokar Mantra puzzle should open a bonus level where the
+  devotee carries an injured man to a hospital and leads a lost man to a temple; completing
+  both returns to Level 3 at the exact position left. Specced as **Epic G** in
+  `docs/V2_TASKS.md`. **No code written** — designer asked for the write-up first.
+* **Grounding that shaped it:** the trigger already exists. The mantra ordering puzzle is
+  part of the Level 3 bird rescue (feed Akshat → order the lines → bird revives) and today
+  pays a flat `JIV_DAYA_TIME_BONUS` of +4:00. So this is not a new trigger; it changes the
+  payout.
+* **Decision (designer, Q6):** the flat +4:00 is **replaced**. The four minutes becomes the
+  bonus level's own clock and the devotee banks whatever is **left** on it when both rescues
+  are done.
+  * *Rationale:* turns a flat handout into an earned, skill-scaled reward while keeping the
+    ceiling at 240s — so Q1 scoring and the Level 3 balance do not move.
+* **Decision (designer, Q7):** running the bonus clock to 0:00 **is** failure — return to
+  Level 3 with nothing banked. Level 3's own clock stays paused throughout, so failing costs
+  only the forfeited upside, never progress. The bird stays saved regardless, since it
+  revives before the bonus begins.
+* **Decision (designer, Q8):** all-or-nothing. One rescue delivered banks 0:00.
+* **Constraint recorded for whoever builds it:** the banked seconds MUST flow through
+  `jiv_daya_bonus` (or an equivalent field excluded from recorded time). Without it Level 3's
+  recorded time goes negative — the bug fixed on 2026-09-23 and described in
+  `_advance_level`'s comment ("finishing Level 3 in 1:30 after saving the bird recorded
+  -2:30").
+* **Approach chosen for the return trip:** `LevelScene` has no `on_exit` and `SceneManager`
+  keeps one instance per scene key, so Level 3's state survives a switch away — it is only
+  lost because `on_enter` rebuilds it. A `resume=True` kwarg that early-returns from
+  `on_enter` therefore gives exact-position resume with no snapshot or serialisation, and
+  keeps the invariant that SceneManager is the only thing that switches scenes.
+* **Open / flagged:** escorting is a verb the game does not have (carry vs. lead are two
+  distinct behaviours); five new art assets are needed; and Epic G depends on **C7**, since
+  Level 3 is still developer-mode-only and none of this is reachable by a Paathshala player
+  until that gate moves. The doctrinal reading — reciting the Namokar correctly opens the
+  eyes to suffering nearby, extending the bird's Jiv Daya from animal to human — is Claude's
+  wording and should be confirmed with the Paathshala.
+

@@ -38,6 +38,30 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | C7 | Open Levels 3–4 to kid/standard modes once B and C are complete (Q2: gated only because L3/L4 are unfinished) | `level_scene.py:810` | S | playtest #7 |
 | C8 | Disappearing tiles ("Illusions of permanence" — moved here from Level 3, designer 2026-09-27): `TimedPlatform` fading in/out on a cycle. **Open:** which support reveals them in Level 4 — the spec's reveal was Mahavir's Lion (Level 3), while Level 4's correct Lakshan is the Bull; and how it combines with C3's crumbling blocks | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
 
+## Epic G — Level 3 bonus level: Karuna (the two rescues) — P2 (designer idea, 2026-10-20)
+Opened by the Namokar Mantra puzzle that already exists in Level 3. The mantra's current
+flat **+4:00 is removed**; the four minutes becomes the bonus level's own clock, and the
+devotee banks **whatever is left on it** when both rescues are done. Reward therefore
+scales with how efficiently the player helps, and still caps at 240s — so Q1 scoring and
+the Level 3 balance are unchanged.
+
+Flow: mantra solved → bird revives and flies off → bonus level loads automatically →
+carry the injured man to the hospital **and** lead the lost man to the temple → Level 3
+resumes **at the exact position left**, with the banked seconds added. Bonus clock reaches
+0:00 → failure: return to Level 3 with 0:00 banked (Level 3 loses nothing; only upside is
+forfeited). The bird stays saved either way, since it revives before the bonus begins.
+
+| ID | Task | Files | Effort | Verify |
+|---|---|---|---|---|
+| G1 | **Resume plumbing.** `resume=True` kwarg on `LevelScene.on_enter` that early-returns instead of rebuilding (restoring BGM only). Safe because `LevelScene` has no `on_exit` and `SceneManager` holds one instance per key, so the state survives the round trip — no snapshot/serialisation needed | `level_scene.py` | S | unit test: mutate player x/y + open a box, round-trip through another scene, assert position and box state unchanged; assert `resume=False` still rebuilds (fresh box placement) |
+| G2 | **Bonus scene skeleton.** `SCENE_BONUS` key, `bonus_scene.py`, registered in `main.py`; 4:00 clock with its own HUD; Level 3's clock stays paused throughout; any-key return for now | `settings.py`, `main.py`, `bonus_scene.py` | M | unit test: clock counts down, 0:00 returns with 0 banked; scene registered |
+| G3 | **The two rescues.** NPC escort — two verbs the game does not have yet: *carry* (injured man) and *lead/follow* (lost man). Hospital and temple destination triggers; both delivered → bank remaining time | `bonus_scene.py`, new NPC module | L | unit test per rescue + per destination; both-done banks `time_remaining`, one-done banks 0 |
+| G4 | **Bank the reward through `jiv_daya_bonus`** (or an equivalent excluded field) so the banked seconds raise the clock and score but are **not** counted as time taken. Without this, Level 3's recorded time goes negative — the exact bug fixed on 2026-09-23 (see `_advance_level`'s comment) | `level_scene.py` | S | unit test: bank 240s, finish L3 in 1:30, assert `level_times[3]` is 1:30 and never negative |
+| G5 | **Art + wording.** `injured_man.png`, `lost_man.png`, hospital and temple markers, bonus background; doctrinal line for why the mantra opens it (confirm with the Paathshala, as with the Chanvar/Lion wordings) | assets, `image_generation_prompts.md` | M (art) | asset test + playtest |
+
+**Depends on C7.** Level 3 is still developer-mode-only (`level_scene.py` gates kid/standard
+at `self.level == 2`), so none of Epic G reaches a Paathshala player until C7 opens L3/L4.
+
 ## Epic D — Spec fidelity for Levels 1–2 — P1
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
@@ -63,7 +87,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | F2 | Merge `v2-dev` → `main`, tag `v2.0`, CI publishes release |
 
 ## Your new ideas (v2 is at ideation — add here, then we spec + ticket them)
-- …
+- **Level 3 bonus level (Karuna):** specced as **Epic G** above (designer, 2026-10-20).
 
 ## Backlog (designer, 2026-09-23)
 | ID | Item | Where | Verify |
@@ -80,5 +104,12 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 - **Q4 Level 2 flight after Akshat:** keep; document in spec.
 - **Q5 Monk reward:** highlight + pulse, no camera pan.
 
+## Designer decisions (2026-10-20)
+- **Q6 Mantra reward:** the flat +4:00 is **replaced** by the bonus level. The 4 minutes
+  becomes the bonus clock; the devotee banks the time **left** on it.
+- **Q7 Bonus failure:** running the bonus clock to 0:00 **is** failure — return to Level 3
+  with nothing banked. Level 3's own clock and score are untouched.
+- **Q8 Partial completion:** all-or-nothing. One rescue delivered banks 0:00.
+
 ## Suggested order
-A0 → A1 → A2–A5 (tests first, so every later change is guarded) → A7 (after Q1) → B → C → D → E → F.
+A0 → A1 → A2–A5 (tests first, so every later change is guarded) → A7 (after Q1) → B → C → D → E → G → F.
