@@ -2,7 +2,8 @@
 
 Two kinds of help, so two verbs plus a third at the end of the first:
 
-* the **injured** man is *carried* to the hospital and *treated* there — his body;
+* the **injured** man *limps along* to the hospital and is *treated* there — his body.
+  He sets the pace, so the devotee has to wait for him;
 * the **lost** man is *led*, and recognises the temple himself — his soul.
 
 Driven through the real scene with a stub input device, so the tests exercise the
@@ -106,6 +107,15 @@ class RescueTests(unittest.TestCase):
         self.scene.handle_events([], self.input)
         self.input.clear_taps()
 
+    def wait_until(self, predicate, limit_seconds=20.0):
+        """Stand still and let the world run until something becomes true."""
+        self.input.release_all()
+        for _ in range(int(limit_seconds * 60)):
+            if predicate():
+                return True
+            self.step()
+        return False
+
     def walk_to(self, x, limit_seconds=30.0):
         """Hold a direction until the devotee is there (or give up)."""
         self.input.release_all()
@@ -138,17 +148,30 @@ class RescueTests(unittest.TestCase):
 
     # ── the injured man: carry, then treat ────────────────────────────────────
 
-    def test_the_injured_man_is_carried_then_treated_at_the_hospital(self) -> None:
+    def take_injured_to_hospital(self):
+        """Offer him an arm, walk to the hospital, and wait for him to catch up."""
         s = self.scene
         self.walk_to(self.bonus_scene.INJURED_START_X)
         self.act()
-        self.assertEqual(s.injured.state, "carried")
-        self.assertTrue(s.carrying)
-
-        # He travels with the devotee rather than staying put.
         self.walk_to(self.bonus_scene.HOSPITAL_X)
-        self.assertAlmostEqual(s.injured.x, s.player_x, delta=1.0)
-        self.assertFalse(s.injured_saved, "carrying him is not yet helping him")
+        return self.wait_until(
+            lambda: abs(s.injured.x - self.bonus_scene.HOSPITAL_X)
+            <= self.bonus_scene.DESTINATION_REACH)
+
+    def test_the_injured_man_limps_along_then_is_treated_at_the_hospital(self) -> None:
+        s = self.scene
+        self.walk_to(self.bonus_scene.INJURED_START_X)
+        self.act()
+        self.assertEqual(s.injured.state, "following", "he walks, he is not carried")
+        self.assertTrue(s.helping_injured)
+
+        self.walk_to(self.bonus_scene.HOSPITAL_X)
+        self.assertGreater(abs(s.injured.x - s.player_x), 1.0,
+                           "he trails behind rather than moving with the devotee")
+        self.assertTrue(self.wait_until(
+            lambda: abs(s.injured.x - self.bonus_scene.HOSPITAL_X)
+            <= self.bonus_scene.DESTINATION_REACH), "he arrives in his own time")
+        self.assertFalse(s.injured_saved, "arriving is not yet helping him")
 
         self.act()                                   # begin tending to him
         self.assertEqual(s.injured.state, "treating")
@@ -164,31 +187,30 @@ class RescueTests(unittest.TestCase):
         s = self.scene
         self.walk_to(self.bonus_scene.INJURED_START_X)
         self.act()
-        self.assertEqual(s.injured.state, "carried")
+        self.assertEqual(s.injured.state, "following")
 
         self.act()                                   # still out in the open
-        self.assertEqual(s.injured.state, "carried", "no hospital here")
+        self.assertEqual(s.injured.state, "following", "no hospital here")
         self.assertEqual(s.treat_timer, 0)
 
-    def test_carrying_a_man_is_slower_than_walking_free(self) -> None:
+    def test_he_cannot_be_treated_while_he_is_still_on_his_way(self) -> None:
+        """The devotee can outrun him; the help is not done until he arrives."""
         s = self.scene
-        self.input.hold(self.input.RIGHT)
-        before = s.player_x
-        for _ in range(30):
-            self.step()
-        free = s.player_x - before
-        self.input.release_all()
-
         self.walk_to(self.bonus_scene.INJURED_START_X)
         self.act()
-        self.input.hold(self.input.LEFT)
-        before = s.player_x
-        for _ in range(30):
-            self.step()
-        carried = abs(s.player_x - before)
-        self.input.release_all()
+        self.walk_to(self.bonus_scene.HOSPITAL_X)
 
-        self.assertLess(carried, free, "compassion costs effort")
+        if abs(s.injured.x - self.bonus_scene.HOSPITAL_X) > self.bonus_scene.DESTINATION_REACH:
+            self.act()
+            self.assertEqual(s.injured.state, "following", "he is not there yet")
+            self.assertEqual(s.treat_timer, 0)
+
+    def test_the_injured_man_cannot_keep_up_with_the_lost_man(self) -> None:
+        """A limp is slower than a walk, so the devotee has to wait for him."""
+        self.assertLess(self.rescue_npc.LIMP_FOLLOW_SPEED, self.rescue_npc.FOLLOW_SPEED)
+        s = self.scene
+        self.assertEqual(s.injured.follow_speed, self.rescue_npc.LIMP_FOLLOW_SPEED)
+        self.assertEqual(s.lost.follow_speed, self.rescue_npc.FOLLOW_SPEED)
 
     # ── the lost man: lead him, and he knows the temple ───────────────────────
 
@@ -278,9 +300,7 @@ class RescueTests(unittest.TestCase):
         s = self.scene
         self.walk_to(s.lost.x)
         self.act()                                   # lead the lost man
-        self.walk_to(self.bonus_scene.INJURED_START_X)
-        self.act()                                   # and carry the injured one
-        self.walk_to(self.bonus_scene.HOSPITAL_X)
+        self.assertTrue(self.take_injured_to_hospital())
         self.act()
         for _ in range(int(self.bonus_scene.TREAT_SECONDS * 60) + 4):
             self.step()
@@ -301,7 +321,7 @@ class RescueTests(unittest.TestCase):
         s = self.scene
         self.walk_to(self.bonus_scene.INJURED_START_X)
         self.step()
-        self.assertIn("lift", s.hint.lower())
+        self.assertIn("arm", s.hint.lower())
         self.act()
         self.step()
         self.assertIn("hospital", s.hint.lower())
@@ -311,13 +331,10 @@ class RescueTests(unittest.TestCase):
     def test_art_is_used_for_each_pose_when_the_files_exist(self) -> None:
         """RescueNPC prefers a pose image over its procedural figure, and scales it."""
         npc = self.rescue_npc.RescueNPC(self.rescue_npc.KIND_INJURED, 400, 900,
-                                        {"sitting": self.pygame.Surface((300, 300), self.pygame.SRCALPHA),
-                                         "carried": self.pygame.Surface((300, 300), self.pygame.SRCALPHA)})
-        self.assertEqual(npc._pose_image("sitting", self.rescue_npc.SIT_DRAW_HEIGHT).get_height(),
-                         self.rescue_npc.SIT_DRAW_HEIGHT)
-        self.assertEqual(npc._pose_image("carried", self.rescue_npc.CARRY_DRAW_HEIGHT).get_height(),
-                         self.rescue_npc.CARRY_DRAW_HEIGHT)
-        self.assertIsNone(npc._pose_image("walk", 100), "absent poses fall back")
+                                        {"walk": self.pygame.Surface((128 * 6, 128),
+                                                                     self.pygame.SRCALPHA)})
+        self.assertEqual(npc._walk_image().get_height(), self.rescue_npc.DRAW_HEIGHT)
+        self.assertIsNone(npc._pose_image("confused", 100), "absent poses fall back")
 
     def test_a_four_frame_walk_strip_cycles_and_is_scaled(self) -> None:
         strip = self.pygame.Surface((128 * 4, 128), self.pygame.SRCALPHA)
@@ -390,7 +407,7 @@ class RescueTests(unittest.TestCase):
         self.walk_to(self.bonus_scene.INJURED_START_X)
         self.act()
         self.step()
-        s.draw(surf)                                 # carried
+        s.draw(surf)                                 # following, limping
         s.lost.take()
         self.step()
         s.draw(surf)                                 # following

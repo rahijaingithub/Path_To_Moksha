@@ -814,3 +814,28 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * *Verified:* 102 green, including that only art which exists is loaded (asserted as an
   invariant, so it holds as the rest arrives) and that the temple art is not a placeholder.
 
+## 2026-10-21 — Carrying removed: the injured man limps along behind you
+* **Decision (designer):** one limping walk strip replaces the sitting and carried stills,
+  so the injured man **walks himself**. Carrying is gone.
+  * He follows at `LIMP_FOLLOW_SPEED` (132 px/s against the lost man's 250), so **he sets
+    the pace and the devotee must wait for him** — the cost that the old carry-slows-you
+    rule used to carry. Treating at the hospital is unchanged, and he must have *arrived*
+    before he can be treated: outrunning him is possible and achieves nothing.
+  * `RescueNPC` loses the "carried" state, the sitting box and the two still poses; both men
+    now run off a walk strip, differing in speed and in whether they need treating.
+* **Art delivered (designer):** `injured_man_limp_walk_rightV2.jpg`, 6 frames, side view,
+  cartoon-illustrated, matching the lost man's walk sheet.
+  * **v1 was unusable:** 34% of it was a grey ground plane and background blocks rather than
+    isolated white, so keying left the scenery behind. v2 is clean white (83%, all four
+    corners).
+  * **Both versions carry a drawn frame border per cell.** Insetting past it is not enough —
+    the borders do not sit exactly on the cell boundaries, so slivers survived and
+    `getbbox` then reported nearly the whole cell, throwing the centring and the scale out.
+    `keep_the_man()` now discards every island under a tenth of the largest, which removes
+    a 3px line (well under 1%) while keeping a limb that anti-aliasing has detached.
+  * **No bandage in the delivered art.** He reads as a man walking slowly rather than an
+    injured one; the "!" marker and the hint text carry the meaning instead. Worth adding
+    on a regeneration.
+* *Verified:* 103 green, including that he trails rather than moving with the devotee, that
+  he cannot be treated before arriving, and that a limp is slower than a walk.
+

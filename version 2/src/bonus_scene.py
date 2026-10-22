@@ -45,7 +45,6 @@ LOST_START_X = 700
 PLAYER_START_X = LOGICAL_WIDTH // 2
 
 PLAYER_HALF_W = 32            # half the drawn sprite, for the walls
-CARRY_SPEED_FACTOR = 0.72     # carrying a man is slower than walking free
 DESTINATION_REACH = 120       # how close counts as "at" the hospital or the temple
 TREAT_SECONDS = 2.5           # tending to the injured man once he is at the hospital
 
@@ -87,8 +86,7 @@ class BonusScene(Scene):
         self.hint = ""
 
         self.injured = RescueNPC(KIND_INJURED, INJURED_START_X, GROUND_Y,
-                                 self._load_poses(sitting="injured_man_sitting.png",
-                                                  carried="injured_man_carried.png"))
+                                 self._load_poses(walk="injured_man_limp_walk_right.png"))
         self.lost = RescueNPC(KIND_LOST, LOST_START_X, GROUND_Y,
                               self._load_poses(walk="lost_man_walk_right.png",
                                                confused="lost_man_confused.png"))
@@ -137,8 +135,8 @@ class BonusScene(Scene):
         return self.injured_saved and self.lost_saved
 
     @property
-    def carrying(self):
-        return self.injured is not None and self.injured.state == "carried"
+    def helping_injured(self):
+        return self.injured is not None and self.injured.state == "following"
 
     def _at(self, x):
         return abs(self.player_x - x) <= DESTINATION_REACH
@@ -171,15 +169,15 @@ class BonusScene(Scene):
 
     def _act(self):
         """One button, whichever kind of help is within reach."""
-        # Tending the injured man, once he has been carried to the hospital.
-        if self.carrying and self._at(HOSPITAL_X):
+        # Tending the injured man, once he has walked as far as the hospital.
+        if self.helping_injured and abs(self.injured.x - HOSPITAL_X) <= DESTINATION_REACH:
             self.injured.state = "treating"
             self.injured.x = HOSPITAL_X
             self.treat_timer = TREAT_SECONDS
             self.assets.play_sound("box_open.wav", volume=0.3)
             return
 
-        # Taking someone up: carried if he cannot walk, led if he can.
+        # Offering to walk with someone; from there each follows at his own pace.
         for npc in (self.injured, self.lost):
             if npc.state == "waiting" and npc.is_near(self.player_x):
                 npc.take()
@@ -190,11 +188,12 @@ class BonusScene(Scene):
         """What ACTION would do from here — shown so the verbs are never guessed at."""
         if self.treat_timer > 0:
             return "Tending to him..."
-        if self.carrying:
-            return ("ACT: treat him at the hospital" if self._at(HOSPITAL_X)
-                    else "Carry him to the hospital")
+        if self.helping_injured:
+            if abs(self.injured.x - HOSPITAL_X) <= DESTINATION_REACH:
+                return "ACT: treat him at the hospital"
+            return "Walk him to the hospital — he cannot hurry"
         if self.injured.state == "waiting" and self.injured.is_near(self.player_x):
-            return "ACT: lift the injured man"
+            return "ACT: offer the injured man your arm"
         if self.lost.state == "waiting" and self.lost.is_near(self.player_x):
             return "ACT: offer to show him the way"
         if self.lost.state == "following":
@@ -231,7 +230,7 @@ class BonusScene(Scene):
         if self.treat_timer > 0:
             return
 
-        speed = PLAYER_SPEED * 60.0 * (CARRY_SPEED_FACTOR if self.carrying else 1.0)
+        speed = PLAYER_SPEED * 60.0
         inp = self.input_mgr
         if inp.actions[inp.LEFT] and not inp.actions[inp.RIGHT]:
             self.player_x -= speed * dt
@@ -415,7 +414,7 @@ class BonusScene(Scene):
                                      True, COLOR_RED if secs_left <= 30 else COLOR_WHITE)
         surface.blit(clock, clock.get_rect(topright=(LOGICAL_WIDTH - 28, 12)))
 
-        goal = self.font_hud.render("Carry the injured man to the hospital; lead the lost man to the temple",
+        goal = self.font_hud.render("Walk the injured man to the hospital; lead the lost man to the temple",
                                     True, COLOR_CREAM)
         surface.blit(goal, goal.get_rect(center=(LOGICAL_WIDTH // 2, 36 + 36)))
 
