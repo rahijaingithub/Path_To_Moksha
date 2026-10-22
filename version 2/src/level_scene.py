@@ -267,7 +267,12 @@ class LevelScene(Scene):
             self.manager.shared["current_level"] = self.level
             self.fade_alpha = 255
             self._play_level_music()
+            self._bank_bonus_time()
             return
+
+        # A level built from scratch starts owing nothing: drop any bank left over
+        # from a detour that was abandoned (ESC to the title) rather than returned from.
+        self.manager.shared.pop("bonus_banked_seconds", None)
 
         self.level = kwargs.get("level", 1)
         self.manager.shared["current_level"] = self.level
@@ -531,6 +536,29 @@ class LevelScene(Scene):
                 and self.level == level
                 and not self.level_complete
                 and not self.game_over)
+
+    def _bank_bonus_time(self):
+        """Take in the seconds the Karuna detour sent back (Epic G4).
+
+        They lengthen the clock, and so the score, but they are not time the devotee
+        spent in the Hall: `jiv_daya_bonus` is added back in `_advance_level`, which
+        keeps the recorded time honest. Without that the old flat bonus recorded a
+        1:30 finish as -2:30, and this would do the same.
+
+        The bank is consumed from shared state, so it can never be paid twice.
+        """
+        banked = float(self.manager.shared.pop("bonus_banked_seconds", 0.0) or 0.0)
+        if banked <= 0:
+            return
+
+        self.time_remaining += banked
+        self.jiv_daya_bonus += banked
+
+        mins, secs = divmod(int(banked), 60)
+        self.box_system.message = f"Karuna returns {mins:02d}:{secs:02d} to your path"
+        self.box_system.message_timer = 3.0
+        self.box_system.message_color = COLOR_GREEN
+        self.assets.play_sound("correct.wav", volume=0.4)
 
     def _play_level_music(self):
         """Start this level's BGM — its own track when there is one, else the shared loop."""

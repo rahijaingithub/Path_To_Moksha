@@ -733,3 +733,21 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   image with a pink placeholder that would be drawn instead of falling back. Dropping the
   three files in needs no code change; `tests/test_rescues.py` covers that path.
 
+## 2026-10-21 — G4: the detour's leftover seconds reach the Hall
+* **Built (Epic G4).** `LevelScene._bank_bonus_time` runs on resume and consumes
+  `shared["bonus_banked_seconds"]`, adding it to **both** `time_remaining` and
+  `jiv_daya_bonus`. The clock grows, the level score grows with it (score is
+  `time_remaining * 10`), and `_advance_level` adds `jiv_daya_bonus` back out, so the
+  recorded time is exactly the time the devotee actually spent in the Hall.
+  * *The trap this avoids, verified by test:* bank 4:00, finish in 1:30, and the run is
+    recorded as 1:30 — not -2:30, which is what the old flat bonus did before 2026-09-23.
+  * **Paid once.** The bank is popped, not read, so resuming twice cannot pay twice.
+  * **Stale banks are dropped.** Leaving the detour with ESC to the title leaves a bank in
+    shared state; a level built from scratch discards it, so it cannot pay out on a later run.
+  * On arrival the Hall says "Karuna returns MM:SS to your path".
+  * *Verified:* `test_level_resume.BankedBonusTimeTests` (6 tests) and an end-to-end run in
+    `test_rescues.py` that drives both rescues and checks the seconds land on the Hall's
+    clock. Full suite 98 green.
+* **Epic G is now complete but for its art (G5).** The loop runs: mantra → glimpse →
+  two rescues → banked time → the Hall, resumed in place.
+

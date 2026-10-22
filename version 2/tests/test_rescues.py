@@ -286,6 +286,38 @@ class RescueTests(unittest.TestCase):
         self.assertEqual(self.scene.injured.poses, {}, "no G5 art on disk yet")
         self.assertEqual(self.scene.lost.poses, {})
 
+    def test_the_time_left_reaches_the_hall_end_to_end(self) -> None:
+        """Both rescues → the Hall resumes with exactly those seconds banked (G2+G4)."""
+        import level_scene
+        from scene_manager import SceneManager
+        import settings
+
+        manager = SceneManager()
+        level = level_scene.LevelScene(manager, self.assets, self.input)
+        manager.register(settings.SCENE_LEVEL, level)
+        manager.register(settings.SCENE_BONUS,
+                         self.bonus_scene.BonusScene(manager, self.assets, self.input))
+        manager.switch_to(settings.SCENE_LEVEL, level=3, input_mgr=self.input)
+        clock_in_the_hall = level.time_remaining
+
+        manager.switch_to(settings.SCENE_BONUS, input_mgr=self.input)
+        bonus = manager.active_scene
+        bonus.injured.deliver()
+        bonus.lost.deliver()
+        bonus.update(1 / 60)
+        left = bonus.banked
+        self.assertGreater(left, 0)
+
+        for _ in range(int(self.bonus_scene.OUTCOME_HOLD_SECONDS * 60) + 4):
+            if manager.active_scene is level:
+                break
+            manager.update(1 / 60)
+
+        self.assertIs(manager.active_scene, level, "back in the Hall")
+        self.assertAlmostEqual(level.time_remaining, clock_in_the_hall + left, delta=0.2)
+        self.assertAlmostEqual(level.jiv_daya_bonus, left, delta=0.2,
+                               msg="banked, so it will not be counted as time taken")
+
     def test_draws_with_people_carried_led_and_delivered(self) -> None:
         surf = self.pygame.Surface((1920, 1080))
         s = self.scene

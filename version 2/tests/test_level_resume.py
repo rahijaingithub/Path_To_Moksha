@@ -23,9 +23,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 
 
-@unittest.skipUnless(importlib.util.find_spec("pygame") is not None,
-                     "needs pygame (runs locally in the venv, skipped on CI)")
-class LevelResumeTests(unittest.TestCase):
+class _SceneSetup:
+    """Shared rig: real pygame on dummy drivers, and a real LevelScene to drive.
+
+    A mixin rather than a base test case, so the classes below do not inherit and
+    re-run one another's tests.
+    """
+
     @classmethod
     def setUpClass(cls) -> None:
         os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -71,6 +75,12 @@ class LevelResumeTests(unittest.TestCase):
             "monk": scene.monk,
             "platforms": scene.platforms,
         }
+
+
+@unittest.skipUnless(importlib.util.find_spec("pygame") is not None,
+                     "needs pygame (runs locally in the venv, skipped on CI)")
+class LevelResumeTests(_SceneSetup, unittest.TestCase):
+    """Epic G1: a resume keeps the level; anything else rebuilds it."""
 
     # ── resuming keeps everything ─────────────────────────────────────────────
 
@@ -152,6 +162,90 @@ class LevelResumeTests(unittest.TestCase):
                 self.assertFalse(getattr(scene, ended), "rebuilt, not resumed into an ended level")
                 self.assertEqual(scene.time_remaining,
                                  float(self.settings.LEVEL_TIME_LIMIT[3]))
+
+
+@unittest.skipUnless(importlib.util.find_spec("pygame") is not None,
+                     "needs pygame (runs locally in the venv, skipped on CI)")
+class BankedBonusTimeTests(_SceneSetup, unittest.TestCase):
+    """Epic G4: the Karuna detour's leftover seconds come back into the Hall.
+
+    They must lengthen the clock and the score without being counted as time the
+    devotee spent there — the trap that once recorded a 1:30 finish as -2:30.
+    """
+
+    def resume_with(self, scene, manager, banked):
+        manager.shared["bonus_banked_seconds"] = banked
+        scene.on_enter(level=3, resume=True, input_mgr=self.input)
+
+    def test_the_banked_seconds_are_added_to_the_clock(self) -> None:
+        manager, scene = self.fresh_scene(3)
+        scene.time_remaining = 100.0
+
+        self.resume_with(scene, manager, 95.0)
+
+        self.assertEqual(scene.time_remaining, 195.0)
+        self.assertEqual(scene.jiv_daya_bonus, 95.0, "and are marked as not-time-taken")
+
+    def test_a_bank_is_paid_once_and_only_once(self) -> None:
+        manager, scene = self.fresh_scene(3)
+        scene.time_remaining = 100.0
+
+        self.resume_with(scene, manager, 60.0)
+        scene.on_enter(level=3, resume=True, input_mgr=self.input)   # resumed again
+
+        self.assertEqual(scene.time_remaining, 160.0, "not paid twice")
+        self.assertEqual(scene.jiv_daya_bonus, 60.0)
+        self.assertNotIn("bonus_banked_seconds", manager.shared, "the bank is consumed")
+
+    def test_banking_nothing_changes_nothing(self) -> None:
+        manager, scene = self.fresh_scene(3)
+        scene.time_remaining = 100.0
+
+        self.resume_with(scene, manager, 0.0)
+
+        self.assertEqual(scene.time_remaining, 100.0)
+        self.assertEqual(scene.jiv_daya_bonus, 0.0)
+
+    def test_a_stale_bank_does_not_survive_into_a_freshly_built_level(self) -> None:
+        """Abandoning the detour with ESC must not pay out on the next run."""
+        manager, scene = self.fresh_scene(3)
+        manager.shared["bonus_banked_seconds"] = 180.0
+
+        scene.on_enter(level=3, input_mgr=self.input)        # a normal build
+
+        self.assertEqual(scene.jiv_daya_bonus, 0.0)
+        self.assertEqual(scene.time_remaining, float(self.settings.LEVEL_TIME_LIMIT[3]))
+        self.assertNotIn("bonus_banked_seconds", manager.shared)
+
+    def test_a_full_bank_still_records_the_real_time_taken(self) -> None:
+        """The ticket's case: bank 4:00, finish in 1:30, record 1:30 — never negative."""
+        from unittest import mock
+
+        manager, scene = self.fresh_scene(3)
+        limit = float(self.settings.LEVEL_TIME_LIMIT[3])
+        self.resume_with(scene, manager, float(self.settings.BONUS_TIME_LIMIT))
+
+        # Play on for 1:30 of real time after the detour.
+        scene.time_remaining = limit + self.settings.BONUS_TIME_LIMIT - 90.0
+
+        # Isolate the accounting: no profile written, no onward scene switch.
+        with mock.patch("profile_manager.ProfileManager"),                 mock.patch.object(manager, "switch_to"):
+            scene._advance_level()
+
+        recorded = manager.shared["level_times"][3]
+        self.assertAlmostEqual(recorded, 90.0, delta=0.01, msg="1:30 is recorded as 1:30")
+        self.assertGreater(recorded, 0, "and never negative")
+
+    def test_the_bank_raises_the_level_score(self) -> None:
+        """Score follows the clock, so Karuna is worth points as well as time."""
+        manager, scene = self.fresh_scene(3)
+        scene.time_remaining = 100.0
+        plain = int(max(0, scene.time_remaining)) * 10
+
+        self.resume_with(scene, manager, 120.0)
+        banked_score = int(max(0, scene.time_remaining)) * 10
+
+        self.assertEqual(banked_score, plain + 1200)
 
 
 if __name__ == "__main__":
