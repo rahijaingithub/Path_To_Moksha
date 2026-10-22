@@ -204,6 +204,51 @@ class RescueTests(unittest.TestCase):
         self.assertLessEqual(abs(s.lost.x - s.lost.home_x), self.rescue_npc.WANDER_SPAN + 2,
                              "but never strays far")
 
+    def test_he_paces_then_stops_to_wonder_with_a_hand_to_his_head(self) -> None:
+        """Being lost is not pacing without pause (the designer's confused pose)."""
+        s = self.scene
+        seen_pacing = seen_pondering = False
+        moved_while_pondering = False
+
+        for _ in range(int((self.rescue_npc.PACE_SECONDS +
+                            self.rescue_npc.PONDER_SECONDS) * 2 * 60)):
+            was_x = s.lost.x
+            self.step()
+            if s.lost.is_pondering:
+                seen_pondering = True
+                if abs(s.lost.x - was_x) > 0.01:
+                    moved_while_pondering = True
+            else:
+                seen_pacing = True
+
+        self.assertTrue(seen_pacing, "he casts about")
+        self.assertTrue(seen_pondering, "and stops to wonder")
+        self.assertFalse(moved_while_pondering, "he stands still while wondering")
+
+    def test_only_the_lost_man_ponders(self) -> None:
+        s = self.scene
+        for _ in range(240):
+            self.step()
+            self.assertFalse(s.injured.is_pondering, "the injured man sits, he does not wonder")
+
+    def test_the_confused_strip_plays_while_he_wonders(self) -> None:
+        """Each strip stands in for the other, so either one alone still works."""
+        npc = self.rescue_npc.RescueNPC(self.rescue_npc.KIND_LOST, 400, 900, {
+            "walk": self.pygame.Surface((128 * 4, 128), self.pygame.SRCALPHA),
+            "confused": self.pygame.Surface((64 * 4, 64), self.pygame.SRCALPHA),
+        })
+        npc.pondering = False
+        self.assertEqual(npc._walk_image().get_width(), self.rescue_npc.DRAW_HEIGHT)
+
+        npc.pondering = True
+        self.assertTrue(npc.is_pondering)
+        self.assertIsNotNone(npc._walk_image(), "the confused strip is used")
+
+        only_walk = self.rescue_npc.RescueNPC(self.rescue_npc.KIND_LOST, 400, 900, {
+            "walk": self.pygame.Surface((128 * 4, 128), self.pygame.SRCALPHA)})
+        only_walk.pondering = True
+        self.assertIsNotNone(only_walk._walk_image(), "walk stands in for a missing gesture")
+
     def test_the_lost_man_follows_and_knows_the_temple_when_he_reaches_it(self) -> None:
         s = self.scene
         self.walk_to(s.lost.x)

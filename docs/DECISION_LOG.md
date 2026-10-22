@@ -751,3 +751,27 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * **Epic G is now complete but for its art (G5).** The loop runs: mantra → glimpse →
   two rescues → banked time → the Hall, resumed in place.
 
+## 2026-10-21 — The lost man wonders as well as wanders
+* **Reference (designer):** a flat-vector illustration of a confused man — hand on the back
+  of his head, other hand on his hip, question marks overhead — supplied as "a confused man
+  look", with the animation described as hand to the head and then down.
+* **Behaviour changed, not just art.** He used to pace without pause, which does not read as
+  lost. He now **paces ~2.2s, stops ~1.8s with a hand to his head, then tries the other
+  way**. `RescueNPC.is_pondering` exposes it; the procedural stand-in raises an arm so the
+  pose reads even with no art.
+* **Art:** `lost_man_confused.png`, a 4-frame strip (arms down → hand rising → hand on head,
+  shrugging → hand coming down), prompt added to `image_generation_prompts.md` §8,
+  photorealistic per the 2026-10-20 direction. The two strips stand in for each other, so
+  either one alone still works.
+  * *The reference's clothing was not kept:* the man is in a red sweater and jeans, while
+    this world is kurta and dhoti. The **pose** is taken and the clothing changed, with the
+    alternative clause written into §8 if the designer wants the reference's own look.
+  * *No question marks in the art* — they are a flat-vector device and would not survive a
+    photorealistic treatment; added to the negative prompt. The game already floats its own
+    "?" over him.
+  * **Licence:** a photorealistic version of a supplied stock-style vector is a derivative of
+    that illustration, so it belongs on **BL3** with the other sourced art. Provenance of the
+    reference is unknown and should be established before release.
+* *Verified:* 3 new tests in `test_rescues.py` (he paces and stops; he does not move while
+  wondering; only the lost man wonders; each strip stands in for the other). Suite 101 green.
+

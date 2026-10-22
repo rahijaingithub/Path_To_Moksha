@@ -33,6 +33,10 @@ FOLLOW_SPEED = 250.0
 # How far he drifts while he is still lost, and how fast.
 WANDER_SPAN = 70
 WANDER_SPEED = 46.0
+# Being lost is not pacing without pause: he casts about, stops, puts a hand to his
+# head wondering, then tries another way.
+PACE_SECONDS = 2.2
+PONDER_SECONDS = 1.8
 
 
 class RescueNPC:
@@ -54,6 +58,8 @@ class RescueNPC:
         self.facing_right = True
         self.anim = 0.0
         self.wander_dir = 1
+        self.pondering = False        # stopped, hand to his head
+        self.phase_timer = PACE_SECONDS
 
     # ── geometry ──────────────────────────────────────────────────────────────
 
@@ -81,13 +87,20 @@ class RescueNPC:
         self.anim += dt
 
         if self.state == "waiting" and self.kind == KIND_LOST:
-            # Casting about for the way: he walks a little one way, then the other.
-            self.x += WANDER_SPEED * self.wander_dir * dt
-            if self.x > self.home_x + WANDER_SPAN:
-                self.x, self.wander_dir = self.home_x + WANDER_SPAN, -1
-            elif self.x < self.home_x - WANDER_SPAN:
-                self.x, self.wander_dir = self.home_x - WANDER_SPAN, 1
-            self.facing_right = self.wander_dir > 0
+            self.phase_timer -= dt
+            if self.phase_timer <= 0:
+                self.pondering = not self.pondering
+                self.phase_timer = PONDER_SECONDS if self.pondering else PACE_SECONDS
+                if not self.pondering:
+                    self.wander_dir *= -1      # having wondered, he tries the other way
+
+            if not self.pondering:
+                self.x += WANDER_SPEED * self.wander_dir * dt
+                if self.x > self.home_x + WANDER_SPAN:
+                    self.x, self.wander_dir = self.home_x + WANDER_SPAN, -1
+                elif self.x < self.home_x - WANDER_SPAN:
+                    self.x, self.wander_dir = self.home_x - WANDER_SPAN, 1
+                self.facing_right = self.wander_dir > 0
 
         elif self.state == "carried":
             # Held against the devotee's shoulder, so he moves exactly with him.
@@ -103,6 +116,11 @@ class RescueNPC:
                 self.facing_right = direction > 0
             else:
                 self.x = target
+
+    @property
+    def is_pondering(self):
+        """Standing still with a hand to his head — the confused pose."""
+        return self.kind == KIND_LOST and self.state == "waiting" and self.pondering
 
     def take(self):
         """The devotee takes him up: carried if he cannot walk, following if he can."""
@@ -156,14 +174,22 @@ class RescueNPC:
         return self._to_height(img, target_h) if img else None
 
     def _walk_image(self):
-        """The current frame of the walk strip — square frames, left to right."""
-        strip = self.poses.get("walk")
+        """The current frame, from whichever strip suits what he is doing.
+
+        While he wonders, the confused strip plays — hand rising to his head and
+        down again. Either strip stands in for the other when only one exists.
+        """
+        if self.is_pondering:
+            strip = self.poses.get("confused") or self.poses.get("walk")
+        else:
+            strip = self.poses.get("walk") or self.poses.get("confused")
         if not strip:
             return None
         fh = strip.get_height()
         frames = max(1, strip.get_width() // fh)
+        rate = 0.22 if self.is_pondering else 0.14      # the gesture is unhurried
         moving = self.state in ("waiting", "following")
-        idx = int(self.anim / 0.14) % frames if moving else 0
+        idx = int(self.anim / rate) % frames if moving else 0
         cell = pygame.Surface((fh, fh), pygame.SRCALPHA)
         cell.blit(strip, (0, 0), (idx * fh, 0, fh, fh))
         return self._to_height(cell, DRAW_HEIGHT)
@@ -193,6 +219,12 @@ class RescueNPC:
         pygame.draw.circle(body, skin, (c, c - h // 4 - int(10 * scale)), int(13 * scale))
         pygame.draw.line(body, cloth, (c, c + h // 4), (c - int(9 * scale), c + h // 2), max(3, int(6 * scale)))
         pygame.draw.line(body, cloth, (c, c + h // 4), (c + int(9 * scale), c + h // 2), max(3, int(6 * scale)))
+
+        if self.is_pondering:
+            # Hand up to the head, so the stand-in reads as the pose too.
+            pygame.draw.line(body, cloth, (c + w // 5, c - h // 8),
+                             (c + int(6 * scale), c - h // 4 - int(16 * scale)),
+                             max(3, int(5 * scale)))
 
         if self.kind == KIND_INJURED:
             # A bandage, not a wound — the art direction for this game keeps hurt

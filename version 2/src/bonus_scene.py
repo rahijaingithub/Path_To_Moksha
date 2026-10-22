@@ -90,7 +90,8 @@ class BonusScene(Scene):
                                  self._load_poses(sitting="injured_man_sitting.png",
                                                   carried="injured_man_carried.png"))
         self.lost = RescueNPC(KIND_LOST, LOST_START_X, GROUND_Y,
-                              self._load_poses(walk="lost_man_walk_right.png"))
+                              self._load_poses(walk="lost_man_walk_right.png",
+                                               confused="lost_man_confused.png"))
 
         char = self.manager.shared.get("character", "boy")
         self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
