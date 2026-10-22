@@ -260,8 +260,9 @@ level is playable without them.
 **Style:** high-fidelity rendered illustration, matching the transition artwork
 (`transitions/mahavir.png`) and the player strips — soft volumetric shading, realistic
 human proportions and real fabric weight, fine detail, no flat cartoon fills and no
-heavy ink outline. The two men are **adult Indian men in kurta and dhoti**, so they
-stand beside the boy and girl pilgrims as the same world.
+heavy ink outline. The **lost man wears modern dress** — the red sweater and jeans of the designer's
+reference — which suits a scene with a hospital in it, as Level 1's Toronto street does.
+Keep both of his strips identical in clothing, or he changes clothes mid-animation.
 
 **Hurt stays bloodless** (designer, 2026-10-20): the injured man is shown **sitting on the
 ground holding his lower leg**, or limping — never blood, wounds, gore or visible injury.
@@ -277,17 +278,18 @@ The audience is a Paathshala. This is the one hard rule on these three.
 
 *   **File:** `assets/images/sprites/lost_man_walk_right.png` — a **4-frame horizontal strip**,
     four equal square frames, facing **right** (the game mirrors it for left).
-    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult Indian man, about 35, walking slowly to the right while searching for the way. He wears a blue-grey cotton kurta and a white dhoti with natural fabric folds, carries a small cloth bundle in one hand, has warm brown skin and short dark hair. Frame 1: stepping forward, head turned back over his shoulder. Frame 2: mid-stride, facing forward, free hand raised to shade his eyes as he scans the distance. Frame 3: stepping forward, head tilted and turned the other way, brow lightly furrowed, searching. Frame 4: mid-stride, facing forward, free hand open at his side in a small questioning gesture. The man is exactly the same size and stands on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. His expression is puzzled and hopeful, never frightened or sad. Isolated on a pure white background, no shadow, no text.`
+    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult man, about 35, walking slowly to the right while searching for the way. He wears a plain red crew-neck sweater, blue denim jeans and dark navy shoes, carries a small bag in one hand, and has short brown hair. Frame 1: stepping forward, head turned back over his shoulder. Frame 2: mid-stride, facing forward, free hand raised to shade his eyes as he scans the distance. Frame 3: stepping forward, head tilted and turned the other way, brow lightly furrowed, searching. Frame 4: mid-stride, facing forward, free hand open at his side in a small questioning gesture. The man is exactly the same size and stands on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. His expression is puzzled and hopeful, never frightened or sad. Isolated on a pure white background, no shadow, no text.`
 
 *   **File:** `assets/images/sprites/lost_man_confused.png` — a **4-frame horizontal strip**,
     four equal square frames, facing **right**. Played while he stands still wondering;
     the game alternates it with the walk strip (pace ~2.2s, wonder ~1.8s). Based on a
     flat-vector reference the designer supplied (2026-10-21) — the pose is kept, the
     clothing changed to match this game's world.
-    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult Indian man, about 35, standing in place and confused about which way to go. He wears a blue-grey cotton kurta and a white dhoti with natural fabric folds, has warm brown skin, short dark hair and a lightly furrowed brow; a small cloth bundle rests at his feet. His weight stays on both feet and he does not move from the spot. Frame 1: standing upright, both arms at his sides, looking ahead, puzzled. Frame 2: his near arm lifting, hand halfway to his head, elbow out, head beginning to tilt. Frame 3: his hand resting on the back of his head, fingers in his hair, elbow raised, head tilted, the other hand on his hip, shoulders slightly raised in a shrug — plainly wondering which way to go. Frame 4: the hand coming back down, halfway to his side, head returning upright. The man is exactly the same size, in the same spot, and on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. Puzzled and hopeful, never frightened, sad or comic. Isolated on a pure white background, no shadow, no text, no question marks or other symbols.`
-    *   **If you want the reference's own look instead**, swap the clothing clause for
-        `a plain red crew-neck sweater, blue denim jeans and dark navy shoes` — but he will
-        then read as a visitor from outside this world rather than one of its people.
+    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult man, about 35, standing in place and confused about which way to go. He wears a plain red crew-neck sweater, blue denim jeans and dark navy shoes, has short brown hair and a lightly furrowed brow; a small bag rests at his feet. His weight stays on both feet and he does not move from the spot. Frame 1: standing upright, both arms at his sides, looking ahead, puzzled. Frame 2: his near arm lifting, hand halfway to his head, elbow out, head beginning to tilt. Frame 3: his hand resting on the back of his head, fingers in his hair, elbow raised, head tilted, the other hand on his hip, shoulders slightly raised in a shrug — plainly wondering which way to go. Frame 4: the hand coming back down, halfway to his side, head returning upright. The man is exactly the same size, in the same spot, and on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. Puzzled and hopeful, never frightened, sad or comic. Isolated on a pure white background, no shadow, no text, no question marks or other symbols.`
+    *   **Clothing follows the designer's reference** (2026-10-21): the red sweater and
+        jeans are kept, not changed to kurta and dhoti. Modern dress fits this scene — the
+        glimpse has a hospital in it, and Level 1 is a contemporary Toronto street. Both
+        lost-man strips must dress him identically or he will change clothes mid-animation.
 
 *   **Optional, if the designer wants the healing shown:**
     `assets/images/sprites/injured_man_limp_right.png`, a 4-frame strip of the same man

@@ -775,3 +775,16 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * *Verified:* 3 new tests in `test_rescues.py` (he paces and stops; he does not move while
   wondering; only the lost man wonders; each strip stands in for the other). Suite 101 green.
 
+## 2026-10-21 — The lost man keeps the reference's clothing
+* **Decision (designer):** no question marks in the art (as already written), and **no change
+  of clothing to kurta and dhoti** — the lost man keeps the red sweater, blue jeans and dark
+  shoes of the supplied reference. This reverses Claude's call of earlier the same day.
+  * *It also fits better than Claude allowed for:* the glimpse contains a **hospital**, and
+    Level 1 is a contemporary Toronto street, so modern dress is already this game's world.
+  * Both of his strips (`lost_man_walk_right.png`, `lost_man_confused.png`) now specify the
+    same clothes — if they differ he changes clothes mid-animation, since the game alternates
+    the two strips while he waits.
+* **The injured man is unchanged**, still in kurta and dhoti. The two men are therefore
+  dressed differently, which reads correctly for Toronto rather than as a mistake. One line
+  in §8 if the designer wants them matched either way.
+
