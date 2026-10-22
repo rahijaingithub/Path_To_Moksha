@@ -276,12 +276,16 @@ The audience is a Paathshala. This is the one hard rule on these three.
     man held horizontally, to be drawn across the devotee's shoulders.
     *   **Prompt:** `A single high-fidelity 2D game sprite of the same adult Indian man in a terracotta kurta and cream dhoti with a clean white bandage on his lower leg, held horizontally as if carried across someone's shoulders: body straight and relaxed, arms hanging loosely down on one side, legs together on the other, head turned slightly upward, eyes closed, a calm and trusting expression. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture with natural fabric drape and gravity, realistic human proportions, fine painterly detail. No blood, no wound, no gore, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
 
-*   **File:** `assets/images/sprites/lost_man_walk_right.png` — a **4-frame horizontal strip**,
-    four equal square frames, facing **right** (the game mirrors it for left).
+*   **File:** `assets/images/sprites/lost_man_walk_right.png` — **DELIVERED 2026-10-21**
+    by the designer as a **6-frame** side-view sheet (`_source/lost_man_walk_right.jpg`),
+    processed by `tools/prepare_rescue_sprites.py`. The prompt below is kept for
+    regeneration; note the delivered art is cartoon-illustrated, not photoreal.
     *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of an adult man, about 35, walking slowly to the right while searching for the way. He wears a plain red crew-neck sweater, blue denim jeans and dark navy shoes, carries a small bag in one hand, and has short brown hair. Frame 1: stepping forward, head turned back over his shoulder. Frame 2: mid-stride, facing forward, free hand raised to shade his eyes as he scans the distance. Frame 3: stepping forward, head tilted and turned the other way, brow lightly furrowed, searching. Frame 4: mid-stride, facing forward, free hand open at his side in a small questioning gesture. The man is exactly the same size and stands on the same ground line in all four frames. Photorealistic rendering with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail. His expression is puzzled and hopeful, never frightened or sad. Isolated on a pure white background, no shadow, no text.`
 
-*   **File:** `assets/images/sprites/lost_man_confused.png` — a **4-frame horizontal strip**,
-    four equal square frames, facing **right**. Played while he stands still wondering;
+*   **File:** `assets/images/sprites/lost_man_confused.png` — **DELIVERED 2026-10-21**
+    by the designer as a 4-frame front-view photoreal sheet
+    (`_source/lost_man_confused.jpg`), processed by `tools/prepare_rescue_sprites.py`.
+    Played while he stands still wondering;
     the game alternates it with the walk strip (pace ~2.2s, wonder ~1.8s). Based on a
     flat-vector reference the designer supplied (2026-10-21) — the pose is kept, the
     clothing changed to match this game's world.

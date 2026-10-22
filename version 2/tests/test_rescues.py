@@ -326,10 +326,31 @@ class RescueTests(unittest.TestCase):
         self.assertEqual(frame.get_height(), self.rescue_npc.DRAW_HEIGHT)
         self.assertEqual(frame.get_width(), self.rescue_npc.DRAW_HEIGHT, "square frames stay square")
 
-    def test_missing_art_never_draws_the_pink_placeholder(self) -> None:
-        """The scene checks the file exists first, so nothing loads a placeholder."""
-        self.assertEqual(self.scene.injured.poses, {}, "no G5 art on disk yet")
-        self.assertEqual(self.scene.lost.poses, {})
+    def test_only_art_that_exists_is_loaded(self) -> None:
+        """AssetManager answers a missing image with an opaque pink placeholder, which
+        would be drawn instead of falling back — so each file is checked for first.
+
+        Asserted as an invariant rather than against today's files, so it still holds
+        as the remaining G5 art lands.
+        """
+        s = self.scene
+        self.assertEqual(s._load_poses(nope="definitely_not_here.png"), {},
+                         "a missing file is not loaded at all")
+        for npc, who in ((s.injured, "injured"), (s.lost, "lost")):
+            for key, img in npc.poses.items():
+                with self.subTest(who=who, pose=key):
+                    corner = img.get_at((0, 0))
+                    self.assertFalse(corner[:3] == (255, 0, 220) and corner[3] == 255,
+                                     f"{who}/{key} loaded the pink placeholder")
+
+    def test_the_temple_uses_level_1s_gate_art(self) -> None:
+        """The door he is led to is the same door Level 1 ends at."""
+        img = self.scene.temple_img
+        self.assertIsNotNone(img, "temple_gate.png loaded")
+        self.assertEqual(img.get_size(), (240, 196))
+        corner = img.get_at((0, 0))
+        self.assertFalse(corner[:3] == (255, 0, 220) and corner[3] == 255,
+                         "not the pink placeholder")
 
     def test_the_time_left_reaches_the_hall_end_to_end(self) -> None:
         """Both rescues → the Hall resumes with exactly those seconds banked (G2+G4)."""

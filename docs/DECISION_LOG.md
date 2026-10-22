@@ -788,3 +788,29 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   dressed differently, which reads correctly for Toronto rather than as a mistake. One line
   in §8 if the designer wants them matched either way.
 
+## 2026-10-21 — The lost man's art is in; the temple is Level 1's gate
+* **Delivered (designer):** `lost_man_walk_right.jpg` (2496x416, **6** frames, side view,
+  cartoon-illustrated) and `lost_man_confused.jpg` (2064x512, 4 frames, front view,
+  photorealistic). Sources kept in `assets/images/sprites/_source/`.
+* **Processed by `tools/prepare_rescue_sprites.py`** into the game's strip format. Three
+  things had to be fixed, none of them true of the sheets as supplied:
+  * **Square frames.** `_walk_image` derives the frame count from `width // height`; the
+    confused sheet is 4 cells of 516px on a 512px height, so slicing by height would have
+    drifted a few pixels every frame.
+  * **One baseline**, or he bobs as the strip plays and jumps as the game switches strips.
+  * **One size across both strips**, scaled from each strip's tallest pose, or he changes
+    size the moment he stops to wonder.
+  * White is keyed with a tolerance for JPEG ringing; nothing on him is near-white.
+* **The frame count was 6, not the 4 specified.** No change needed — the game derives the
+  count from the image, so the walk simply plays six frames.
+* **Flagged: the two strips are in different styles.** The walk is cartoon-illustrated
+  (close to the player sprites); the confused strip is photorealistic. The game alternates
+  them every couple of seconds, so he changes rendering style when he stops. At the
+  in-game size (150px) it is noticeable but not glaring. Regenerating the confused strip
+  in the walk's style would settle it; the designer's call.
+* **Decision (designer): the temple is Level 1's gate art.** `items/temple_gate.png`, loaded
+  and black-keyed exactly as `level_scene` does it, at 240x196. The door he is led to is now
+  the door that world ends at. The hospital still has no art and keeps its plain plinth.
+* *Verified:* 102 green, including that only art which exists is loaded (asserted as an
+  invariant, so it holds as the rest arrives) and that the temple art is not a placeholder.
+

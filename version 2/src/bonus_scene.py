@@ -97,6 +97,12 @@ class BonusScene(Scene):
         self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
         self.idle_strip = self.assets.load_image(f"player_{char}_idle_right.png", "sprites", alpha=True)
 
+        # The same temple gate art Level 1 uses for its goal door, keyed the same way.
+        self.temple_img = self.assets.load_image("temple_gate.png", "items", alpha=True,
+                                                 scale=(240, 196))
+        if self.temple_img:
+            self.temple_img.set_colorkey((0, 0, 0))
+
         self.font_title = self.assets.load_font(None, GAME_FONT_SIZE_SUBTITLE)
         self.font_body = self.assets.load_font(None, GAME_FONT_SIZE_BODY)
         self.font_small = self.assets.load_font(None, GAME_FONT_SIZE_SMALL)
@@ -279,7 +285,7 @@ class BonusScene(Scene):
 
     def draw(self, surface):
         self._draw_sky(surface)
-        self._draw_placeholder_world(surface)
+        self._draw_world(surface)
         self._draw_hud(surface)
         if self.outcome is not None:
             self._draw_outcome(surface)
@@ -309,17 +315,17 @@ class BonusScene(Scene):
             pygame.draw.circle(glow, (255, 198, 120, 5), (halo, halo), radius)
         surface.blit(glow, (LOGICAL_WIDTH // 2 - halo, cy - halo))
 
-    def _draw_placeholder_world(self, surface):
+    def _draw_world(self, surface):
         """The ground, the two destinations, the two people, and the devotee.
 
-        Figures are drawn procedurally until the art of G5 arrives, the way the
-        Monk is, so the level is playable with no assets at all.
+        Anything without art yet falls back to a plain drawn stand-in, the way the
+        Monk does, so the level stays playable as the art arrives piece by piece.
         """
         pygame.draw.rect(surface, (92, 74, 58), (0, GROUND_Y, LOGICAL_WIDTH, 120))
         pygame.draw.line(surface, (126, 104, 80), (0, GROUND_Y), (LOGICAL_WIDTH, GROUND_Y), 3)
 
         self._draw_marker(surface, HOSPITAL_X, GROUND_Y, "HOSPITAL", COLOR_CREAM, self.injured_saved)
-        self._draw_marker(surface, TEMPLE_X, GROUND_Y, "TEMPLE", COLOR_GOLD, self.lost_saved)
+        self._draw_temple(surface)
 
         player_top = GROUND_Y - 150
         for npc in (self.lost, self.injured):
@@ -360,6 +366,27 @@ class BonusScene(Scene):
         pygame.draw.rect(surface, (30, 26, 40), (x, y, w, h), border_radius=7)
         pygame.draw.rect(surface, COLOR_GREEN, (x, y, int(w * done), h), border_radius=7)
         pygame.draw.rect(surface, COLOR_CREAM, (x, y, w, h), width=2, border_radius=7)
+
+    def _draw_temple(self, surface):
+        """Level 1's temple gate, so the door he is led to is the door of that world."""
+        if not self.temple_img:
+            self._draw_marker(surface, TEMPLE_X, GROUND_Y, "TEMPLE", COLOR_GOLD, self.lost_saved)
+            return
+
+        rect = self.temple_img.get_rect(midbottom=(TEMPLE_X, GROUND_Y + 4))
+        if self.lost_saved:                       # a soft welcome once he is inside
+            halo = pygame.Surface((rect.width + 60, rect.height + 60), pygame.SRCALPHA)
+            pygame.draw.ellipse(halo, (255, 215, 120, 60), halo.get_rect())
+            surface.blit(halo, (rect.x - 30, rect.y - 30))
+        surface.blit(self.temple_img, rect)
+
+        # Both labels clear of the gate — at the gate's own top edge they sit on the
+        # carving and neither reads.
+        label = self.font_small.render("TEMPLE", True, COLOR_GOLD)
+        surface.blit(label, label.get_rect(center=(TEMPLE_X, rect.top - 54)))
+        tick = self.font_small.render("saved" if self.lost_saved else "waiting", True,
+                                      COLOR_GREEN if self.lost_saved else COLOR_GOLD_DIM)
+        surface.blit(tick, tick.get_rect(center=(TEMPLE_X, rect.top - 28)))
 
     def _draw_marker(self, surface, cx, ground_y, label, color, done):
         """A destination: a plain plinth with its name, ticked once its errand is done."""
