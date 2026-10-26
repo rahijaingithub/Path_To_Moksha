@@ -6,7 +6,7 @@ import math
 import pygame
 from scene_manager import Scene
 from settings import (
-    LOGICAL_WIDTH, LOGICAL_HEIGHT, SCENE_TITLE, SCENE_TUTORIAL, SCENE_OPTIONS,
+    LOGICAL_WIDTH, LOGICAL_HEIGHT, SCENE_TITLE, SCENE_TUTORIAL, SCENE_OPTIONS, SCENE_CONTROLS,
     COLOR_BG_DARK, COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GOLD_DIM,
     COLOR_WHITE, COLOR_SAFFRON, COLOR_BLUE_WATER,
     GAME_FONT_SIZE_TITLE, GAME_FONT_SIZE_SUBTITLE, GAME_FONT_SIZE_BODY, GAME_FONT_SIZE_SMALL,
@@ -46,12 +46,13 @@ class OptionsScene(Scene):
         self.sfx_volume = 0.8
 
         # UI elements layout
-        self.mode_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 310, 500, 60)
-        self.level_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 400, 500, 60)
-        self.music_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 490, 500, 60)
-        self.sfx_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 580, 500, 60)
-        self.tutorial_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 670, 500, 60)
-        self.back_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 200, 860, 400, 64)
+        self.mode_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 290, 500, 60)
+        self.level_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 370, 500, 60)
+        self.music_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 450, 500, 60)
+        self.sfx_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 530, 500, 60)
+        self.tutorial_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 610, 500, 60)
+        self.controls_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 250, 690, 500, 60)
+        self.back_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 200, 870, 400, 64)
 
         # Hover states
         self.hover_mode = False
@@ -59,6 +60,7 @@ class OptionsScene(Scene):
         self.hover_music = False
         self.hover_sfx = False
         self.hover_tutorial = False
+        self.hover_controls = False
         self.hover_back = False
 
         self.bg = None
@@ -66,7 +68,7 @@ class OptionsScene(Scene):
 
     def on_enter(self, **kwargs):
         self.elapsed = 0.0
-        self.selected_index = 0  # 0: Mode, 1: Level, 2: Music, 3: SFX, 4: Tutorial, 5: Save & Return
+        self.selected_index = 0  # 0: Mode, 1: Level, 2: Music, 3: SFX, 4: Tutorial, 5: Controller, 6: Save & Return
         self.game_mode = self.manager.shared.get("game_mode", DEFAULT_GAME_MODE)
         self.starting_level = self.manager.shared.get("starting_level", 1)
         self.music_volume = self.manager.shared.get("music_volume", 0.7)
@@ -112,10 +114,10 @@ class OptionsScene(Scene):
 
         # Controller / Keyboard Navigation Up / Down
         if input_mgr.just_pressed[input_mgr.MENU_UP] or input_mgr.just_pressed[input_mgr.UP]:
-            self.selected_index = (self.selected_index - 1) % 6
+            self.selected_index = (self.selected_index - 1) % 7
             self.assets.play_sound("jump.wav", volume=0.15)
         elif input_mgr.just_pressed[input_mgr.MENU_DOWN]:
-            self.selected_index = (self.selected_index + 1) % 6
+            self.selected_index = (self.selected_index + 1) % 7
             self.assets.play_sound("jump.wav", volume=0.15)
 
         # Controller / Keyboard Selection or Horizontal adjustment
@@ -151,6 +153,10 @@ class OptionsScene(Scene):
                 self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS, input_mgr=self.input_mgr)
 
             elif self.selected_index == 5 and is_select:
+                self.assets.play_sound("jump.wav", volume=0.2)
+                self.manager.switch_to(SCENE_CONTROLS, input_mgr=self.input_mgr)
+
+            elif self.selected_index == 6 and is_select:
                 self.assets.play_sound("box_open.wav", volume=0.2)
                 self._save_and_exit()
 
@@ -167,8 +173,10 @@ class OptionsScene(Scene):
                     self.selected_index = 3
                 elif self.tutorial_rect.collidepoint(mx, my):
                     self.selected_index = 4
-                elif self.back_rect.collidepoint(mx, my):
+                elif self.controls_rect.collidepoint(mx, my):
                     self.selected_index = 5
+                elif self.back_rect.collidepoint(mx, my):
+                    self.selected_index = 6
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = input_mgr.mouse_x, input_mgr.mouse_y
 
@@ -213,9 +221,15 @@ class OptionsScene(Scene):
                     self.manager.switch_to(SCENE_TUTORIAL, return_scene=SCENE_OPTIONS, input_mgr=self.input_mgr)
 
 
+                # Controller buttons screen
+                elif self.controls_rect.collidepoint(mx, my):
+                    self.selected_index = 5
+                    self.assets.play_sound("jump.wav", volume=0.2)
+                    self.manager.switch_to(SCENE_CONTROLS, input_mgr=self.input_mgr)
+
                 # Back button
                 elif self.back_rect.collidepoint(mx, my):
-                    self.selected_index = 5
+                    self.selected_index = 6
                     self.assets.play_sound("box_open.wav", volume=0.2)
                     self._save_and_exit()
 
@@ -235,7 +249,8 @@ class OptionsScene(Scene):
         self.hover_music = (self.selected_index == 2)
         self.hover_sfx = (self.selected_index == 3)
         self.hover_tutorial = (self.selected_index == 4)
-        self.hover_back = (self.selected_index == 5)
+        self.hover_controls = (self.selected_index == 5)
+        self.hover_back = (self.selected_index == 6)
 
 
     def draw(self, surface):
@@ -274,12 +289,17 @@ class OptionsScene(Scene):
         sfx_pct = int(self.sfx_volume * 100)
         sfx_str = f"Sound Effects:  {sfx_pct}%"
 
+        # The row stays selectable without a pad so the bindings can still be
+        # read; the screen itself explains that a controller is needed to change them.
+        controls_str = "🎮 Controller Buttons" if self.input_mgr.has_gamepad else "🎮 Controller Buttons (no pad connected)"
+
         buttons = [
             {"rect": self.mode_rect,     "hover": self.hover_mode,     "text": mode_str},
             {"rect": self.level_rect,    "hover": self.hover_level,    "text": level_str},
             {"rect": self.music_rect,    "hover": self.hover_music,    "text": music_str},
             {"rect": self.sfx_rect,      "hover": self.hover_sfx,      "text": sfx_str},
             {"rect": self.tutorial_rect, "hover": self.hover_tutorial, "text": "📖 How to Play & Controls"},
+            {"rect": self.controls_rect, "hover": self.hover_controls, "text": controls_str},
         ]
 
         for b in buttons:
@@ -303,7 +323,7 @@ class OptionsScene(Scene):
         pad_icon = "🎮 Controller Connected: " if self.input_mgr.has_gamepad else "⌨ Input Mode: "
         pad_str = f"{pad_icon}{pad_name}"
 
-        pad_card_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 400, 790, 800, 48)
+        pad_card_rect = pygame.Rect(LOGICAL_WIDTH // 2 - 400, 800, 800, 48)
         pad_surf = pygame.Surface((pad_card_rect.width, pad_card_rect.height), pygame.SRCALPHA)
         pygame.draw.rect(pad_surf, (20, 32, 54, 220), pad_surf.get_rect(), border_radius=8)
         pygame.draw.rect(pad_surf, COLOR_GOLD_BRIGHT if self.input_mgr.has_gamepad else COLOR_GOLD_DIM, pad_surf.get_rect(), width=1, border_radius=8)

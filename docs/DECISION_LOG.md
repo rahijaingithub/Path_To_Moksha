@@ -982,3 +982,37 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * Test helpers that read source rather than run it moved to `tests/source_tools.py`, now
   that two modules want them.
 
+
+## 2026-10-25 — Controller buttons can be changed inside the game
+* **Request (designer):** an Options entry where the player changes which pad button does
+  what. Rebinding already existed, but only as the terminal wizard
+  `tools/assign_controller.py`, which no parent or child was ever going to run.
+* **Options is a flat list, not tabs,** so this is a seventh row, "🎮 Controller Buttons",
+  that opens a new scene (`SCENE_CONTROLS`, `controller_settings_scene.py`), the same shape
+  as the tutorial row. The row pitch tightened from 90 to 80 px to fit.
+* **Seven actions on screen, thirteen in the file.** The map file's seven `menu_*` keys are
+  written automatically from the player-facing action they mirror (Walk Left → menu_left,
+  Interact → menu_select, …). A child does not think of "Menu Cursor Down" as a different
+  thing from "Fly Down". Same file, same format as the wizard, so either tool can edit
+  what the other saved.
+* **Gamepad only.** Keyboard keys are hard-coded in `InputManager.update()`, not data; making
+  them rebindable is a separate, larger change and nobody asked for it.
+* **One press, one binding.** Each action takes the last input pressed and replaces what was
+  there. The wizard's multi-binding (stick *and* D-pad for one action) is more flexible, but
+  "press another button to add it, or wait" is the kind of instruction a child misses. If
+  a tester wants both stick and D-pad, that is a request for a "+ add" affordance later.
+* **The scene never reads raw pad events.** `InputManager.capture_binding(events)` returns
+  the binding dict and `InputManager.capture_mode` mutes pad dispatch while listening —
+  without it, binding B fires BACK and throws the player off the screen mid-rebind. The
+  keyboard stays live so Esc still cancels. `tests/test_controller_rebind.py` fails if the
+  scene grows a `JOY*` reference.
+* **Saving goes through `ProfileManager.save_controller_map()`** (the one disk writer) and
+  then `InputManager.apply_mappings()`, so the change works immediately, not after a
+  restart. Conflicts between opposing directions are an orange warning, never a block.
+* **Known hazard when running from source:** `BASE_DIR` is the project folder, so saving
+  from the game overwrites the tracked `data/controller_map.json` (the Retro-bit map). The
+  built exe writes to AppData and is unaffected. The wizard has always had the same
+  behaviour. A smoke run during this task did exactly that; the file was restored from git.
+* *Verified:* `tests/test_controller_rebind.py` (16 tests, headless) and a headless drive
+  from Options → the new screen → bind → Esc → Options with the Retro-bit pad attached.
+  The hands-on half is items 49–51 of `docs/PLAYTEST_CHECKLIST.md`.

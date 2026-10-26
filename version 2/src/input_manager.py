@@ -29,6 +29,26 @@ NAV_COOLDOWN = 0.15
 CURRENT_PLATFORM = platform.system()
 IS_MACOS = CURRENT_PLATFORM == "Darwin"
 
+# ── In-game controller rebinding ──────────────────────────────────────────────
+# The map file (data/controller_map.json) has 13 keys; seven of them are the
+# menu_* cursor actions. The Controller Buttons screen shows only these seven
+# player-facing actions and writes the menu keys itself, because a child does
+# not think of "Menu Cursor Down" as a different thing from "Fly Down".
+# (action key, label shown on screen, menu keys written with the same binding)
+GAMEPAD_BIND_ACTIONS = (
+    ("move_left",  "Walk Left",          ("menu_left",)),
+    ("move_right", "Walk Right",         ("menu_right",)),
+    ("jump",       "Jump",               ()),
+    ("fly_up",     "Fly Up (Level 2)",   ("menu_up",)),
+    ("fly_down",   "Fly Down (Level 2)", ("menu_down",)),
+    ("action",     "Interact / Open Box", ("menu_select",)),
+    ("back",       "Pause / Back",       ("menu_back",)),
+)
+# Pairs that must never share one input: the player could not move at all.
+GAMEPAD_OPPOSING_PAIRS = (("move_left", "move_right"), ("fly_up", "fly_down"))
+# A stick has to move this far before capture_binding() treats it as a press.
+CAPTURE_AXIS_THRESHOLD = 0.55
+
 
 class InputManager:
     """Handles keyboard, USB gamepad/controller, and on-screen touch/click input."""
@@ -82,6 +102,11 @@ class InputManager:
         self.offset_y = 0
         self.mouse_x = 0.0
         self.mouse_y = 0.0
+
+        # While the Controller Buttons screen is listening for a press, pad
+        # buttons must not also fire their current action (B would leave the
+        # screen mid-rebind). Keyboard and mouse keep working so Esc still cancels.
+        self.capture_mode = False
 
         # Initialize hardware ONCE
         self.init_hardware()
@@ -537,6 +562,88 @@ class InputManager:
 
 
 
+    # ── In-game rebinding (Controller Buttons screen) ────────────────────────
+
+    def capture_binding(self, events):
+        """Return the first pad input in `events` as a binding dict, or None.
+
+        This is the one place a controller's raw buttons, axes and hats are read
+        for a scene; the scene itself never sees pygame events. The dicts match
+        what tools/assign_controller.py writes, so the two stay interchangeable.
+        """
+        for event in events:
+            if event.type == pygame.JOYBUTTONDOWN:
+                return {"type": "button", "index": event.button}
+            if event.type == pygame.JOYAXISMOTION:
+                if abs(event.value) > CAPTURE_AXIS_THRESHOLD:
+                    direction = "positive" if event.value > 0 else "negative"
+                    return {"type": "axis", "index": event.axis,
+                            "direction": direction, "threshold": 0.5}
+            if event.type == pygame.JOYHATMOTION:
+                if tuple(event.value) != (0, 0):
+                    return {"type": "hat", "index": event.hat, "value": list(event.value)}
+        return None
+
+    @staticmethod
+    def expand_player_bindings(player_map):
+        """Turn the seven on-screen actions into the full 13-key map file layout."""
+        full = {}
+        for key, _label, mirrors in GAMEPAD_BIND_ACTIONS:
+            bindings = player_map.get(key)
+            if not bindings:
+                continue
+            full[key] = list(bindings)
+            for m in mirrors:
+                full[m] = list(bindings)
+        return full
+
+    @staticmethod
+    def find_opposing_conflicts(player_map):
+        """Pairs from GAMEPAD_OPPOSING_PAIRS that share an input — a warning, never a block."""
+        found = []
+        for a, b in GAMEPAD_OPPOSING_PAIRS:
+            shared = [x for x in player_map.get(a, []) if x in player_map.get(b, [])]
+            if shared:
+                found.append((a, b))
+        return found
+
+    @staticmethod
+    def describe_binding(bindings):
+        """Short label for one action's bindings, e.g. 'Button 2' or 'Stick 1 up'."""
+        if not bindings:
+            return ""
+        parts = []
+        for b in bindings:
+            t = b.get("type")
+            if t == "button":
+                parts.append(f"Button {b.get('index')}")
+            elif t == "axis":
+                sign = "+" if b.get("direction") == "positive" else "-"
+                parts.append(f"Stick axis {b.get('index')}{sign}")
+            elif t == "hat":
+                v = tuple(b.get("value", (0, 0)))
+                name = {(0, 1): "D-pad Up", (0, -1): "D-pad Down",
+                        (-1, 0): "D-pad Left", (1, 0): "D-pad Right"}.get(v, f"D-pad {list(v)}")
+                parts.append(name)
+        return " + ".join(parts)
+
+    def apply_mappings(self, raw_map):
+        """Apply a freshly saved map without restarting the game.
+
+        Mirrors what _load_custom_mappings() stashes at startup, then runs the
+        same capability check against the connected pad. An empty map clears the
+        custom layout so the built-in SDL layout (A jumps, B backs) is used.
+        """
+        normalized = {}
+        for key, val in (raw_map or {}).items():
+            if isinstance(val, dict):
+                normalized[key] = [val]
+            elif isinstance(val, list):
+                normalized[key] = val
+        self._pending_raw_map = normalized
+        self.custom_mappings = {}
+        self._validate_and_apply_mappings()
+
     # ── Touch buttons ─────────────────────────────────────────────────────────
 
     def _build_touch_buttons(self):
@@ -687,9 +794,11 @@ class InputManager:
                     self.actions[self.MENU_BACK] = False
 
             # ── Gamepad / Controller events ───────────────────────────────────
-            if event.type in (pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP,
-                               pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
+            if event.type in (pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
                 self._handle_gamepad_event(event)
+            elif event.type in (pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP):
+                if not self.capture_mode:
+                    self._handle_gamepad_event(event)
 
             # ── Mouse / Touch ─────────────────────────────────────────────────
             if event.type in (pygame.MOUSEBUTTONDOWN, pygame.FINGERDOWN):
@@ -717,7 +826,10 @@ class InputManager:
                             self._touch_held[action_key] = False
 
         # ── Gamepad analog / D-pad continuous hold state ──────────────────────
-        pad_left, pad_right, pad_up = self._read_gamepad_axes()
+        if self.capture_mode:
+            pad_left = pad_right = pad_up = False
+        else:
+            pad_left, pad_right, pad_up = self._read_gamepad_axes()
         if pad_left:
             self.actions[self.LEFT] = True
         if pad_right:

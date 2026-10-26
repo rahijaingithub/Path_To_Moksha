@@ -141,6 +141,7 @@ TOUCH_BUTTON_ALPHA = 100  # more subtle transparency (0-255)
 # ─── Scene Keys ───────────────────────────────────────────────────────────────
 SCENE_TITLE = "title"
 SCENE_OPTIONS = "options"
+SCENE_CONTROLS = "controls"   # gamepad button rebinding, reached from Options
 SCENE_PLAYER_SELECT = "player_select"
 SCENE_LEADERBOARD = "leaderboard"
 SCENE_TUTORIAL = "tutorial"

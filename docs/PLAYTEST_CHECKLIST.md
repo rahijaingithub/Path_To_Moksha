@@ -118,3 +118,16 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.
+
+## Controller Buttons screen (added 2026-10-25)
+49. [ ] **Rebind on a pad:** Options → "Controller Buttons". Pick *Jump*, press a different
+        face button: the row shows "Button N", the press did NOT jump, confirm or leave the
+        screen. Save & Return, then play Level 1: the new button jumps, and the old one
+        does not. Quit and relaunch: the binding survived.
+50. [ ] **Escape hatches:** while a row is listening, Esc cancels with nothing changed and
+        the countdown runs out on its own after ~6 s. Bind *Walk Left* and *Walk Right* to
+        the same button: an orange warning appears but nothing is blocked (guidance, not
+        gating). Reset to Defaults → Save: the pad is back on the built-in A/B layout.
+51. [ ] **No pad:** unplug the controller. The Options row still opens the screen, every
+        row reads "Default: …", and selecting one shows "Connect a controller…" instead
+        of listening. Keyboard controls are unchanged throughout.

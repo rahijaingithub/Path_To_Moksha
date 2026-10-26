@@ -10,6 +10,7 @@ from settings import BASE_DIR
 DATA_DIR = os.path.join(BASE_DIR, "data")
 PROFILES_FILE = os.path.join(DATA_DIR, "profiles.json")
 SCORES_FILE = os.path.join(DATA_DIR, "high_scores.json")
+CONTROLLER_MAP_FILE = os.path.join(DATA_DIR, "controller_map.json")
 
 
 class ProfileManager:
@@ -122,6 +123,29 @@ class ProfileManager:
 
 
 
+
+    def save_controller_map(self, controller_name, mapping):
+        """Writes the gamepad bindings chosen on the Controller Buttons screen.
+
+        Same file and layout as tools/assign_controller.py, so either can edit
+        what the other saved. Returns the path written, or None on failure.
+        """
+        import platform
+        from datetime import datetime
+        payload = {
+            "controller_name": controller_name or "unknown",
+            "platform": platform.system(),
+            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "mapping": mapping,
+        }
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(CONTROLLER_MAP_FILE, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2)
+            return CONTROLLER_MAP_FILE
+        except Exception as e:
+            print(f"[ProfileManager] Error saving {CONTROLLER_MAP_FILE}: {e}")
+            return None
 
     def get_global_rankings(self):
         """Returns sorted list of all high scores."""

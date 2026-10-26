@@ -8,13 +8,14 @@ import pygame
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, GAME_TITLE, FPS,
     DEFAULT_WINDOWED_SIZE, COLOR_BG_DARK,
-    SCENE_TITLE, SCENE_OPTIONS, SCENE_PLAYER_SELECT, SCENE_LEADERBOARD, SCENE_TUTORIAL, SCENE_CHARACTER_SELECT, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY, SCENE_BONUS,
+    SCENE_TITLE, SCENE_OPTIONS, SCENE_CONTROLS, SCENE_PLAYER_SELECT, SCENE_LEADERBOARD, SCENE_TUTORIAL, SCENE_CHARACTER_SELECT, SCENE_LEVEL, SCENE_TRANSITION, SCENE_VICTORY, SCENE_BONUS,
 )
 from scene_manager import SceneManager
 from input_manager import InputManager
 from asset_manager import AssetManager
 from title_screen import TitleScreen
 from options_scene import OptionsScene
+from controller_settings_scene import ControllerSettingsScene
 from player_select_scene import PlayerSelectScene
 from leaderboard_scene import LeaderboardScene
 from character_select import CharacterSelect
@@ -67,6 +68,7 @@ class Game:
         # Register scenes
         self.scene_mgr.register(SCENE_TITLE, TitleScreen(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_OPTIONS, OptionsScene(self.scene_mgr, self.assets, self.input_mgr))
+        self.scene_mgr.register(SCENE_CONTROLS, ControllerSettingsScene(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_PLAYER_SELECT, PlayerSelectScene(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_LEADERBOARD, LeaderboardScene(self.scene_mgr, self.assets, self.input_mgr))
         self.scene_mgr.register(SCENE_TUTORIAL, TutorialScene(self.scene_mgr, self.assets, self.input_mgr))

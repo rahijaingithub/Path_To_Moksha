@@ -105,6 +105,7 @@ class KeyboardBindingTests(unittest.TestCase):
             manager.joysticks = {}
             manager.touch_buttons = {}
             manager.gamepad_name = ""
+            manager.capture_mode = False
 
             event = types.SimpleNamespace(
                 type=fake_pygame.KEYDOWN, key=pressed_key, mod=0
@@ -194,6 +195,7 @@ class KeyboardBindingTests(unittest.TestCase):
             manager.joysticks = {}
             manager.touch_buttons = {}
             manager.gamepad_name = ""
+            manager.capture_mode = False
             manager.actions[manager_class.JUMP] = True
 
             release_up = types.SimpleNamespace(
