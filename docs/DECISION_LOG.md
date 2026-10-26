@@ -1016,3 +1016,28 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* `tests/test_controller_rebind.py` (16 tests, headless) and a headless drive
   from Options → the new screen → bind → Esc → Options with the Retro-bit pad attached.
   The hands-on half is items 49–51 of `docs/PLAYTEST_CHECKLIST.md`.
+
+## 2026-10-26 — The glimpse has its own face: a real doctor, with his consent
+* **Why (designer):** the bonus level was built around a real doctor in the Paathshala's
+  community who helps people medically and encourages them to visit the temple — a real
+  example for the children of how a small act of compassion (saving the bird) bears fruit
+  in a later life. So the player in the glimpse is drawn as **him**, not as the chosen
+  Shravak or Shravika. It is a future *bhav*, so the gender change (or not) is allowed and
+  does not alter the story; one set of strips serves both devotees.
+* **Likeness is licensed by consent, not by generation.** The doctor was told how the
+  picture would be used (the character in white, replaced by one based on his photo, for
+  the Sunday Paathshala class and possibly the Mahaveer Bhagwan Moksha Kalyanak
+  celebration) and sent his photo for it on WhatsApp, 2026-10-26. The designer holds that
+  exchange; treat it as the licence on file. **The photo itself stays out of the repo** —
+  CI publishes releases publicly, and a reference portrait has no business in a build.
+* **Mechanically a two-line swap.** `BonusScene.on_enter` now asks for
+  `doctor_walk_right.png` / `doctor_idle_right.png` and falls back to the chosen devotee's
+  strips when they are not on disk, so the level is playable before the art exists (the
+  same shape as `_load_poses`). `tools/prepare_rescue_sprites.py` lists the two doctor
+  sheets as optional sources. Prompts are in `image_generation_prompts.md` §8.
+* **Open:** the opening HUD line does not yet say *who* the devotee has become; once the
+  art is in, playtest whether the face change reads as the story or as a bug, and add a
+  line to the card if it is the latter.
+* *Verified:* `tests/test_bonus_scene.py` — the doctor's strips are loaded when present
+  and never alongside the devotee's; the devotee's are loaded when the doctor's are
+  absent. Suite 12 green. The art itself is playtest item 47.

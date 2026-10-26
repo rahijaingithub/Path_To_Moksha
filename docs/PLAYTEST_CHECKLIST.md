@@ -114,7 +114,10 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         Hall's clock jumps up by that amount ("Karuna returns MM:SS to your path"). Finish
         Level 3 and check the results screen records the time you really took — never
         negative, never shorter than the clock says. Let the clock run out once: you return with nothing banked and
-        nothing lost. Figures are placeholders until G5 art lands.
+        nothing lost. In the glimpse the player is drawn as **the doctor** (the community's
+        Dr. Mahendra Jain, with his consent), not the boy or the girl — check it with both
+        devotees, and that his clothes and height do not change when he stops walking.
+        Until his two strips are generated the chosen devotee is drawn instead.
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.

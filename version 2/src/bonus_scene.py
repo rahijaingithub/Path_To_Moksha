@@ -98,9 +98,15 @@ class BonusScene(Scene):
                               self._load_poses(walk="lost_man_walk_right.png",
                                                confused="lost_man_confused.png"))
 
+        # The glimpse is of a future life, so the devotee is drawn not as the boy or
+        # the girl but as the doctor that life makes of them (designer, 2026-10-26):
+        # a likeness of a real doctor in the Paathshala's community, used with his
+        # consent. Gender need not carry across births, so the same strips serve
+        # both. Until the doctor's art lands the devotee stands in, so the level
+        # stays playable either way.
         char = self.manager.shared.get("character", "boy")
-        self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
-        self.idle_strip = self.assets.load_image(f"player_{char}_idle_right.png", "sprites", alpha=True)
+        self.walk_strip = self._player_strip("doctor_walk_right.png", f"player_{char}_walk_right.png")
+        self.idle_strip = self._player_strip("doctor_idle_right.png", f"player_{char}_idle_right.png")
 
         # The street itself. Everything else is positioned against it.
         self.bg = self.assets.load_image("bonus_background.png", "backgrounds",
@@ -123,6 +129,16 @@ class BonusScene(Scene):
 
         self.assets.play_music("bgm_loop.ogg",
                                volume=self.manager.shared.get("music_volume", 0.35))
+
+    def _player_strip(self, preferred, fallback):
+        """The doctor's strip when it exists on disk, else the devotee's own.
+
+        Checked on disk first for the same reason as `_load_poses`: AssetManager
+        answers a missing image with a pink placeholder, not None.
+        """
+        if os.path.exists(os.path.join(IMAGES_DIR, "sprites", preferred)):
+            return self.assets.load_image(preferred, "sprites", alpha=True)
+        return self.assets.load_image(fallback, "sprites", alpha=True)
 
     def _load_poses(self, **names):
         """The optional G5 art for one person, by pose.

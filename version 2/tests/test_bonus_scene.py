@@ -215,6 +215,52 @@ class BonusSceneTests(unittest.TestCase):
 
     # ── drawing ───────────────────────────────────────────────────────────────
 
+    # ── the doctor ────────────────────────────────────────────────────────────
+
+    def _strips_requested(self, exists):
+        """The sprite names the scene asks for on entry, with disk presence faked."""
+        import bonus_scene
+        requested = []
+        real_load = self.assets.load_image
+        real_exists = bonus_scene.os.path.exists
+
+        def recording_load(name, *args, **kwargs):
+            requested.append(name)
+            if name.startswith("doctor_"):      # faked on disk, so stand in a strip
+                return self.pygame.Surface((128 * 4, 128), self.pygame.SRCALPHA)
+            return real_load(name, *args, **kwargs)
+
+        def faked_exists(path):
+            base = os.path.basename(path)
+            return exists(base) if base.startswith("doctor_") else real_exists(path)
+
+        self.assets.load_image = recording_load
+        bonus_scene.os.path.exists = faked_exists
+        try:
+            manager = self.RecordingManager()
+            manager.shared["character"] = "girl"
+            scene = bonus_scene.BonusScene(manager, self.assets, self.input)
+            scene.on_enter(input_mgr=self.input)
+        finally:
+            self.assets.load_image = real_load
+            bonus_scene.os.path.exists = real_exists
+        return requested
+
+    def test_the_glimpse_draws_the_doctor_when_his_strips_exist(self) -> None:
+        """The future life has its own face, whichever devotee was chosen."""
+        names = self._strips_requested(lambda base: True)
+        self.assertIn("doctor_walk_right.png", names)
+        self.assertIn("doctor_idle_right.png", names)
+        self.assertFalse([n for n in names if n.startswith("player_")],
+                         f"the devotee's own strips were also loaded: {names}")
+
+    def test_the_devotee_stands_in_until_the_doctor_art_lands(self) -> None:
+        """Nothing pink: a missing doctor falls back to the chosen devotee."""
+        names = self._strips_requested(lambda base: False)
+        self.assertIn("player_girl_walk_right.png", names)
+        self.assertIn("player_girl_idle_right.png", names)
+        self.assertFalse([n for n in names if n.startswith("doctor_")])
+
     def test_draws_without_crashing_while_playing_and_on_both_outcomes(self) -> None:
         surf = self.pygame.Surface((1920, 1080))
         for setup in (lambda s: None,

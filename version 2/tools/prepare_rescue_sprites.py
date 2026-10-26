@@ -8,9 +8,13 @@ Input : assets/images/sprites/_source/lost_man_walk_right.jpg  — 6 frames, sid
         view, hand rising to the head and down again, on white.
         assets/images/sprites/_source/injured_man_limp_walk_rightV2.jpg — 6 frames,
         side view, limping, on white but with a frame border drawn per cell.
+        assets/images/sprites/_source/doctor_walk_right.jpg (optional) — 6 frames,
+        and doctor_idle_right.jpg (optional) — 4 frames: the doctor the devotee
+        becomes in the glimpse, side view facing right, on white.
 Output: assets/images/sprites/lost_man_walk_right.png
         assets/images/sprites/lost_man_confused.png
         assets/images/sprites/injured_man_limp_walk_right.png
+        assets/images/sprites/doctor_walk_right.png, doctor_idle_right.png (when sourced)
 
 Three things have to be true of the result, and none of them are true of the
 sheets as supplied:
@@ -47,7 +51,13 @@ SHEETS = [
     ("lost_man_walk_right.jpg", "lost_man_walk_right.png", 6, 0),
     ("lost_man_confused.jpg", "lost_man_confused.png", 4, 0),
     ("injured_man_limp_walk_rightV2.jpg", "injured_man_limp_walk_right.png", 6, 22),
+    # The doctor the devotee becomes in the glimpse (2026-10-26). Optional until the
+    # sheets are generated: a missing doctor source is skipped, not an error, so the
+    # tool still rebuilds the two men on their own.
+    ("doctor_walk_right.jpg", "doctor_walk_right.png", 6, 0),
+    ("doctor_idle_right.jpg", "doctor_idle_right.png", 4, 0),
 ]
+OPTIONAL = {"doctor_walk_right.jpg", "doctor_idle_right.jpg"}
 
 WHITE_THRESHOLD = 236     # >= this on every channel counts as background
 ALPHA_FLOOR = 24          # below this a pixel is background, not part of the figure
@@ -150,6 +160,9 @@ def main():
     for source, output, frames, inset in SHEETS:
         src_path = os.path.join(SOURCE_DIR, source)
         if not os.path.exists(src_path):
+            if source in OPTIONAL:
+                print(f"{source}: not delivered yet, skipped")
+                continue
             raise SystemExit(f"missing source: {src_path}")
         strip = build_strip(src_path, frames, inset)
         out_path = os.path.join(SPRITES_DIR, output)

@@ -311,6 +311,35 @@ The audience is a Paathshala. This is the one hard rule on these three.
     them to **BL3** alongside the bird art — that backlog item gates public release on
     clearing third-party art.
 
+### The doctor — the devotee's own sprite in the glimpse (added 2026-10-26)
+The glimpse is of a **future life**, so in this level the player is not the Shravak or
+the Shravika but the compassionate doctor that life makes of them. The character is
+modelled on a real doctor in the Paathshala's community who helps people medically and
+encourages them to visit the temple; he was told how the picture would be used and sent
+it for this purpose (WhatsApp, 2026-10-26 — see `DECISION_LOG.md`). Gender need not
+carry across births, so one set of strips serves both devotees. The reference photo is
+kept **out of the repository**; keep it with the designer, not in `_source/`.
+
+Generate from the photo (image-to-image, or describe him) rather than from the text
+alone, so the face is his. Until these files exist `bonus_scene.py` draws the chosen
+devotee instead, so nothing is blocked on them.
+
+*   **File:** `assets/images/sprites/doctor_walk_right.png` — **6 frames**, side view
+    facing **right**, on white; `_source/doctor_walk_right.jpg`, processed by
+    `tools/prepare_rescue_sprites.py` (already lists it).
+    *   **Prompt:** `A 6-frame horizontal sprite strip, six equal square frames side by side, of the man in the reference photo: an Indian doctor in his sixties with dark hair combed back and greying at the temples, a warm open smile and kind eyes. He wears an open white doctor's coat over a navy checked suit, a light blue shirt, a burgundy striped tie and a red pocket square, with a stethoscope around his neck and dark leather shoes. He walks steadily to the right in a full-body side view: alternating strides, arms swinging naturally, the coat moving with the step. Frames 1 to 6 are one complete walking cycle. The man is exactly the same size and stands on the same ground line in all six frames, and his clothing is identical in every frame. High-fidelity rendered illustration with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail, a recognisable likeness of the reference. Isolated on a pure white background, no shadow, no text.`
+
+*   **File:** `assets/images/sprites/doctor_idle_right.png` — **4 frames**, the same man
+    standing still, facing right; `_source/doctor_idle_right.jpg`.
+    *   **Prompt:** `A 4-frame horizontal sprite strip, four equal square frames side by side, of the same Indian doctor in his sixties from the reference photo, in an open white doctor's coat over a navy checked suit, light blue shirt, burgundy striped tie, red pocket square and a stethoscope around his neck. He stands still in a full-body side view facing right, weight on both feet, hands relaxed at his sides, with a subtle breathing loop: shoulders rising a little in frames 2 and 3 and settling in frame 4. He does not move from the spot. The man is exactly the same size, in the same place and on the same ground line in all four frames, and his clothing is identical in every frame. High-fidelity rendered illustration with soft volumetric lighting, realistic skin and cloth texture, realistic human proportions, fine painterly detail, a recognisable likeness of the reference. Isolated on a pure white background, no shadow, no text.`
+
+*   **Negative prompt:** the standard block from Section 5, Part C, plus
+    `caricature, exaggerated features, cartoon, flat vector, heavy black outline, front view, three-quarter view, scrubs, surgical mask, hospital equipment, clipboard`.
+*   **Checks before dropping them in:** the two strips must dress him identically and
+    put his feet on one line, or he changes clothes and hops the moment he stops
+    walking. The prep tool enforces the baseline and the size; it cannot fix the clothes.
+    The game draws him 150px tall, as it does the devotee.
+
 ### Lesson: never put pixel coordinates in a prompt
 The street was asked for with "the sidewalk line runs at exactly 960 pixels from the
 top", "at roughly 300 pixels from the left", and so on. The generator drew those
