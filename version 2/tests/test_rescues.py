@@ -415,6 +415,71 @@ class RescueTests(unittest.TestCase):
         self.assertAlmostEqual(level.jiv_daya_bonus, left, delta=0.2,
                                msg="banked, so it will not be counted as time taken")
 
+    # ── he says what the sprite cannot ────────────────────────────────────────
+
+    def test_the_injured_man_calls_for_help_and_keeps_talking_while_walked(self) -> None:
+        """His art carries no bandage, so the bubble is what reads as hurt."""
+        s = self.scene
+        self.assertIn("leg", s.injured.speech.lower(), "he says what is wrong")
+
+        self.walk_to(self.bonus_scene.INJURED_START_X)
+        self.act()
+        self.assertEqual(s.injured.state, "following")
+        self.assertIsNotNone(s.injured.speech, "and goes on saying it while walked")
+
+        s.injured.deliver()
+        self.assertIsNone(s.injured.speech, "but not once he is well")
+
+    def test_the_lost_man_says_nothing(self) -> None:
+        """Only the injured man speaks; the lost one has his gesture and his mark."""
+        self.assertIsNone(self.scene.lost.speech)
+
+    def test_the_bubble_comes_and_goes(self) -> None:
+        npc = self.scene.injured
+        seen_solid = seen_gone = False
+        cycle = self.rescue_npc.BUBBLE_SHOW_SECONDS + self.rescue_npc.BUBBLE_HIDE_SECONDS
+        for _ in range(int(cycle * 2 * 60)):
+            self.step()
+            a = npc.speech_alpha
+            self.assertTrue(0 <= a <= 255)
+            seen_solid |= a == 255
+            seen_gone |= a == 0
+        self.assertTrue(seen_solid, "it appears")
+        self.assertTrue(seen_gone, "and disappears")
+
+    def test_a_silent_man_has_no_bubble_at_all(self) -> None:
+        self.assertEqual(self.scene.lost.speech_alpha, 0)
+
+    def test_the_bubble_leads_the_direction_he_faces(self) -> None:
+        """It travels with him and flips sides when he turns, so it reads as his."""
+        npc = self.scene.injured
+        npc.state = "following"
+
+        npc.x, npc.facing_right = 900.0, True
+        right = self._bubble_centre(npc)
+        npc.facing_right = False
+        left = self._bubble_centre(npc)
+
+        self.assertGreater(right, 900, "ahead of him walking right")
+        self.assertLess(left, 900, "and ahead of him walking left")
+
+        npc.x, npc.facing_right = 1300.0, True
+        self.assertAlmostEqual(self._bubble_centre(npc) - 1300, right - 900, delta=0.01,
+                               msg="the offset travels with him")
+
+    def _bubble_centre(self, npc):
+        return npc.x + (self.rescue_npc.BUBBLE_LEAD if npc.facing_right
+                        else -self.rescue_npc.BUBBLE_LEAD)
+
+    def test_the_bubble_draws_both_ways_without_crashing(self) -> None:
+        surf = self.pygame.Surface((1920, 1080))
+        npc = self.scene.injured
+        for facing in (True, False):
+            for x in (20.0, 960.0, 1900.0):     # including hard against the edges
+                with self.subTest(facing=facing, x=x):
+                    npc.facing_right, npc.x, npc.anim = facing, x, 0.5
+                    self.scene.draw(surf)
+
     def test_draws_with_people_carried_led_and_delivered(self) -> None:
         surf = self.pygame.Surface((1920, 1080))
         s = self.scene

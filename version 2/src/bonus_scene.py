@@ -355,7 +355,8 @@ class BonusScene(Scene):
 
         player_top = GROUND_Y - 150
         for npc in (self.lost, self.injured):
-            npc.draw(surface, self.font_title, self.player_x, player_top)
+            npc.draw(surface, self.font_title, self.player_x, player_top,
+                     speech_font=self.font_body)
         self._draw_devotee(surface)
 
         if self.treat_timer > 0:

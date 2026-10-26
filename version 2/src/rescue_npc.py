@@ -15,6 +15,7 @@ level is playable and testable with no assets at all.
 import math
 import pygame
 from settings import (
+    LOGICAL_WIDTH,
     COLOR_CREAM, COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GREEN, COLOR_WHITE, COLOR_SAFFRON,
 )
 
@@ -38,6 +39,19 @@ WANDER_SPEED = 46.0
 # head wondering, then tries another way.
 PACE_SECONDS = 2.2
 PONDER_SECONDS = 1.8
+
+# What a man waiting for help calls out, and how the bubble comes and goes.
+# The injured man's art carries no bandage, so without this he reads as someone
+# walking slowly rather than someone hurt; the bubble says what the sprite cannot.
+SPEECH = {
+    (KIND_INJURED, "waiting"): "Help! My leg hurts!",
+    (KIND_INJURED, "following"): "Slowly, please... my leg.",
+}
+# How far ahead of him the bubble sits, on the side he is facing.
+BUBBLE_LEAD = 46
+BUBBLE_SHOW_SECONDS = 2.6
+BUBBLE_HIDE_SECONDS = 1.4
+BUBBLE_FADE_SECONDS = 0.35
 
 
 class RescueNPC:
@@ -116,6 +130,26 @@ class RescueNPC:
         """Standing still with a hand to his head — the confused pose."""
         return self.kind == KIND_LOST and self.state == "waiting" and self.pondering
 
+    @property
+    def speech(self):
+        """What he is calling out, or None. Only while he still needs help."""
+        return SPEECH.get((self.kind, self.state))
+
+    @property
+    def speech_alpha(self):
+        """0-255 over the appear/hold/disappear cycle, 0 while it is away."""
+        if not self.speech:
+            return 0
+        cycle = BUBBLE_SHOW_SECONDS + BUBBLE_HIDE_SECONDS
+        t = self.anim % cycle
+        if t > BUBBLE_SHOW_SECONDS:
+            return 0
+        if t < BUBBLE_FADE_SECONDS:
+            return int(255 * t / BUBBLE_FADE_SECONDS)
+        if t > BUBBLE_SHOW_SECONDS - BUBBLE_FADE_SECONDS:
+            return int(255 * (BUBBLE_SHOW_SECONDS - t) / BUBBLE_FADE_SECONDS)
+        return 255
+
     def take(self):
         """The devotee offers to walk with him; from here he follows at his own pace."""
         if self.state != "waiting":
@@ -128,15 +162,57 @@ class RescueNPC:
 
     # ── draw ──────────────────────────────────────────────────────────────────
 
-    def draw(self, surface, font, player_x=None, player_top=None):
+    def draw(self, surface, font, player_x=None, player_top=None, speech_font=None):
         art = self._walk_image()
         if art:
             self._blit(surface, art, self.x, self.ground_y)
         else:
             self._draw_figure(surface, self.x, self.ground_y)
 
-        if self.state == "waiting":
+        if self.speech:
+            self._draw_speech(surface, speech_font or font)
+        elif self.state == "waiting":
             self._draw_call(surface, font)
+
+    def _draw_speech(self, surface, font):
+        """A speech bubble over his head, fading in and out.
+
+        Built opaque and then faded as a whole with a BLEND_RGBA_MULT pass: setting
+        an alpha on a per-pixel-alpha surface does not reliably dim what is drawn
+        onto it, and the text would stay solid over a fading bubble.
+        """
+        alpha = self.speech_alpha
+        if alpha <= 0:
+            return
+
+        pad_x, pad_y, tail = 20, 11, 15
+        label = font.render(self.speech, True, (32, 26, 42))
+        w = label.get_width() + pad_x * 2
+        h = label.get_height() + pad_y * 2
+
+        # The bubble leads him, on the side he is walking towards, and its tail
+        # points back down to his head — so it reads as his, whichever way he turns.
+        lead = BUBBLE_LEAD if self.facing_right else -BUBBLE_LEAD
+        cx = self.x + lead
+        tip = int(w * (0.26 if self.facing_right else 0.74))
+
+        bubble = pygame.Surface((w, h + tail), pygame.SRCALPHA)
+        body = pygame.Rect(0, 0, w, h)
+        pygame.draw.rect(bubble, (252, 248, 238), body, border_radius=13)
+        foot = (tip - lead // 3, h + tail)
+        pygame.draw.polygon(bubble, (252, 248, 238),
+                            [(tip - 13, h - 3), (tip + 13, h - 3), foot])
+        pygame.draw.rect(bubble, (126, 108, 88), body, width=2, border_radius=13)
+        pygame.draw.lines(bubble, (126, 108, 88), False,
+                          [(tip - 13, h - 2), foot, (tip + 13, h - 2)], 2)
+        bubble.blit(label, (pad_x, pad_y))
+        bubble.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MULT)
+
+        bob = math.sin(self.anim * 2.4) * 3
+        top = self.ground_y - self.HEIGHT
+        rect = bubble.get_rect(midbottom=(int(cx), int(top - 6 + bob)))
+        rect.clamp_ip(pygame.Rect(8, 0, LOGICAL_WIDTH - 16, 10_000))   # keep it on screen
+        surface.blit(bubble, rect)
 
     def _draw_call(self, surface, font):
         """The mark that says someone here needs help."""

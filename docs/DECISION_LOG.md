@@ -887,3 +887,22 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * *Verified:* 114 green, including that the street and frontage load rather than the pink
   placeholder, and that the measured constants stay on the background.
 
+## 2026-10-25 — The injured man speaks instead of being redrawn
+* **Decision (designer):** rather than regenerate the limp sheet with a bandage, give him a
+  speech bubble that appears and disappears — "Help! My leg hurts!"
+  * *Why it works:* the delivered art has no bandage, so he read as a man walking slowly.
+    The bubble says what the sprite cannot, and costs no new art.
+* **He keeps speaking while he is walked** ("Slowly, please... my leg."), which is what
+  makes the designer's follow-up — that the bubble move with him and face his direction —
+  mean anything: a man who only speaks while standing still never carries his bubble
+  anywhere. He falls silent once treated.
+* **The bubble leads the way he faces** by `BUBBLE_LEAD`, with its tail on the near side
+  pointing back down to his head, so it flips sides when he turns and still reads as his.
+  It is clamped to the screen, so it cannot be cut off at either end of the street.
+* *Implementation note:* the bubble is drawn opaque and then faded whole with a
+  `BLEND_RGBA_MULT` pass. Setting an alpha on a per-pixel-alpha surface does not dim what
+  has been drawn onto it, so the text would have stayed solid over a fading bubble.
+* The lost man says nothing: he has his wondering gesture and his "?" already.
+* *Verified:* 120 green — six new tests, including that the bubble appears and disappears,
+  that it flips sides and travels with him, and that it draws hard against both screen edges.
+
