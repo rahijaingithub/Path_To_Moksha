@@ -310,3 +310,28 @@ The audience is a Paathshala. This is the one hard rule on these three.
 *   **Licence note:** if any of these are sourced from the web rather than generated, add
     them to **BL3** alongside the bird art — that backlog item gates public release on
     clearing third-party art.
+
+### Lesson: never put pixel coordinates in a prompt
+The street was asked for with "the sidewalk line runs at exactly 960 pixels from the
+top", "at roughly 300 pixels from the left", and so on. The generator drew those
+numbers **into the picture** as chart axes — a column of numbers down the left and a
+row along the bottom, with tick marks. The art was fine; it just arrived inside a plot.
+`tools/prepare_bonus_background.py` crops them off.
+
+Describe positions in words instead — "near the left end of the street", "at the far
+right" — and measure the delivered art afterwards, then move the game's constants to
+match it. That is what was done here: `GROUND_Y`, `HOSPITAL_X` and `TEMPLE_X` in
+`bonus_scene.py` are measured off `bonus_background.png`, not chosen in advance.
+
+### Delivered 2026-10-25
+*   `backgrounds/bonus_background.png` — the Toronto street, from
+    `_source/Toronto Background.jpg`. Flat-on, continuous sidewalk, a plain modern
+    building at the left end and a carved Jain temple at the right, row houses and a
+    hazy CN Tower between. Squeezed ~3% horizontally to reach 16:9 rather than cropped,
+    which would have cost one end or the other.
+*   `items/hospital_gate.png` — the hospital frontage, from `_source/Hospital BG.jpg`.
+    Laid over the plain building, which has nothing on it to say what it is.
+*   **The temple is not overlaid.** The street already has a carved Jain temple, and a
+    second stone doorway on top of its doorway would be exactly the out-of-place thing
+    the overlay was meant to avoid. The destination is marked with a tag instead.
+

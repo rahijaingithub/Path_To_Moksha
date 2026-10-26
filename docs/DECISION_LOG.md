@@ -866,3 +866,24 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   was managed, says the Hall lost nothing, and ends "The merit that opened this path is
   yours still." No failure language.
 
+## 2026-10-25 — The bonus level is set on a Toronto street
+* **Art delivered (designer):** a flat-on Toronto street with a plain modern building at
+  the left end and a carved Jain temple at the right, and a separate hospital frontage on
+  white. Processed by `tools/prepare_bonus_background.py`.
+* **The constants moved to the art, not the art to the constants.** `GROUND_Y` (884),
+  `HOSPITAL_X` (205) and `TEMPLE_X` (1490) are measured off the finished background. The
+  old values were invented when the level was a painted gradient.
+* **The temple is deliberately not overlaid.** The designer asked for the temple item to
+  be placed over the temple in the background so nothing looks out of place — but the
+  street's own temple already reads as a temple, and laying Level 1's stone gate over its
+  doorway would have been the out-of-place thing. The hospital *is* overlaid, because the
+  building there is blank and says nothing about what it is.
+* **Prompt lesson, written into `image_generation_prompts.md`:** the prompt gave pixel
+  coordinates ("the sidewalk line at exactly 960 pixels from the top"), and the generator
+  drew those numbers into the picture as chart axes. Describe positions in words and
+  measure the delivered art afterwards.
+* Destination tags now sit on translucent plates: plain words were legible over the
+  painted stand-in and vanish against brick and render.
+* *Verified:* 114 green, including that the street and frontage load rather than the pink
+  placeholder, and that the measured constants stay on the background.
+

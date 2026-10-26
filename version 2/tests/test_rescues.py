@@ -360,14 +360,28 @@ class RescueTests(unittest.TestCase):
                     self.assertFalse(corner[:3] == (255, 0, 220) and corner[3] == 255,
                                      f"{who}/{key} loaded the pink placeholder")
 
-    def test_the_temple_uses_level_1s_gate_art(self) -> None:
-        """The door he is led to is the same door Level 1 ends at."""
-        img = self.scene.temple_img
-        self.assertIsNotNone(img, "temple_gate.png loaded")
-        self.assertEqual(img.get_size(), (240, 196))
-        corner = img.get_at((0, 0))
-        self.assertFalse(corner[:3] == (255, 0, 220) and corner[3] == 255,
-                         "not the pink placeholder")
+    def test_the_street_and_the_hospital_frontage_load(self) -> None:
+        """The level is set on the Toronto street, with the hospital named on it."""
+        s = self.scene
+        self.assertIsNotNone(s.bg, "bonus_background.png loaded")
+        self.assertEqual(s.bg.get_size(), (1920, 1080))
+        self.assertIsNotNone(s.hospital_img, "hospital_gate.png loaded")
+        for img, who in ((s.bg, "street"), (s.hospital_img, "hospital")):
+            corner = img.get_at((0, 0))
+            self.assertFalse(corner[:3] == (255, 0, 220) and corner[3] == 255,
+                             f"{who} is the pink placeholder")
+
+    def test_the_destinations_sit_where_the_art_puts_them(self) -> None:
+        """The constants are measured off the background, so they must stay on it."""
+        self.assertTrue(0 < self.bonus_scene.HOSPITAL_X < self.bonus_scene.TEMPLE_X < 1920)
+        self.assertTrue(600 < self.bonus_scene.GROUND_Y < 1080,
+                        "the sidewalk, not the sky or off the bottom")
+        for npc_x in (self.bonus_scene.INJURED_START_X, self.bonus_scene.LOST_START_X):
+            self.assertTrue(0 < npc_x < 1920)
+        self.assertGreater(self.bonus_scene.INJURED_START_X, self.bonus_scene.HOSPITAL_X,
+                           "he is walked left to the hospital")
+        self.assertLess(self.bonus_scene.LOST_START_X, self.bonus_scene.TEMPLE_X,
+                        "he is led right to the temple")
 
     def test_the_time_left_reaches_the_hall_end_to_end(self) -> None:
         """Both rescues → the Hall resumes with exactly those seconds banked (G2+G4)."""

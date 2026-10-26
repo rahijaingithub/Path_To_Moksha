@@ -40,16 +40,20 @@ CLEARED_HOLD_SECONDS = 5.0
 # The ground, and where the two errands begin and end. The injured man starts to
 # the right of the hospital and the lost man to the left of the temple, so the two
 # errands cross and the devotee has to choose an order.
-GROUND_Y = LOGICAL_HEIGHT - 120
-HOSPITAL_X = 300
-TEMPLE_X = LOGICAL_WIDTH - 300
-INJURED_START_X = 1150
-LOST_START_X = 700
+# Measured off bonus_background.png rather than chosen: the sidewalk the figures
+# stand on, the hospital's entrance, and the temple's doorway are where the art
+# puts them. Change these only alongside the background.
+GROUND_Y = 884
+HOSPITAL_X = 205
+TEMPLE_X = 1490
+INJURED_START_X = 1150        # right of the hospital, so he is walked left
+LOST_START_X = 700            # left of the temple, so he is led right
 PLAYER_START_X = LOGICAL_WIDTH // 2
 
 PLAYER_HALF_W = 32            # half the drawn sprite, for the walls
 DESTINATION_REACH = 120       # how close counts as "at" the hospital or the temple
 TREAT_SECONDS = 2.5           # tending to the injured man once he is at the hospital
+TEMPLE_HEIGHT = 500           # to the top of the street temple's spire, so its tag clears it
 
 
 class BonusScene(Scene):
@@ -98,11 +102,19 @@ class BonusScene(Scene):
         self.walk_strip = self.assets.load_image(f"player_{char}_walk_right.png", "sprites", alpha=True)
         self.idle_strip = self.assets.load_image(f"player_{char}_idle_right.png", "sprites", alpha=True)
 
-        # The same temple gate art Level 1 uses for its goal door, keyed the same way.
-        self.temple_img = self.assets.load_image("temple_gate.png", "items", alpha=True,
-                                                 scale=(240, 196))
-        if self.temple_img:
-            self.temple_img.set_colorkey((0, 0, 0))
+        # The street itself. Everything else is positioned against it.
+        self.bg = self.assets.load_image("bonus_background.png", "backgrounds",
+                                         alpha=False, scale=(LOGICAL_WIDTH, LOGICAL_HEIGHT))
+        if self.bg and self.bg.get_at((0, 0))[:3] == (255, 0, 220):
+            self.bg = None                      # missing: fall back to the painted sky
+
+        # The hospital frontage sits over the plain building on the left, which has
+        # nothing on it to say what it is. The temple needs no such help: the street
+        # already has a carved Jain temple, and that is the door he is led to.
+        self.hospital_img = self.assets.load_image("hospital_gate.png", "items",
+                                                   alpha=True, scale=(330, 156))
+        if self.hospital_img and self.hospital_img.get_at((0, 0))[:3] == (255, 0, 220):
+            self.hospital_img = None
 
         self.font_title = self.assets.load_font(None, GAME_FONT_SIZE_SUBTITLE)
         self.font_body = self.assets.load_font(None, GAME_FONT_SIZE_BODY)
@@ -287,7 +299,7 @@ class BonusScene(Scene):
     # ── draw ──────────────────────────────────────────────────────────────────
 
     def draw(self, surface):
-        self._draw_sky(surface)
+        self._draw_backdrop(surface)
         self._draw_world(surface)
         self._draw_hud(surface)
         if self.outcome is not None:
@@ -297,6 +309,13 @@ class BonusScene(Scene):
             fade.fill((0, 0, 0))
             fade.set_alpha(int(self.fade_alpha))
             surface.blit(fade, (0, 0))
+
+    def _draw_backdrop(self, surface):
+        """The street, or a painted sky if its art is missing."""
+        if self.bg:
+            surface.blit(self.bg, (0, 0))
+            return
+        self._draw_sky(surface)
 
     def _draw_sky(self, surface):
         """A warm dawn wash — the punya's fruit seen in a kinder light than the Hall."""
@@ -319,15 +338,19 @@ class BonusScene(Scene):
         surface.blit(glow, (LOGICAL_WIDTH // 2 - halo, cy - halo))
 
     def _draw_world(self, surface):
-        """The ground, the two destinations, the two people, and the devotee.
+        """The two destinations, the two people, and the devotee.
 
-        Anything without art yet falls back to a plain drawn stand-in, the way the
-        Monk does, so the level stays playable as the art arrives piece by piece.
+        The street supplies the ground, so nothing is drawn under their feet. Where
+        a piece of art is missing the plain stand-in is drawn instead, the way the
+        Monk falls back, so the level stays playable as the art arrives.
         """
-        pygame.draw.rect(surface, (92, 74, 58), (0, GROUND_Y, LOGICAL_WIDTH, 120))
-        pygame.draw.line(surface, (126, 104, 80), (0, GROUND_Y), (LOGICAL_WIDTH, GROUND_Y), 3)
+        if not self.bg:                       # no street: give them something to stand on
+            pygame.draw.rect(surface, (92, 74, 58), (0, GROUND_Y, LOGICAL_WIDTH,
+                                                     LOGICAL_HEIGHT - GROUND_Y))
+            pygame.draw.line(surface, (126, 104, 80), (0, GROUND_Y),
+                             (LOGICAL_WIDTH, GROUND_Y), 3)
 
-        self._draw_marker(surface, HOSPITAL_X, GROUND_Y, "HOSPITAL", COLOR_CREAM, self.injured_saved)
+        self._draw_hospital(surface)
         self._draw_temple(surface)
 
         player_top = GROUND_Y - 150
@@ -338,8 +361,8 @@ class BonusScene(Scene):
         if self.treat_timer > 0:
             self._draw_treating(surface)
         if self.hint:
-            tip = self.font_body.render(self.hint, True, COLOR_GOLD_BRIGHT)
-            surface.blit(tip, tip.get_rect(center=(int(self.player_x), player_top - 30)))
+            self._plate_text(surface, self.font_body.render(self.hint, True, COLOR_GOLD_BRIGHT),
+                             (int(self.player_x), player_top - 30), pad=(18, 7))
 
     def _draw_devotee(self, surface):
         """The devotee himself, from the walk strip — as the transition scenes do."""
@@ -370,26 +393,67 @@ class BonusScene(Scene):
         pygame.draw.rect(surface, COLOR_GREEN, (x, y, int(w * done), h), border_radius=7)
         pygame.draw.rect(surface, COLOR_CREAM, (x, y, w, h), width=2, border_radius=7)
 
-    def _draw_temple(self, surface):
-        """Level 1's temple gate, so the door he is led to is the door of that world."""
-        if not self.temple_img:
-            self._draw_marker(surface, TEMPLE_X, GROUND_Y, "TEMPLE", COLOR_GOLD, self.lost_saved)
+    def _draw_hospital(self, surface):
+        """The frontage, sitting on the sidewalk in front of the plain building."""
+        if not self.hospital_img:
+            self._draw_marker(surface, HOSPITAL_X, GROUND_Y, "HOSPITAL",
+                              COLOR_CREAM, self.injured_saved)
             return
 
-        rect = self.temple_img.get_rect(midbottom=(TEMPLE_X, GROUND_Y + 4))
-        if self.lost_saved:                       # a soft welcome once he is inside
-            halo = pygame.Surface((rect.width + 60, rect.height + 60), pygame.SRCALPHA)
-            pygame.draw.ellipse(halo, (255, 215, 120, 60), halo.get_rect())
-            surface.blit(halo, (rect.x - 30, rect.y - 30))
-        surface.blit(self.temple_img, rect)
+        rect = self.hospital_img.get_rect(midbottom=(HOSPITAL_X, GROUND_Y + 2))
+        if self.injured_saved:
+            self._draw_welcome(surface, rect)
+        surface.blit(self.hospital_img, rect)
+        self._draw_destination_label(surface, HOSPITAL_X, rect.top, "HOSPITAL",
+                                     COLOR_CREAM, self.injured_saved)
 
-        # Both labels clear of the gate — at the gate's own top edge they sit on the
-        # carving and neither reads.
-        label = self.font_small.render("TEMPLE", True, COLOR_GOLD)
-        surface.blit(label, label.get_rect(center=(TEMPLE_X, rect.top - 54)))
-        tick = self.font_small.render("saved" if self.lost_saved else "waiting", True,
-                                      COLOR_GREEN if self.lost_saved else COLOR_GOLD_DIM)
-        surface.blit(tick, tick.get_rect(center=(TEMPLE_X, rect.top - 28)))
+    def _draw_welcome(self, surface, rect):
+        """A soft glow once this errand is done."""
+        halo = pygame.Surface((rect.width + 70, rect.height + 70), pygame.SRCALPHA)
+        pygame.draw.ellipse(halo, (255, 215, 120, 55), halo.get_rect())
+        surface.blit(halo, (rect.x - 35, rect.y - 35))
+
+    def _draw_destination_label(self, surface, cx, top, name, color, done):
+        """A small floating tag above the building.
+
+        On the painted stand-in a plain word was legible; over the street art it
+        lands on brick and render and disappears, so each line gets a dark plate.
+        """
+        self._plate_text(surface, self.font_small.render(name, True, color),
+                         (cx, top - 46))
+        self._plate_text(surface,
+                         self.font_small.render("saved" if done else "waiting", True,
+                                                COLOR_GREEN if done else COLOR_GOLD_DIM),
+                         (cx, top - 20))
+
+    @staticmethod
+    def _plate_text(surface, text, center, pad=(14, 5)):
+        """Draw text on a translucent dark plate so it reads over any background."""
+        rect = text.get_rect(center=center)
+        plate = pygame.Surface((rect.width + pad[0] * 2, rect.height + pad[1] * 2),
+                               pygame.SRCALPHA)
+        pygame.draw.rect(plate, (10, 8, 18, 170), plate.get_rect(), border_radius=6)
+        surface.blit(plate, (rect.x - pad[0], rect.y - pad[1]))
+        surface.blit(text, rect)
+
+    def _draw_temple(self, surface):
+        """The temple already standing in the street.
+
+        Level 1's gate art is deliberately NOT laid over it: the street's own
+        carved Jain temple reads as a temple, and a second stone doorway on top of
+        its doorway is the out-of-place thing we were avoiding. The destination is
+        marked instead — a tag above it, and a welcome when he is inside.
+        """
+        if not self.bg:                       # no street: fall back to a plain plinth
+            self._draw_marker(surface, TEMPLE_X, GROUND_Y, "TEMPLE", COLOR_GOLD,
+                              self.lost_saved)
+            return
+
+        top = GROUND_Y - TEMPLE_HEIGHT
+        if self.lost_saved:
+            self._draw_welcome(surface, pygame.Rect(TEMPLE_X - 110, top, 220, TEMPLE_HEIGHT))
+        self._draw_destination_label(surface, TEMPLE_X, top, "TEMPLE", COLOR_GOLD,
+                                     self.lost_saved)
 
     def _draw_marker(self, surface, cx, ground_y, label, color, done):
         """A destination: a plain plinth with its name, ticked once its errand is done."""
