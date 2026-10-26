@@ -906,3 +906,38 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * *Verified:* 120 green — six new tests, including that the bubble appears and disappears,
   that it flips sides and travels with him, and that it draws hard against both screen edges.
 
+## 2026-10-25 — Jump stopped acting on the world
+* **Bug (reported by designer):** on a gamepad, jumping beside a box opened the box
+  instead of jumping.
+  * *Cause:* `jump` deliberately also raises `MENU_SELECT`, so A confirms in menus
+    (`input_manager`, JOYBUTTONDOWN). But gameplay was reading `ACTION or MENU_SELECT`,
+    so the two were the same button in the world. On a keyboard SPACE never raised
+    MENU_SELECT, which is why this only showed on a pad.
+* **Fixed in the scenes, not the input manager.** `MENU_*` is menu vocabulary; a level is
+  not a menu. World interactions now listen to `ACTION` alone: opening a box, the Level 1
+  temple gate, approaching the Monk, answering him, the Level 3 bird and mantra puzzle, and
+  the bonus level's one act button. Menu-shaped overlays keep `MENU_SELECT` — the pause
+  menu, game over, the item pop-up, the bonus level's closing card — where confirming with
+  A is wanted and costs nothing.
+  * **Two more cases fixed with it, unreported:** a reflex jump with the Monk's scroll open
+    submitted whichever answer was highlighted, and the same during the mantra puzzle.
+    Both punished a player for a reflex, which the north star forbids.
+* *Verified:* `tests/test_jump_is_not_action.py`, source-level so it also runs on the
+  dependency-free CI worker, and it fails if `MENU_SELECT` returns to a world interaction.
+
+## 2026-10-25 — The injured man walks where he used to walk on the spot
+* **Bug (reported by designer):** the limping man played his walk animation while standing
+  still. Same class of fault as the transition-scene devotee on 2026-10-20: the frame index
+  advanced while the position did not.
+* He now paces a few steps each way while he waits, slower (26 px/s vs the lost man's 46)
+  and over a shorter span (54 px vs 70) — he is hurt, so he does not range as far. The
+  pacing is shared by both men through `_pace()` rather than duplicated.
+
+## 2026-10-25 — Level 3 and its bonus level open to kid and standard (C7, part one)
+* **Decision (designer):** the to-be-continued gate moves from after Level 2 to after
+  Level 3, so the Karuna bonus level finally has an audience — it was unreachable outside
+  developer mode, which is the caveat carried on every entry in this epic since G1.
+* **Level 4 stays developer-only.** It has no background (C1) and its layout has not been
+  rebuilt (C2); shipping it to children would be shipping the pink placeholder. C7's
+  second half stands.
+

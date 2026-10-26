@@ -179,7 +179,9 @@ class BonusScene(Scene):
         if self.treat_timer > 0:          # hands busy tending him
             return
 
-        if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+        # ACTION only — jump raises MENU_SELECT on a pad, and this is the world,
+        # not a menu.
+        if input_mgr.just_pressed[input_mgr.ACTION]:
             self._act()
 
     def _act(self):

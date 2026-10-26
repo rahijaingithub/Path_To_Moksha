@@ -39,6 +39,10 @@ WANDER_SPEED = 46.0
 # head wondering, then tries another way.
 PACE_SECONDS = 2.2
 PONDER_SECONDS = 1.8
+# The injured man paces too, slowly and over a shorter beat: his strip animated
+# while he stood still, so he walked on the spot waiting to be noticed.
+LIMP_WANDER_SPEED = 26.0
+LIMP_WANDER_SPAN = 54
 
 # What a man waiting for help calls out, and how the bubble comes and goes.
 # The injured man's art carries no bandage, so without this he reads as someone
@@ -99,21 +103,19 @@ class RescueNPC:
     def update(self, dt, player_x, player_facing_right):
         self.anim += dt
 
-        if self.state == "waiting" and self.kind == KIND_LOST:
-            self.phase_timer -= dt
-            if self.phase_timer <= 0:
-                self.pondering = not self.pondering
-                self.phase_timer = PONDER_SECONDS if self.pondering else PACE_SECONDS
+        if self.state == "waiting":
+            if self.kind == KIND_LOST:
+                self.phase_timer -= dt
+                if self.phase_timer <= 0:
+                    self.pondering = not self.pondering
+                    self.phase_timer = PONDER_SECONDS if self.pondering else PACE_SECONDS
+                    if not self.pondering:
+                        self.wander_dir *= -1   # having wondered, he tries the other way
                 if not self.pondering:
-                    self.wander_dir *= -1      # having wondered, he tries the other way
-
-            if not self.pondering:
-                self.x += WANDER_SPEED * self.wander_dir * dt
-                if self.x > self.home_x + WANDER_SPAN:
-                    self.x, self.wander_dir = self.home_x + WANDER_SPAN, -1
-                elif self.x < self.home_x - WANDER_SPAN:
-                    self.x, self.wander_dir = self.home_x - WANDER_SPAN, 1
-                self.facing_right = self.wander_dir > 0
+                    self._pace(dt, WANDER_SPEED, WANDER_SPAN)
+            else:
+                # Hobbling a few steps each way while he waits to be noticed.
+                self._pace(dt, LIMP_WANDER_SPEED, LIMP_WANDER_SPAN)
 
         elif self.state == "following":
             target = player_x - FOLLOW_GAP if player_facing_right else player_x + FOLLOW_GAP
@@ -124,6 +126,15 @@ class RescueNPC:
                 self.facing_right = direction > 0
             else:
                 self.x = target
+
+    def _pace(self, dt, speed, span):
+        """Walk back and forth about where he started, turning at each end."""
+        self.x += speed * self.wander_dir * dt
+        if self.x > self.home_x + span:
+            self.x, self.wander_dir = self.home_x + span, -1
+        elif self.x < self.home_x - span:
+            self.x, self.wander_dir = self.home_x - span, 1
+        self.facing_right = self.wander_dir > 0
 
     @property
     def is_pondering(self):

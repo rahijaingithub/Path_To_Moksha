@@ -271,6 +271,38 @@ class RescueTests(unittest.TestCase):
         only_walk.pondering = True
         self.assertIsNotNone(only_walk._walk_image(), "walk stands in for a missing gesture")
 
+    def test_the_injured_man_hobbles_back_and_forth_while_he_waits(self) -> None:
+        """His strip animated while he stood still: he walked on the spot."""
+        s = self.scene
+        start = s.injured.x
+        moved_both_ways = {False: False, True: False}
+        for _ in range(360):
+            was = s.injured.x
+            self.step()
+            if abs(s.injured.x - was) > 0.001:
+                moved_both_ways[s.injured.x > was] = True
+        self.assertTrue(all(moved_both_ways.values()), "he walks left and right")
+        self.assertLessEqual(abs(s.injured.x - s.injured.home_x),
+                             self.rescue_npc.LIMP_WANDER_SPAN + 2,
+                             "but stays near where he fell")
+
+    def test_he_hobbles_slower_and_less_far_than_the_lost_man_wanders(self) -> None:
+        self.assertLess(self.rescue_npc.LIMP_WANDER_SPEED, self.rescue_npc.WANDER_SPEED)
+        self.assertLess(self.rescue_npc.LIMP_WANDER_SPAN, self.rescue_npc.WANDER_SPAN)
+
+    def test_he_stops_pacing_once_he_is_being_helped(self) -> None:
+        s = self.scene
+        self.walk_to(self.bonus_scene.INJURED_START_X)
+        self.act()
+        self.assertEqual(s.injured.state, "following")
+        self.input.release_all()
+        here = s.player_x
+        for _ in range(120):
+            self.step()
+        self.assertAlmostEqual(s.player_x, here, delta=0.01, msg="the devotee stands still")
+        self.assertLess(abs(s.injured.x - s.player_x), 200,
+                        "and he closes on him rather than wandering off")
+
     def test_the_lost_man_follows_and_knows_the_temple_when_he_reaches_it(self) -> None:
         s = self.scene
         self.walk_to(s.lost.x)

@@ -710,7 +710,8 @@ class LevelScene(Scene):
             if self.player.rect.colliderect(gate_rect):
                 if self.box_system.goal_found:
                     # Player is at the gate with the key!
-                    if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+                    if (input_mgr.just_pressed[input_mgr.ACTION]
+                            or input_mgr.just_pressed[input_mgr.UP]):
 
                         self.assets.play_sound("level_complete.wav")
                         self.assets.stop_music()
@@ -727,8 +728,7 @@ class LevelScene(Scene):
             return
 
         level3_act = self.level == 3 and (
-            input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP]
-            or input_mgr.just_pressed[input_mgr.MENU_SELECT])
+            input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP])
 
         # Level 3: help the fallen bird — share Akshat, then order the Namokar Mantra.
         if level3_act and self._at_fallen_bird():
@@ -785,7 +785,9 @@ class LevelScene(Scene):
                     self.monk.selected_choice = (self.monk.selected_choice + 1) % n_choices
                     self.assets.play_sound("jump.wav", volume=0.08)
 
-            if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT] or clicked:
+            # ACTION only: on a pad jump raises MENU_SELECT, and a reflex jump
+            # while the scroll is open used to submit whatever was highlighted.
+            if input_mgr.just_pressed[input_mgr.ACTION] or clicked:
                 correct = self.monk.submit_answer()
                 if correct:
                     self.assets.play_sound("correct.wav")
@@ -794,14 +796,16 @@ class LevelScene(Scene):
                     self.assets.play_sound("wrong.wav")
             return
 
-        # Monk interaction (ACTION, MENU_UP, or MENU_SELECT when near monk)
-        if (input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_UP] or input_mgr.just_pressed[input_mgr.MENU_SELECT]) and self.monk:
+        # Monk interaction (ACTION or UP when near the monk)
+        if (input_mgr.just_pressed[input_mgr.ACTION]
+                or input_mgr.just_pressed[input_mgr.MENU_UP]) and self.monk:
             if self.monk.show_prompt and not self.monk.interacted:
                 self.monk.start_dialogue()
                 return
 
-        # Open box (ACTION or MENU_SELECT near a box)
-        if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+        # Open box (ACTION near a box). Deliberately not MENU_SELECT: jump raises
+        # that on a pad, so jumping beside a box used to open it instead.
+        if input_mgr.just_pressed[input_mgr.ACTION]:
 
 
             result = self.box_system.try_open_nearest(self.player.rect)
@@ -1320,7 +1324,7 @@ class LevelScene(Scene):
                         self.puzzle_cursor = i
                         if event.type == pygame.MOUSEBUTTONDOWN:
                             chosen = i
-        if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
+        if input_mgr.just_pressed[input_mgr.ACTION]:      # not MENU_SELECT: see above
             chosen = self.puzzle_cursor
         if chosen is None:
             return
@@ -1487,7 +1491,10 @@ class LevelScene(Scene):
 
         next_level = self.level + 1
         tbc = False
-        if self.level == 2 and self.game_mode in ("kid", "standard"):
+        # Kid and standard end after Level 3, which now includes the Karuna bonus
+        # level (C7, 2026-10-25). Level 4 stays developer-only until its own art
+        # and layout are finished — it has no background yet.
+        if self.level == 3 and self.game_mode in ("kid", "standard"):
             tbc = True
 
         if next_level > 4:

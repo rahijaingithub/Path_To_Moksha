@@ -35,7 +35,7 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 | C4 | Hazards: water channels + flame pillars against art | `hazards.py` | S | A2 |
 | C5 | Transition 4→Victory — **done 2026-09-27** (same work as backlog BL4): Moolnayak Adinath Bhagwan, bow, golden glow, then Victory | `transition_scene.py`, `level_scene.py` | M | playtest #11 |
 | C6 | Victory: `digambar_garbhalaya.png`; remove from `ALLOWED_MISSING_LITERAL_ASSETS` | `victory_scene.py`, `tests/test_portability.py`, assets | S (+art) | asset test |
-| C7 | Open Levels 3–4 to kid/standard modes once B and C are complete (Q2: gated only because L3/L4 are unfinished) | `level_scene.py:810` | S | playtest #7 |
+| C7 | ~~Open Level 3 to kid/standard~~ — **done 2026-10-25**: the to-be-continued gate moved from after Level 2 to after Level 3, so kid and standard now play The Hall and its Karuna bonus level. **Level 4 still developer-only** — it has no background (C1) or finished layout (C2) | `level_scene.py` | S | `test_jump_is_not_action.ModeProgressionTests` + playtest #7 |
 | C8 | Disappearing tiles ("Illusions of permanence" — moved here from Level 3, designer 2026-09-27): `TimedPlatform` fading in/out on a cycle. **Open:** which support reveals them in Level 4 — the spec's reveal was Mahavir's Lion (Level 3), while Level 4's correct Lakshan is the Bull; and how it combines with C3's crumbling blocks | `level_layouts.py`, `level_scene.py`, `box_system.py` | L | unit test on cycle timing + playtest |
 
 ## Epic G — Level 3 bonus level: Karuna (the two rescues) — P2 (designer idea, 2026-10-20)
