@@ -844,15 +844,15 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   and there was no visible highlight to move.
   * *Cause:* the prompt was two key hints — "Enter / A - Yes, quit", "Esc / B - No, stay" —
     and confirmed on ACTION or MENU_SELECT. Which physical button those are is whatever a
-    pad mapping says: on the Retro-bit map in ,  is
-    buttons 1 and 5, so **B meant yes**, and  (button 0) also confirms. Only buttons
+    pad mapping says: on the Retro-bit map in `data/controller_map.json`, `action` is
+    buttons 1 and 5, so **B meant yes**, and `jump` (button 0) also confirms. Only buttons
     9 and 10 cancelled. The labels described a layout the bindings did not have.
 * **Fixed as two highlighted options**, defaulting to **No, stay**. Confirming acts on the
   highlight, so no mapping can get it wrong; Left/Right choose, Up/Down flip, mouse hover
   highlights and click confirms, and Back always stays whatever is highlighted.
-   is shared by input and drawing so the targets cannot drift from
-  what is drawn.
-* *Verified:* , 10 tests — including that a bare ACTION,
+  `_quit_button_rects()` is shared by input and drawing so the targets cannot drift
+  from what is drawn.
+* *Verified:* `tests/test_quit_confirm.py`, 10 tests — including that a bare ACTION,
   MENU_SELECT or JUMP does **not** quit, which is the reported bug.
 
 ## 2026-10-25 — The bonus level names itself on completion
