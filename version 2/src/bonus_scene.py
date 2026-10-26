@@ -529,13 +529,18 @@ class BonusScene(Scene):
                                          True, COLOR_SAFFRON)
         surface.blit(eyebrow, eyebrow.get_rect(center=(box.centerx, box.top + 52)))
 
-        head = self.font_title.render("Challenge Cleared", True, COLOR_GOLD_BRIGHT)
+        head = self.font_title.render("Compassion Challenge Cleared", True, COLOR_GOLD_BRIGHT)
         surface.blit(head, head.get_rect(center=(box.centerx, box.top + 108)))
 
+        # The closing line used to read "mercy asks for nothing, and so returns
+        # everything", which did not hold: mercy took nothing, so it cannot give
+        # anything back, and "everything" is contradicted by the exact figure on
+        # the line below it. It now states the doctrine the level is about —
+        # help given without wanting a reward (2026-10-26, designer).
         for i, line in enumerate((
-                "You walked a hurt man to his healing, and a lost one to his door.",
+                "You walked a hurt man to his healing, and a lost one to the temple door.",
                 "This is Jiv Daya grown from the bird to your own kind —",
-                "mercy asks for nothing, and so returns everything.")):
+                "kindness that seeks no reward is rewarded all the same.")):
             text = self.font_body.render(line, True, COLOR_CREAM)
             surface.blit(text, text.get_rect(center=(box.centerx, box.top + 178 + i * 40)))
 
