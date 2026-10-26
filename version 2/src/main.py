@@ -3,6 +3,7 @@
 main.py — Entry point for The Path to Moksha.
 Handles window management, dynamic scaling, and the main game loop.
 """
+import os
 import sys
 import pygame
 from settings import (
@@ -13,6 +14,7 @@ from settings import (
 from scene_manager import SceneManager
 from input_manager import InputManager
 from asset_manager import AssetManager
+from recorder import Recorder
 from title_screen import TitleScreen
 from options_scene import OptionsScene
 from controller_settings_scene import ControllerSettingsScene
@@ -29,7 +31,7 @@ from tutorial_scene import TutorialScene
 class Game:
     """Main game class — owns the window, loop, and scaling logic."""
 
-    def __init__(self):
+    def __init__(self, record=False):
         pygame.init()
         try:
             if pygame.mixer.get_init() is None:
@@ -84,6 +86,15 @@ class Game:
         self.show_fps = False
         self.fps_font = pygame.font.SysFont("Consolas", 18, bold=True)
 
+        # Screen recording. F9 toggles it at any time; --record starts it at launch.
+        # Recordings land beside the game so they are easy to find.
+        self.recorder = Recorder(
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                         "recordings"),
+            (LOGICAL_WIDTH, LOGICAL_HEIGHT))
+        if record:
+            self.recorder.start()
+
         # Start at title
         self.scene_mgr.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
 
@@ -127,6 +138,8 @@ class Game:
                     self.screen = pygame.display.set_mode(self.windowed_size, pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_F3:
                     self.show_fps = not self.show_fps
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_F9:
+                    self.recorder.toggle()
 
             # Update input
             self.input_mgr.update(events, self.scale_x, self.scale_y, self.offset_x, self.offset_y, dt)
@@ -155,6 +168,11 @@ class Game:
                 bg_surf.blit(txt_surf, (8, 4))
                 self.logical_surface.blit(bg_surf, (16, 16))
 
+            # Record before the REC badge is drawn, so the badge is on screen for
+            # the player but never in the file.
+            self.recorder.capture(self.logical_surface, dt)
+            self.recorder.draw_indicator(self.logical_surface, self.fps_font)
+
             # Scale and blit to screen
             self._compute_scaling()
             self.screen.fill((0, 0, 0))
@@ -169,14 +187,20 @@ class Game:
             if max_frames is not None and frame_count >= max_frames:
                 running = False
 
+        # Close the file before the window goes, so quitting mid-recording still
+        # leaves a playable video rather than a truncated one.
+        self.recorder.stop()
         pygame.quit()
 
 
 def main(argv=None):
-    """Start the game, or briefly initialize it for a packaging smoke test."""
+    """Start the game, or briefly initialize it for a packaging smoke test.
+
+    --record starts recording at launch; F9 toggles it any time while playing.
+    """
     argv = sys.argv[1:] if argv is None else argv
     max_frames = 2 if "--smoke-test" in argv else None
-    Game().run(max_frames=max_frames)
+    Game(record="--record" in argv).run(max_frames=max_frames)
     return 0
 
 

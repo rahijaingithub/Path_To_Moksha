@@ -127,6 +127,15 @@ class PlayerSelectScene(Scene):
             self.manager.switch_to(SCENE_TITLE, input_mgr=self.input_mgr)
             return
 
+        # Enter is the typist's "done", and has to be told apart from a pad's
+        # confirm button even though both raise ACTION. While the on-screen
+        # keyboard has focus a pad press types the highlighted letter, so Enter
+        # used to type one too — "Karuna" was saved as "KarunaA" — and when the
+        # highlight sat on OK it confirmed twice, the second pass finding the
+        # profile it had just written and skipping Character Select entirely.
+        enter_pressed = any(e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN
+                            for e in events)
+
         # ── Controller navigation ──
         if self.focus == "back":
             if input_mgr.just_pressed[input_mgr.MENU_DOWN]:
@@ -184,7 +193,10 @@ class PlayerSelectScene(Scene):
                     self.vkb_row = new_row
                     self.assets.play_sound("jump.wav", volume=0.06)
 
-            # Select current VKB key
+            # Enter finishes the name; a pad's confirm presses the highlighted key.
+            if enter_pressed:
+                self._confirm_selection()
+                return
             if input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.MENU_SELECT]:
                 self._vkb_activate()
 
@@ -254,7 +266,7 @@ class PlayerSelectScene(Scene):
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self._confirm_selection()
+                    pass        # handled once above, per focus — never twice here
                 elif event.key == pygame.K_BACKSPACE:
                     self.input_name = self.input_name[:-1]
                 elif event.key == pygame.K_TAB:

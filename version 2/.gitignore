@@ -40,3 +40,6 @@ dist/
 Monitor FPS/
 assets/audio/Old/
 fix_switch.py
+
+# Gameplay captures from --record / F9 (see src/recorder.py)
+recordings/
