@@ -14,6 +14,10 @@ from settings import (
 )
 
 
+# The quit prompt's two answers. Staying is index 1 so it is the default.
+QUIT_LEAVE, QUIT_STAY = 0, 1
+
+
 class TitleScreen(Scene):
     """Beautiful animated title screen for The Path to Moksha."""
 
@@ -95,6 +99,23 @@ class TitleScreen(Scene):
         self.selected_index = 0
         # True while the "really quit?" prompt is showing.
         self.confirm_quit = False
+        self.confirm_quit_choice = QUIT_STAY   # highlighted option; staying is the default
+
+    def _open_quit_confirm(self):
+        """Ask before leaving, always starting on the harmless answer."""
+        self.confirm_quit = True
+        self.confirm_quit_choice = QUIT_STAY
+
+    def _quit_button_rects(self):
+        """The panel and its two buttons. Shared by input and drawing, so a tweak
+        to the layout cannot move the buttons out from under the clicks."""
+        box = pygame.Rect(0, 0, 900, 300)
+        box.center = (LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)
+        y = box.top + 180
+        return box, [
+            pygame.Rect(box.centerx - 310, y, 280, 76),   # QUIT_LEAVE
+            pygame.Rect(box.centerx + 30, y, 280, 76),    # QUIT_STAY
+        ]
 
     def _quit_game(self):
         pygame.quit()
@@ -107,14 +128,50 @@ class TitleScreen(Scene):
         # to mean "back", so the game closed under anyone who tried to back out
         # of the title screen — with no prompt and nothing saved.
         if self.confirm_quit:
-            if (input_mgr.just_pressed[input_mgr.ACTION]
-                    or input_mgr.just_pressed[input_mgr.MENU_SELECT]):
-                self.assets.play_sound("box_open.wav", volume=0.2)
-                self._quit_game()
-            elif (input_mgr.just_pressed[input_mgr.BACK]
-                    or input_mgr.just_pressed[input_mgr.MENU_BACK]):
+            # Two highlighted options rather than named buttons. The old prompt
+            # read "Esc / B - No, stay", but B is whatever a pad's mapping says it
+            # is: on the Retro-bit map `action` is buttons 1 and 5, so B meant
+            # "yes, quit" and the game closed on nearly any button. Confirming now
+            # acts on what is highlighted, which no mapping can get wrong.
+            inp = input_mgr
+            _, btns = self._quit_button_rects()
+            before = self.confirm_quit_choice
+
+            if inp.just_pressed[inp.MENU_LEFT] or inp.just_pressed[inp.LEFT]:
+                self.confirm_quit_choice = QUIT_LEAVE
+            elif inp.just_pressed[inp.MENU_RIGHT] or inp.just_pressed[inp.RIGHT]:
+                self.confirm_quit_choice = QUIT_STAY
+            elif inp.just_pressed[inp.MENU_UP] or inp.just_pressed[inp.MENU_DOWN]:
+                self.confirm_quit_choice = 1 - self.confirm_quit_choice
+
+            for i, r in enumerate(btns):            # hover moves the highlight
+                if r.collidepoint(inp.mouse_x, inp.mouse_y):
+                    self.confirm_quit_choice = i
+
+            if self.confirm_quit_choice != before:
+                self.assets.play_sound("jump.wav", volume=0.12)
+
+            confirm = (inp.just_pressed[inp.ACTION]
+                       or inp.just_pressed[inp.MENU_SELECT]
+                       or inp.just_pressed[inp.JUMP])
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    for i, r in enumerate(btns):
+                        if r.collidepoint(inp.mouse_x, inp.mouse_y):
+                            self.confirm_quit_choice = i
+                            confirm = True
+
+            # Backing out of the prompt always means staying, whatever is highlighted.
+            if inp.just_pressed[inp.BACK] or inp.just_pressed[inp.MENU_BACK]:
                 self.confirm_quit = False
                 self.assets.play_sound("jump.wav", volume=0.12)
+            elif confirm:
+                if self.confirm_quit_choice == QUIT_LEAVE:
+                    self.assets.play_sound("box_open.wav", volume=0.2)
+                    self._quit_game()
+                else:
+                    self.confirm_quit = False
+                    self.assets.play_sound("jump.wav", volume=0.12)
             # Swallow everything else while the prompt is up, so the menu behind
             # it cannot be navigated or activated.
             return
@@ -138,14 +195,14 @@ class TitleScreen(Scene):
                 self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
             elif self.selected_index == 2:
                 self.assets.play_sound("jump.wav", volume=0.2)
-                self.confirm_quit = True
+                self._open_quit_confirm()
             elif self.selected_index == 3:
                 self.assets.play_sound("jump.wav", volume=0.2)
                 input_mgr.just_pressed[input_mgr.FULLSCREEN] = True
 
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
             self.assets.play_sound("jump.wav", volume=0.12)
-            self.confirm_quit = True
+            self._open_quit_confirm()
 
         # Mouse click triggers
         for event in events:
@@ -170,7 +227,7 @@ class TitleScreen(Scene):
                     self.manager.switch_to(SCENE_OPTIONS, input_mgr=self.input_mgr)
                 elif self.exit_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("jump.wav", volume=0.2)
-                    self.confirm_quit = True
+                    self._open_quit_confirm()
                 elif self.fullscreen_btn_rect.collidepoint(mx, my):
                     self.assets.play_sound("jump.wav", volume=0.2)
                     input_mgr.just_pressed[input_mgr.FULLSCREEN] = True
@@ -372,18 +429,26 @@ class TitleScreen(Scene):
             dim.fill((0, 0, 0, 190))
             surface.blit(dim, (0, 0))
 
-            box = pygame.Rect(0, 0, 900, 300)
-            box.center = (LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)
+            box, btns = self._quit_button_rects()
             panel = pygame.Surface(box.size, pygame.SRCALPHA)
             panel.fill((18, 16, 28, 245))
             surface.blit(panel, box.topleft)
             pygame.draw.rect(surface, COLOR_GOLD, box, width=3, border_radius=8)
 
             title = self.font_subtitle.render("Leave the pilgrimage?", True, COLOR_GOLD_BRIGHT)
-            surface.blit(title, title.get_rect(center=(box.centerx, box.top + 90)))
+            surface.blit(title, title.get_rect(center=(box.centerx, box.top + 80)))
 
-            hint = self.font_body.render("Enter / A  —  Yes, quit", True, COLOR_CREAM)
-            surface.blit(hint, hint.get_rect(center=(box.centerx, box.top + 175)))
+            for i, (rect, label) in enumerate(zip(btns, ("Yes, leave", "No, stay"))):
+                chosen = i == self.confirm_quit_choice
+                fill = (72, 58, 20) if chosen else (30, 27, 42)
+                edge = COLOR_GOLD_BRIGHT if chosen else (90, 84, 110)
+                pygame.draw.rect(surface, fill, rect, border_radius=8)
+                pygame.draw.rect(surface, edge, rect, width=3, border_radius=8)
+                text = self.font_body.render(
+                    label, True, COLOR_GOLD_BRIGHT if chosen else COLOR_WHITE)
+                surface.blit(text, text.get_rect(center=rect.center))
 
-            hint2 = self.font_body.render("Esc / B  —  No, stay", True, COLOR_WHITE)
-            surface.blit(hint2, hint2.get_rect(center=(box.centerx, box.top + 230)))
+            hint = self.font_small.render(
+                "Left / Right to choose  -  Confirm to accept  -  Back to stay",
+                True, (170, 164, 186))
+            surface.blit(hint, hint.get_rect(center=(box.centerx, box.bottom - 36)))

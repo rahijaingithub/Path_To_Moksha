@@ -32,7 +32,10 @@ from settings import (
 HOME_LEVEL = 3
 
 # How long the closing card is held before the devotee is returned (seconds).
+# The cleared card carries more to read, and it is the moment the level is for,
+# so it is given longer; either can be dismissed early.
 OUTCOME_HOLD_SECONDS = 3.0
+CLEARED_HOLD_SECONDS = 5.0
 
 # The ground, and where the two errands begin and end. The injured man starts to
 # the right of the hospital and the lost man to the left of the temple, so the two
@@ -265,7 +268,8 @@ class BonusScene(Scene):
     def _finish(self, outcome):
         """Close the detour. Only both rescues bank time; running out banks nothing."""
         self.outcome = outcome
-        self.outcome_timer = OUTCOME_HOLD_SECONDS
+        self.outcome_timer = (CLEARED_HOLD_SECONDS if outcome == "saved"
+                              else OUTCOME_HOLD_SECONDS)
         self.banked = max(0.0, self.time_remaining) if outcome == "saved" else 0.0
         self.assets.stop_music()
         self.assets.play_sound("correct.wav" if outcome == "saved" else "wrong.wav")
@@ -425,20 +429,72 @@ class BonusScene(Scene):
             surface.blit(intro, intro.get_rect(center=(LOGICAL_WIDTH // 2, 36 + 72)))
 
     def _draw_outcome(self, surface):
+        """The closing card.
+
+        Cleared, it names the challenge and says plainly what the two rescues were
+        worth, so the detour reads as the point of the level rather than a errand
+        with a timer. Failed, it is gentle: the player is told nothing was lost,
+        never that they fell short — ignorance and slowness are not punished here.
+        """
         veil = pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT), pygame.SRCALPHA)
-        veil.fill((8, 6, 16, 190))
+        veil.fill((8, 6, 16, 205))
         surface.blit(veil, (0, 0))
 
         saved = self.outcome == "saved"
-        heading = "Both souls are helped" if saved else "The glimpse fades"
-        head = self.font_title.render(heading, True, COLOR_GOLD_BRIGHT if saved else COLOR_CREAM)
-        surface.blit(head, head.get_rect(center=(LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2 - 60)))
+        box = pygame.Rect(0, 0, 1180, 470)
+        box.center = (LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)
+        panel = pygame.Surface(box.size, pygame.SRCALPHA)
+        panel.fill((16, 14, 26, 246))
+        surface.blit(panel, box.topleft)
+        pygame.draw.rect(surface, COLOR_GOLD if saved else (108, 100, 128), box,
+                         width=3, border_radius=10)
 
-        banked = int(self.banked)
-        detail = (f"Time carried back to the Hall: {banked // 60:02d}:{banked % 60:02d}"
-                  if saved else "No time is carried back — but nothing in the Hall was lost.")
-        body = self.font_body.render(detail, True, COLOR_GREEN if saved else COLOR_CREAM)
-        surface.blit(body, body.get_rect(center=(LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2)))
+        if saved:
+            self._draw_cleared(surface, box)
+        else:
+            self._draw_faded(surface, box)
 
         prompt = self.font_small.render("Returning to the Hall...", True, COLOR_GOLD)
-        surface.blit(prompt, prompt.get_rect(center=(LOGICAL_WIDTH // 2, LOGICAL_HEIGHT // 2 + 60)))
+        surface.blit(prompt, prompt.get_rect(center=(box.centerx, box.bottom - 34)))
+
+    def _draw_cleared(self, surface, box):
+        eyebrow = self.font_small.render("KARUNA  —  THE COMPASSION CHALLENGE",
+                                         True, COLOR_SAFFRON)
+        surface.blit(eyebrow, eyebrow.get_rect(center=(box.centerx, box.top + 52)))
+
+        head = self.font_title.render("Challenge Cleared", True, COLOR_GOLD_BRIGHT)
+        surface.blit(head, head.get_rect(center=(box.centerx, box.top + 108)))
+
+        for i, line in enumerate((
+                "You walked a hurt man to his healing, and a lost one to his door.",
+                "This is Jiv Daya grown from the bird to your own kind —",
+                "mercy asks for nothing, and so returns everything.")):
+            text = self.font_body.render(line, True, COLOR_CREAM)
+            surface.blit(text, text.get_rect(center=(box.centerx, box.top + 178 + i * 40)))
+
+        banked = int(self.banked)
+        rule_y = box.top + 316
+        pygame.draw.line(surface, (74, 66, 92), (box.left + 180, rule_y),
+                         (box.right - 180, rule_y), 2)
+        earned = self.font_title.render(
+            f"{banked // 60:02d}:{banked % 60:02d} returns with you",
+            True, COLOR_GREEN)
+        surface.blit(earned, earned.get_rect(center=(box.centerx, rule_y + 52)))
+
+    def _draw_faded(self, surface, box):
+        eyebrow = self.font_small.render("KARUNA  —  THE COMPASSION CHALLENGE",
+                                         True, (150, 142, 170))
+        surface.blit(eyebrow, eyebrow.get_rect(center=(box.centerx, box.top + 52)))
+
+        head = self.font_title.render("The glimpse fades", True, COLOR_CREAM)
+        surface.blit(head, head.get_rect(center=(box.centerx, box.top + 108)))
+
+        helped = sum((self.injured_saved, self.lost_saved))
+        middle = ("You helped one of the two before the vision closed."
+                  if helped else "The vision closed before the two could be helped.")
+        for i, line in enumerate((
+                middle,
+                "Nothing in the Hall was lost — your clock there never ran.",
+                "The merit that opened this path is yours still.")):
+            text = self.font_body.render(line, True, COLOR_CREAM)
+            surface.blit(text, text.get_rect(center=(box.centerx, box.top + 178 + i * 40)))

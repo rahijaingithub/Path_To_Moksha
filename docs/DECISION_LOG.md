@@ -839,3 +839,30 @@ Both of Claude's recommendations on the previous entry were put to the designer 
 * *Verified:* 103 green, including that he trails rather than moving with the devotee, that
   he cannot be treated before arriving, and that a limp is slower than a walk.
 
+## 2026-10-25 — The quit prompt could not be answered "no"
+* **Bug (reported by designer):** on the title screen, nearly any button closed the game,
+  and there was no visible highlight to move.
+  * *Cause:* the prompt was two key hints — "Enter / A - Yes, quit", "Esc / B - No, stay" —
+    and confirmed on ACTION or MENU_SELECT. Which physical button those are is whatever a
+    pad mapping says: on the Retro-bit map in ,  is
+    buttons 1 and 5, so **B meant yes**, and  (button 0) also confirms. Only buttons
+    9 and 10 cancelled. The labels described a layout the bindings did not have.
+* **Fixed as two highlighted options**, defaulting to **No, stay**. Confirming acts on the
+  highlight, so no mapping can get it wrong; Left/Right choose, Up/Down flip, mouse hover
+  highlights and click confirms, and Back always stays whatever is highlighted.
+   is shared by input and drawing so the targets cannot drift from
+  what is drawn.
+* *Verified:* , 10 tests — including that a bare ACTION,
+  MENU_SELECT or JUMP does **not** quit, which is the reported bug.
+
+## 2026-10-25 — The bonus level names itself on completion
+* **Decision (designer):** the cleared screen should tell the player what they achieved and
+  why it mattered, not just hand back a number.
+* Cleared now reads **KARUNA — THE COMPASSION CHALLENGE / Challenge Cleared**, then: "You
+  walked a hurt man to his healing, and a lost one to his door. This is Jiv Daya grown from
+  the bird to your own kind — mercy asks for nothing, and so returns everything." The
+  banked time follows under a rule. Held 5s rather than 3s, dismissable early.
+* The failed card stays gentle, per the north star that no player is shamed: it names what
+  was managed, says the Hall lost nothing, and ends "The merit that opened this path is
+  yours still." No failure language.
+

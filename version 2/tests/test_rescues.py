@@ -391,7 +391,7 @@ class RescueTests(unittest.TestCase):
         left = bonus.banked
         self.assertGreater(left, 0)
 
-        for _ in range(int(self.bonus_scene.OUTCOME_HOLD_SECONDS * 60) + 4):
+        for _ in range(int(self.bonus_scene.CLEARED_HOLD_SECONDS * 60) + 4):
             if manager.active_scene is level:
                 break
             manager.update(1 / 60)

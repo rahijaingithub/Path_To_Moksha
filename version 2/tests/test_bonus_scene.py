@@ -152,7 +152,7 @@ class BonusSceneTests(unittest.TestCase):
         self.assertLess(scene.banked, self.settings.BONUS_TIME_LIMIT,
                         "dawdling banks less — the reward scales")
 
-        self.run_for(scene, self.bonus_scene.OUTCOME_HOLD_SECONDS + 0.5)
+        self.run_for(scene, self.bonus_scene.CLEARED_HOLD_SECONDS + 0.5)
 
         self.assertAlmostEqual(manager.shared["bonus_banked_seconds"], left, delta=0.2)
         self.assert_returns_home(manager)
