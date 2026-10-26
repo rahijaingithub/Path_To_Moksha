@@ -525,8 +525,9 @@ class BonusScene(Scene):
         surface.blit(prompt, prompt.get_rect(center=(box.centerx, box.bottom - 34)))
 
     def _draw_cleared(self, surface, box):
-        eyebrow = self.font_small.render("KARUNA  —  THE COMPASSION CHALLENGE",
-                                         True, COLOR_SAFFRON)
+        # Just the term: the heading below now names the challenge, and the two
+        # together said "Compassion Challenge" twice a few pixels apart.
+        eyebrow = self.font_small.render("KARUNA", True, COLOR_SAFFRON)
         surface.blit(eyebrow, eyebrow.get_rect(center=(box.centerx, box.top + 52)))
 
         head = self.font_title.render("Compassion Challenge Cleared", True, COLOR_GOLD_BRIGHT)
@@ -540,7 +541,7 @@ class BonusScene(Scene):
         for i, line in enumerate((
                 "You walked a hurt man to his healing, and a lost one to the temple door.",
                 "This is Jiv Daya grown from the bird to your own kind —",
-                "kindness that seeks no reward is rewarded all the same.")):
+                "what is given freely is never lost.")):
             text = self.font_body.render(line, True, COLOR_CREAM)
             surface.blit(text, text.get_rect(center=(box.centerx, box.top + 178 + i * 40)))
 
@@ -554,8 +555,7 @@ class BonusScene(Scene):
         surface.blit(earned, earned.get_rect(center=(box.centerx, rule_y + 52)))
 
     def _draw_faded(self, surface, box):
-        eyebrow = self.font_small.render("KARUNA  —  THE COMPASSION CHALLENGE",
-                                         True, (150, 142, 170))
+        eyebrow = self.font_small.render("KARUNA", True, (150, 142, 170))
         surface.blit(eyebrow, eyebrow.get_rect(center=(box.centerx, box.top + 52)))
 
         head = self.font_title.render("The glimpse fades", True, COLOR_CREAM)
