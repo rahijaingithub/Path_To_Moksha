@@ -4,6 +4,17 @@ Each scene is a class with update(), draw(), and handle_events() methods.
 """
 
 
+def dev_transition_next_level(starting_level):
+    """The `next_level` a negative Starting Level asks for.
+
+    Options offers two developer entries that drop straight into a cutscene, and
+    labels them "Transition 1 (Jyot Temple)" and "Transition 2 (Parshvanath)". A
+    negative value means *the transition after that level*, so -1 is the scene
+    between Levels 1 and 2 and runs on into Level 2 — `abs(n) + 1`, not `abs(n)`.
+    """
+    return abs(starting_level) + 1
+
+
 class Scene:
     """Base class for all game scenes."""
 

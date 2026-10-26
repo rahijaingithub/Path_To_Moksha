@@ -15,47 +15,19 @@ MENU_SELECT into a world interaction.
 
 from __future__ import annotations
 
-import ast
 from pathlib import Path
 import re
+import sys
 import unittest
+
+# `unittest discover` puts this directory on the path; a direct
+# `python -m unittest tests.<module>` does not, so do it either way.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from source_tools import function_source, strip_comments
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-
-
-def strip_comments(source: str) -> str:
-    """Code only.
-
-    These tests look for an action name in a block of source, and the lines that
-    explain why it is absent name it too — so the comments have to go first or
-    every check matches its own rationale.
-    """
-    out = []
-    for line in source.splitlines():
-        quote = None
-        cut = len(line)
-        for i, ch in enumerate(line):
-            if quote:
-                if ch == quote:
-                    quote = None
-            elif ch in "\"'":
-                quote = ch
-            elif ch == "#":
-                cut = i
-                break
-        out.append(line[:cut])
-    return "\n".join(out)
-
-
-def function_source(path: Path, name: str) -> str:
-    """The code of one function or method, by name, comments removed."""
-    text = path.read_text(encoding="utf-8")
-    for node in ast.walk(ast.parse(text)):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == name:
-            return strip_comments(ast.get_source_segment(text, node) or "")
-    raise AssertionError(f"{name} not found in {path.name}")
 
 
 class JumpIsNotActionTests(unittest.TestCase):

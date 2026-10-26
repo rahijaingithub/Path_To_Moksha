@@ -960,3 +960,25 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   is written against exactly that.
 * *Verified:* 137 green.
 
+## 2026-10-25 — v2 did not inherit the abs() crash, but kept two quieter faults
+Checked at the designer's request. v1 had `abs(starting_level, input_mgr=...)` in
+`player_select_scene` and `leaderboard_scene` — a misplaced bracket that raised
+TypeError. **v2's bracket is correct.** Two other faults on the same two lines were not.
+* **Wrong keyword.** Both passed `level=abs(starting_level)` to the transition, but
+  `TransitionScene.on_enter` reads **`next_level`**. A `level=` kwarg vanished into
+  `**kwargs`, so the scene always fell back to its default of 2 — whichever developer
+  transition had been chosen.
+* **Off by one.** A negative Starting Level means *the transition after that level*:
+  Options labels -1 "Transition 1 (Jyot Temple)" and -2 "Transition 2 (Parshvanath)", so
+  the right value is `abs(n) + 1`. `character_select` had this right; the other two used
+  `abs(n)`.
+* **Net effect:** from Player Select or the Leaderboard, Transition 2 opened on the Jyot
+  temple and ran into Level 2 instead of Parshvanath and Level 3. Transition 1 worked only
+  because the wrong answer and the default happened to agree.
+* **Fixed with one helper**, `scene_manager.dev_transition_next_level`, now used by all
+  three scenes — the rule existed in three copies and had already drifted in two of them.
+  Tests check the mapping, that each dev start matches the image Options promises, that no
+  scene routes a transition by the wrong keyword, and that all three use the helper.
+* Test helpers that read source rather than run it moved to `tests/source_tools.py`, now
+  that two modules want them.
+

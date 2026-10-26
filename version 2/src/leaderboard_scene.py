@@ -3,7 +3,7 @@ leaderboard_scene.py — Global High Scores and Rankings Leaderboard for Path to
 Displays top 10 spotlight, paginated scrollable rankings (100 entries per page), and current player rank.
 """
 import pygame
-from scene_manager import Scene
+from scene_manager import Scene, dev_transition_next_level
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, SCENE_TITLE, SCENE_CHARACTER_SELECT,
     COLOR_BG_DARK, COLOR_GOLD, COLOR_GOLD_BRIGHT, COLOR_GOLD_DIM,
@@ -148,7 +148,12 @@ class LeaderboardScene(Scene):
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:
-            self.manager.switch_to(SCENE_TRANSITION, level=abs(starting_level), input_mgr=self.input_mgr)
+            # `next_level`, not `level`: TransitionScene reads next_level, so a
+            # `level=` kwarg was swallowed and every dev transition opened on the
+            # default (Jyot), whichever one had been chosen.
+            self.manager.switch_to(SCENE_TRANSITION,
+                                   next_level=dev_transition_next_level(starting_level),
+                                   to_be_continued=False, input_mgr=self.input_mgr)
         else:
             self.manager.switch_to(SCENE_LEVEL, level=starting_level, input_mgr=self.input_mgr)
 

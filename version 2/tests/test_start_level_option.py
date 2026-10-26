@@ -12,13 +12,17 @@ The scene tests need pygame; the cross-check is source-level and runs anywhere.
 
 from __future__ import annotations
 
-import ast
 import importlib.util
 import os
 from pathlib import Path
 import re
 import sys
 import unittest
+
+# `unittest discover` puts this directory on the path; a direct
+# `python -m unittest tests.<module>` does not, so do it either way.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from source_tools import strip_comments
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -151,6 +155,61 @@ class CapMatchesTheGateTests(unittest.TestCase):
             self.assertEqual(int(offered[mode]), last_level,
                              f"{mode} is offered a start the run does not reach, "
                              "or stops short of one it does")
+
+
+class DevTransitionStartTests(unittest.TestCase):
+    """A negative Starting Level opens on a cutscene (2026-10-25).
+
+    v1 had `abs(starting_level, input_mgr=...)` here, a misplaced bracket that
+    raised TypeError. v2 fixed the bracket and kept two subtler faults: the call
+    passed `level=`, which TransitionScene ignores (it reads `next_level`), so the
+    scene always fell back to its default; and it used `abs(n)` where the meaning
+    is `abs(n) + 1`. Both together meant Transition 2 opened on the Jyot temple and
+    ran into Level 2 instead of Parshvanath and Level 3.
+    """
+
+    def test_a_negative_start_is_the_transition_after_that_level(self) -> None:
+        sys.path.insert(0, str(SRC))
+        try:
+            from scene_manager import dev_transition_next_level
+        finally:
+            sys.path.remove(str(SRC))
+        self.assertEqual(dev_transition_next_level(-1), 2, "Jyot, then Level 2")
+        self.assertEqual(dev_transition_next_level(-2), 3, "Parshvanath, then Level 3")
+
+    def test_every_dev_start_matches_the_label_options_shows(self) -> None:
+        """-1 is labelled Jyot and -2 Parshvanath; the transitions must agree."""
+        sys.path.insert(0, str(SRC))
+        try:
+            from scene_manager import dev_transition_next_level
+            import transition_scene
+        finally:
+            sys.path.remove(str(SRC))
+        expected = {-1: "jsot_temple.png", -2: "parshvanath.png"}
+        for start, image in expected.items():
+            with self.subTest(start=start):
+                data = transition_scene.TRANSITION_DATA[dev_transition_next_level(start)]
+                self.assertEqual(data["image"], image)
+
+    def test_no_scene_routes_a_transition_with_the_wrong_keyword(self) -> None:
+        """TransitionScene reads `next_level`; a `level=` kwarg is silently dropped."""
+        for name in ("player_select_scene.py", "leaderboard_scene.py",
+                     "character_select.py"):
+            with self.subTest(scene=name):
+                src = strip_comments((SRC / name).read_text(encoding="utf-8"))
+                for call in re.findall(r"switch_to\(\s*SCENE_TRANSITION[^)]*\)", src,
+                                       re.S):
+                    self.assertNotIn("level=abs", call,
+                                     "routes a transition by the wrong keyword")
+                    self.assertIn("next_level=", call)
+
+    def test_all_three_scenes_use_the_shared_helper(self) -> None:
+        """Three copies of this rule is how it came to differ between them."""
+        for name in ("player_select_scene.py", "leaderboard_scene.py",
+                     "character_select.py"):
+            with self.subTest(scene=name):
+                src = (SRC / name).read_text(encoding="utf-8")
+                self.assertIn("dev_transition_next_level", src)
 
 
 if __name__ == "__main__":

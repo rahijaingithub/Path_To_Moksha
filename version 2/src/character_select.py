@@ -3,7 +3,7 @@ character_select.py — Boy / Girl character selection screen.
 """
 import math
 import pygame
-from scene_manager import Scene
+from scene_manager import Scene, dev_transition_next_level
 from settings import (
     LOGICAL_WIDTH, LOGICAL_HEIGHT, SCENE_LEVEL, SCENE_TRANSITION, SCENE_PLAYER_SELECT,
     COLOR_BG_DARK, COLOR_BG_MEDIUM, COLOR_GOLD, COLOR_GOLD_BRIGHT,
@@ -105,11 +105,11 @@ class CharacterSelect(Scene):
         pm.save_profile(player_name, character=char_choice, score=score, level_reached=lvl)
         
         start_lvl = self.manager.shared.get("starting_level", 1)
-        # Developer shortcut: negative values jump to transition scene directly
-        if start_lvl == -1:
-            self.manager.switch_to(SCENE_TRANSITION, next_level=2, to_be_continued=False, input_mgr=self.input_mgr)
-        elif start_lvl == -2:
-            self.manager.switch_to(SCENE_TRANSITION, next_level=3, to_be_continued=False, input_mgr=self.input_mgr)
+        # Developer shortcut: a negative Starting Level opens on a cutscene.
+        if start_lvl < 0:
+            self.manager.switch_to(SCENE_TRANSITION,
+                                   next_level=dev_transition_next_level(start_lvl),
+                                   to_be_continued=False, input_mgr=self.input_mgr)
         else:
             self.manager.shared["current_level"] = start_lvl
             self.manager.shared["total_time"] = 0.0
