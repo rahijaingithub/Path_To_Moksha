@@ -15,6 +15,21 @@ from settings import (
 
 
 
+# The developer start menu: negative values drop into the transition before that
+# level, so a dev can check a cutscene without playing to it.
+DEV_SEQ = [1, -1, 2, -2, 3, 4]
+
+# How far into the pilgrimage each mode can start. Kid and standard play through
+# Level 3 and its Karuna bonus level (C7, 2026-10-25); Level 4 stays developer-only
+# until it has a background and a rebuilt layout, or they would start on a
+# placeholder.
+HIGHEST_START_LEVEL = {"kid": 3, "standard": 3, "developer": 4}
+
+
+def highest_start_level(game_mode):
+    return HIGHEST_START_LEVEL.get(game_mode, 3)
+
+
 class OptionsScene(Scene):
     """Options and Settings screen."""
 
@@ -68,6 +83,28 @@ class OptionsScene(Scene):
         self.font_body = self.assets.load_font(None, GAME_FONT_SIZE_BODY)
         self.font_small = self.assets.load_font(None, GAME_FONT_SIZE_SMALL)
 
+    def _cycle_start_level(self, step):
+        """Next or previous start, wrapping, within what this mode can play."""
+        if self.game_mode == "developer":
+            at = DEV_SEQ.index(self.starting_level) if self.starting_level in DEV_SEQ else 0
+            self.starting_level = DEV_SEQ[(at + step) % len(DEV_SEQ)]
+        else:
+            top = highest_start_level(self.game_mode)
+            self.starting_level = (self.starting_level - 1 + step) % top + 1
+
+    def _clamp_start_level(self):
+        """Pull the chosen start back into range after the mode changes.
+
+        Leaving developer mode has to drop its negative transition entries, and
+        dropping to a mode that plays fewer levels has to drop anything past its
+        last one.
+        """
+        if self.game_mode == "developer":
+            if self.starting_level not in DEV_SEQ:
+                self.starting_level = 1
+        elif not 1 <= self.starting_level <= highest_start_level(self.game_mode):
+            self.starting_level = 1
+
     def handle_events(self, events, input_mgr):
         if input_mgr.just_pressed[input_mgr.BACK] or input_mgr.just_pressed[input_mgr.MENU_BACK]:
             self._save_and_exit()
@@ -91,20 +128,10 @@ class OptionsScene(Scene):
             if self.selected_index == 0 and is_select:
                 idx = GAME_MODES.index(self.game_mode)
                 self.game_mode = GAME_MODES[(idx + step) % len(GAME_MODES)]
-                if self.game_mode == "kid" and (self.starting_level > 2 or self.starting_level < 1):
-                    self.starting_level = 1
-                elif self.game_mode != "developer" and self.starting_level < 1:
-                    self.starting_level = 1
+                self._clamp_start_level()
                 self.assets.play_sound("jump.wav", volume=0.15)
             elif self.selected_index == 1 and (is_select or is_left or is_right):
-                DEV_SEQ = [1, -1, 2, -2, 3, 4]
-                if self.game_mode == "developer":
-                    cur_idx = DEV_SEQ.index(self.starting_level) if self.starting_level in DEV_SEQ else 0
-                    self.starting_level = DEV_SEQ[(cur_idx + step) % len(DEV_SEQ)]
-                else:
-                    # Kid and Standard both cap at Level 2
-                    max_level = 2
-                    self.starting_level = (self.starting_level % max_level) + 1 if step > 0 else ((self.starting_level - 2) % max_level) + 1
+                self._cycle_start_level(step)
                 self.assets.play_sound("jump.wav", volume=0.15)
             elif self.selected_index == 2 and (is_select or is_left or is_right):
                 v_steps = [0.0, 0.3, 0.7, 1.0]
@@ -150,22 +177,13 @@ class OptionsScene(Scene):
                     self.selected_index = 0
                     idx = GAME_MODES.index(self.game_mode)
                     self.game_mode = GAME_MODES[(idx + 1) % len(GAME_MODES)]
-                    # Clamp level when leaving developer mode
-                    if self.game_mode != "developer" and self.starting_level not in (1, 2):
-                        self.starting_level = 1
+                    self._clamp_start_level()
                     self.assets.play_sound("jump.wav", volume=0.15)
 
                 # Level click -> cycle
                 elif self.level_rect.collidepoint(mx, my):
                     self.selected_index = 1
-                    DEV_SEQ = [1, -1, 2, -2, 3, 4]
-                    if self.game_mode == "developer":
-                        cur_idx = DEV_SEQ.index(self.starting_level) if self.starting_level in DEV_SEQ else 0
-                        self.starting_level = DEV_SEQ[(cur_idx + 1) % len(DEV_SEQ)]
-                    else:
-                        # Kid and Standard both cap at Level 2
-                        max_level = 2
-                        self.starting_level = self.starting_level + 1 if self.starting_level < max_level else 1
+                    self._cycle_start_level(1)
                     self.assets.play_sound("jump.wav", volume=0.15)
 
 

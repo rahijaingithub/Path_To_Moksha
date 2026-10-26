@@ -941,3 +941,22 @@ Both of Claude's recommendations on the previous entry were put to the designer 
   rebuilt (C2); shipping it to children would be shipping the pink placeholder. C7's
   second half stands.
 
+## 2026-10-25 — Options never heard that Level 3 had opened
+* **Bug (reported by designer):** after kid and standard were allowed through Level 3, the
+  Options screen still only offered Level 1 or 2 as a starting point.
+  * *Cause:* the cap was a literal `max_level = 2`, written out in **four** places — the
+    keyboard cycle, the mouse cycle, and two clamps applied when the mode changes. None of
+    them knew anything about the gate in `_advance_level`, so moving the gate changed where
+    a run *ends* and left where it may *begin* untouched.
+* **Fixed with one table.** `HIGHEST_START_LEVEL` in `options_scene` gives the furthest
+  start per mode (kid 3, standard 3, developer 4), and `_cycle_start_level` /
+  `_clamp_start_level` are the only things that read it. Kid and standard now cycle
+  1 → 2 → 3; developer keeps its full sequence including the negative transition entries.
+  * Leaving developer mode now **keeps** Level 3 rather than throwing the choice back to 1,
+    and still drops Level 4 and the transition entries.
+* **The real guard is the cross-check**, not the cap: `CapMatchesTheGateTests` reads the
+  table out of `options_scene` and the gate out of `level_scene` and fails if they
+  disagree. This bug was two numbers in different files meaning the same thing, so the test
+  is written against exactly that.
+* *Verified:* 137 green.
+
