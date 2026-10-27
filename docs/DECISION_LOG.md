@@ -1041,3 +1041,26 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* `tests/test_bonus_scene.py` — the doctor's strips are loaded when present
   and never alongside the devotee's; the devotee's are loaded when the doctor's are
   absent. Suite 12 green. The art itself is playtest item 47.
+
+## 2026-10-26 — Epic H: a reachability bot, specced not built
+* **Decision (designer):** invest in a bot that can play the levels, both to validate them
+  and to produce demo videos, with an eye on reusing it for future games. Phases **H1–H4
+  agreed**; H5 (generalising into `template/`) is not committed. Specced as **Epic H** in
+  `docs/V2_TASKS.md`. **No code written.**
+* **Reframed before speccing.** "A bot that plays the game" and "a bot that proves the game
+  is playable" are different investments, and only the second is cheap. H1–H3 build a
+  reachability graph and assert solvability; H4 walks a found route so it can be recorded.
+  The demo video is a by-product of the validation work, not the goal of it — and it is the
+  least valuable phase per hour, which is worth remembering since a demo video is what
+  started the conversation.
+* **The risk it addresses:** `_place_boxes` randomises placement on every run and nothing
+  checks the Goal box is reachable. That is a live soft-lock risk in a game for children,
+  and no existing test touches it.
+* **What it will not do, recorded so it is not oversold later:** every bug this project hit
+  in October was one rule written in several places and drifted — the Options cap, the
+  developer transition routing, jump sharing a button with action, Enter confirming twice.
+  Cross-check tests caught those for almost nothing; a bot catches none of them. Nor the
+  visual faults, which need eyes.
+* **Sequenced after C1 and C2.** Level 4 has no background and an unrebuilt layout;
+  validating geometry that is about to be redrawn is wasted work.
+

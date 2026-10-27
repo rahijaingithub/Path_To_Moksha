@@ -71,6 +71,59 @@ forfeited). The bird stays saved either way, since it revives before the bonus b
 **Depends on C7.** Level 3 is still developer-mode-only (`level_scene.py` gates kid/standard
 at `self.level == 2`), so none of Epic G reaches a Paathshala player until C7 opens L3/L4.
 
+## Epic H — Reachability bot: level validation, then demo capture — P2 (designer, 2026-10-26)
+Simulates the real `Player` physics over real level data to answer *"is this level
+always finishable?"*, and then walks a route it has found so the run can be recorded.
+
+**What it is not:** a general game-playing AI. It is a platformer reachability tool
+shaped by this engine — flat platform rects, one-way slopes, a single `Player`, levels
+as plain data. That is what makes it affordable, and what bounds its reuse.
+
+**Why it is cheap here:** the substrate already exists. `Player.update(dt, platforms,
+slopes)` runs headless today — `test_level3_layout.Level3RealPhysicsTests` drives it —
+physics are deterministic and frame-rate independent (`dt * 60`), so a simulated jump is
+the jump the player gets, and layouts come from `build_level_platforms` /
+`build_level_slopes` as data.
+
+**What it is for:** confidence in level geometry, and reuse on the next game. It is
+*not* a general bug-catcher, and should not be sold as one. Every bug this project
+actually hit in October was a rule written in several places that drifted apart — the
+Options starting-level cap, the developer transition routing, jump sharing a button with
+action, Enter confirming twice. Source-level and cross-check tests catch those cheaply; a
+bot catches none of them. Nor does it catch what only eyes catch: a sprite animating
+while standing still, a label that vanishes against brick, a halo that reads as a smudge.
+
+**The risk it does address, which nothing else does:** `box_system._place_boxes`
+randomises box placement on **every run**, and nothing checks that the Goal box lands
+somewhere the devotee can actually reach. That is a live soft-lock risk in a game being
+given to children.
+
+**Depends on C1 and C2.** Level 4 has no background and its layout has not been rebuilt
+against art, so validating that geometry now would validate geometry about to change.
+Start on Levels 1–3.
+
+| ID | Task | Files | Effort | Verify |
+|---|---|---|---|---|
+| H1 | **Reachability graph.** From a level's platforms, slopes and spawn, simulate the real jump arc (`LEVEL_JUMP_FORCES[n]`, `PLAYER_SPEED`, `GRAVITY`, `PLAYER_MAX_FALL_SPEED`) to decide which surfaces reach which, and build the graph. Levels 1–2 first | new module (see Q-H1), reads `level_layouts.py`, `settings.py` | M | unit test: hand-picked reachable and unreachable surface pairs per level |
+| H2 | **Solvability assertions in CI.** Over N seeded runs per level: the Goal box is reachable from spawn, the exit is reachable from the Goal box, the Monk is reachable, and no surface is a one-way trap. Seeds `random` so a failure is reproducible | `tests/` | M | green over 500 seeds per level; a deliberately moved platform must make it fail |
+| H3 | **Level 3 — the hard one.** One-way slopes, lotus petals, and `platforms[0]` is a lake that drowns. Reachability must respect `slopes.py`'s landing rule and treat the floor as lethal rather than walkable | the H1 module, reads `slopes.py` | L | H2's assertions, for Level 3 |
+| H4 | **Route execution and capture.** Walk a found route for real — hold the keys, land the jumps — through the scenes rather than by teleporting, and record it with `--record` / `recorder.py` to produce a demo video per level | the H1 module, `recorder.py`, `main.py` | M | a recorded clear of Levels 1–3 in kid mode, start to finish |
+| H5 | *(not committed)* Generalise into `template/` for the next game on this engine | `template/` | S, once H1–H4 land | — |
+
+**Open questions**
+* **Q-H1 Where does it live?** `tools/` keeps it out of the shipped build; `src/` lets the
+  tests import it without path games. Leaning `tools/`, with `tests/` importing it the way
+  `tests/source_tools.py` is imported now, since nothing in the game should depend on it.
+* **Q-H2 Simulate or drive?** H1/H2 should step `Player.update` directly — fast enough for
+  500 seeds. H4 must drive real input through `InputManager` and the real scenes, or the
+  recording is not a playthrough. Both, at different layers.
+* **Q-H3 How fine is the jump search?** Sampling run-up speed and jump timing finely enough
+  to find real routes without the seed count making CI slow. Start coarse, tighten only if
+  it reports a false unreachable.
+* **Q-H4 Does a failure break the build?** H2 red on a layout edit is the point, but a
+  false negative would block unrelated work. Suggest it fails from the start, and Q-H3 is
+  tuned until there are no false negatives rather than softening the gate.
+
 ## Epic D — Spec fidelity for Levels 1–2 — P1
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
@@ -97,6 +150,7 @@ at `self.level == 2`), so none of Epic G reaches a Paathshala player until C7 op
 
 ## Your new ideas (v2 is at ideation — add here, then we spec + ticket them)
 - **Level 3 bonus level (Karuna):** specced as **Epic G** above (designer, 2026-10-20).
+- **Reachability bot for level validation and demo capture:** specced as **Epic H** above (designer, 2026-10-26). Phases H1–H4 agreed; H5 is not committed.
 
 ## Backlog (designer, 2026-09-23)
 | ID | Item | Where | Verify |
@@ -122,4 +176,4 @@ at `self.level == 2`), so none of Epic G reaches a Paathshala player until C7 op
 - **Q8 Partial completion:** all-or-nothing. One rescue delivered banks 0:00.
 
 ## Suggested order
-A0 → A1 → A2–A5 (tests first, so every later change is guarded) → A7 (after Q1) → B → C → D → E → G → F.
+A0 → A1 → A2–A5 (tests first, so every later change is guarded) → A7 (after Q1) → B → C → D → E → G → H (after C1/C2) → F.
