@@ -1183,3 +1183,25 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   spacing advice (about 320px up, 370px across in Level 4) is computed from
   `LEVEL_JUMP_FORCES[4]`, `GRAVITY` and `PLAYER_SPEED`, not measured in play.
 
+
+## 2026-11-14 — Autoplay for a Level 3 + bonus video, ahead of Epic H
+* **Why now:** the doctor whose likeness the Karuna bonus level uses is to be sent a video
+  so he can approve it. The designer asked for the game to play itself rather than be
+  recorded by hand, so the video can be remade the same way after any change.
+* **What was built:** `tools/autoplay.py` drives the real `main.Game.run` through Level 3
+  and the bonus level with abstract actions only (left, right, jump, action), and
+  `tools/route_planner.py` finds each walk by running the real `Player.update` forward.
+  **No file in `src/` changed**; the tool wraps `InputManager.update` from outside.
+* **A shortcut to H4 only.** The errands (Monk, boxes, bird, offering) are scripted by hand
+  and the planner searches from where the devotee stands; it builds no reachability graph
+  and asserts nothing about solvability. **H1–H3 remain unbuilt**, and so does the Goal-box
+  soft-lock check they exist for. The planner is a candidate starting point for H1.
+* **Repeatable by construction:** fixed 1/60s frame, seeded `random`, SDL dummy drivers, and
+  the finishing profile save redirected to a temp folder via `PATH_TO_MOKSHA_DATA_DIR`, so a
+  run never touches the player's leaderboard.
+* **Recorded at 1080p**, not the recorder's 720p, by setting `recorder.RECORD_SIZE` from the
+  tool: the doctor is 150px tall on screen and has to be judged by his face.
+* *Verified:* `tools/autoplay.py` exits 0 only with the bird saved, both men helped and the
+  level complete — it did, for both devotees (seed 3, 98.5s of play each).
+  `tests/test_route_planner.py` replays a planned route frame by frame against the real
+  physics. Suite: 176 tests green. *Not verified:* seeds other than 3, and Levels 1, 2, 4.
