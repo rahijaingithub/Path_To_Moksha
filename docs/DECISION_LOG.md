@@ -1145,3 +1145,41 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* `tests/test_victory_scene.py` (6 tests: picture exists and is the title's, no
   placeholder pink on the drawn page, label, focus arithmetic, resets). Suite 172 green.
   A headless capture of the page was shown to the designer.
+
+## 2026-11-13 — Level 4 is Kailash: eight steps, a gate that appears, ledges that give way
+* **Setting (designer):** Adinath Bhagwan went to moksha from the snow-clad Kailash Parvat,
+  so The Summit is a range of snow mountains, not the spec's white-and-gold Shikhar of a
+  temple. **Departs from the spec's setting; the designer's call wins.** The spec's mood —
+  white, gold, open sky, serene but narrow — is kept.
+* **Eight main ledges (Claude's suggestion, accepted):** the mountain is also called
+  Ashtapad, "eight steps", so the climb is eight steps plus a start shelf, a side pinnacle
+  and the summit. **Assumption to confirm with the Paathshala** before the word Ashtapad is
+  put on screen; the layout does not depend on it.
+* **The ledges and their jobs:** start shelf (bottom left) → 1 boulder → 2 rock outcrop →
+  3 foothill top (right edge) → 4 wide terrace → 5 narrow ice shelf → 6 neighbouring peak
+  (left) → 7 narrow cornice → 8 high ledge under the summit → summit crown (top right).
+  A lone pinnacle in the upper left is off the path: a box there is a small Pramad lesson —
+  is it worth the detour?
+* **Confirmed by the designer, all four:**
+  1. **Boxes stay random** each play, on the wide ledges only (1, 2, 3, 4, 6, the pinnacle,
+     the valley floor), one per ledge. None on the crumbling ledges, the Monk's, or the summit.
+  2. **The Monk is fixed on ledge 8**, the high ledge before the final approach, as the spec
+     places him and as Levels 1–3 fix theirs.
+  3. **The Level 1 temple gate appears on the summit only once the Akshat is found.** In
+     Level 1 it stands from the start and merely opens; here the summit is bare snow until
+     then. Reading: the door to the Garbhalaya shows itself to one who carries the offering.
+  4. **Crumbling ledges (5 and 7):** hold 1 second while visibly cracking, break, return
+     after 3 seconds. A fall is only a fall — no lives, no restart, no return to the start;
+     the cost is the climb, plus the meltwater if they land in it. **Each has a wider ledge
+     beneath it** (2 under 5; 6 under 7) so a fall costs a step or two. This is the mercy;
+     **no longer hold in kid mode** (designer) — one timing for everyone.
+* **Hazards read as mountain things:** water = meltwater stream (attachment), fire =
+  ceremonial lamps on the terraces (Kashaya), crumbling = ice shelf and snow cornice
+  ("illusions of permanence", which absorbs the C8 idea unless the designer wants both).
+* **Process, as for Level 3:** art first, then the designer traces the platform lines, then
+  `_build_level4` is rebuilt against them. The prompt is in `image_generation_prompts.md` §1.
+  The build waits for Level 4 (designer).
+* *Verified:* nothing yet — this entry records decisions, not code. Jump reach used for the
+  spacing advice (about 320px up, 370px across in Level 4) is computed from
+  `LEVEL_JUMP_FORCES[4]`, `GRAVITY` and `PLAYER_SPEED`, not measured in play.
+

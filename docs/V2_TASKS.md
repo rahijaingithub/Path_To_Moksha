@@ -29,9 +29,9 @@ Every task names its files and its verification. Tasks marked ❓ depend on an a
 ## Epic C — Level 4: The Summit (Moksha) — P0
 | ID | Task | Files | Effort | Verify |
 |---|---|---|---|---|
-| C1 | Background art `level4_background.png` (Shikhar, white/gold/open sky) | assets | M (art) | asset test |
-| C2 | Rebuild `_build_level4` against the art | `level_layouts.py` | M | A2 + playtest #9 |
-| C3 | Crumbling blocks: `CrumblingPlatform` breaks 1s after landing, respawns after N s | `level_layouts.py`, `level_scene.py` | M | unit test + playtest |
+| C1 | Background art `level4_background.png` — **Kailash / Ashtapad** (designer, 2026-11-13): snow mountains, eight main ledges + start shelf, side pinnacle, empty summit crown. Prompt rewritten in `image_generation_prompts.md` §1; awaiting the generated image | assets | M (art) | asset test |
+| C2 | Rebuild `_build_level4` against the art, from the designer's traced lines; Monk fixed on ledge 8; boxes limited to the wide ledges; Level 1's temple gate appears on the summit once the Akshat is found (2026-11-13) | `level_layouts.py`, `monk_system.py`, `box_system.py`, `level_scene.py` | M | A2 + playtest #9 |
+| C3 | Crumbling ledges (the ice shelf and the cornice): `CrumblingPlatform` cracks for 1s after landing, breaks, returns after 3s; same timing in every mode; a wider ledge sits beneath each (designer, 2026-11-13) | `level_layouts.py`, `level_scene.py` | M | unit test + playtest |
 | C4 | Hazards: water channels + flame pillars against art | `hazards.py` | S | A2 |
 | C5 | Transition 4→Victory — **done 2026-09-27** (same work as backlog BL4): Moolnayak Adinath Bhagwan, bow, golden glow, then Victory | `transition_scene.py`, `level_scene.py` | M | playtest #11 |
 | C6 | ~~Victory picture~~ — **done 2026-11-13**: the page shows the title screen's photograph of the temple full-screen instead of the never-made `digambar_garbhalaya.png` (designer); allowance removed from `ALLOWED_MISSING_LITERAL_ASSETS`. Button label and focus score corrected with it | `victory_scene.py`, `level_scene.py`, `tests/test_portability.py` | S | `tests/test_victory_scene.py` + playtest #11 |
