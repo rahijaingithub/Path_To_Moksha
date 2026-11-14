@@ -349,6 +349,7 @@ class LevelScene(Scene):
             self.manager.shared["level_times"] = {}
             self.manager.shared["monk_correct"] = {}
             self.manager.shared["boxes_opened"] = {}
+            self.manager.shared["distractions"] = {}
             self.manager.shared["asked_questions"] = []
             self.manager.shared["level_scores"] = {}
             self.manager.shared["total_score"] = 0
@@ -1474,6 +1475,11 @@ class LevelScene(Scene):
         opened_count = sum(1 for box in self.box_system.boxes if box.opened)
         total_boxes = len(self.box_system.boxes)
         self.manager.shared["boxes_opened"][self.level] = (opened_count, total_boxes)
+        # The Victory page's focus score is about distractions alone (Pramad), so
+        # they are counted on their own: (opened, how many the level held).
+        pramad = [box for box in self.box_system.boxes if box.item.get("cat") == CAT_DISTRACTION]
+        self.manager.shared.setdefault("distractions", {})[self.level] = (
+            sum(1 for box in pramad if box.opened), len(pramad))
 
         # Score is already computed and stored by the draw code when the
         # level-complete banner was registered (_score_registered flag).

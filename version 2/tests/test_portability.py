@@ -152,7 +152,6 @@ class AssetPortabilityTests(unittest.TestCase):
     # It is omitted here so this portability suite remains a regression suite
     # rather than a content-completeness gate.
     ALLOWED_MISSING_LITERAL_ASSETS = {
-        "assets/images/transitions/digambar_garbhalaya.png",
         # Optional Level 3 art for the tired bird (loaded only if present; until
         # then a wings-folded flight frame is used). Prompt: image_generation_prompts.md.
         "assets/images/sprites/bird_fallen.png",

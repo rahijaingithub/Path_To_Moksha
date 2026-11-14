@@ -18,7 +18,11 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 10. [ ] Transition 3→4 shows Mahavir and the devotee walks in and **bows** (a second bow
         after Level 3's in-level one — intended, see #48). On 1→2 the devotee walks to the
         temple door and then **stands still** — no stepping on the spot. Boy and girl.
-11. [ ] Transition 4→Victory shows Adinath, glow, then Victory with the Garbhalaya image.
+11. [ ] Transition 4→Victory shows Adinath, glow, then Victory over the title screen's
+        photograph of the temple (no magenta anywhere). The score panel reads clearly over
+        the photo; the button says "SEE THE LEADERBOARD" and goes there; the focus line
+        counts distraction boxes only (open one distraction and one support box, leave the
+        rest: the support box must not change the count).
 
 ## Mechanics
 12. [ ] Each Support item does its *specific* thing (bus/car boost, bell repel, snake water

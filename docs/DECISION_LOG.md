@@ -1119,3 +1119,29 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   swaps the side the stethoscope hangs on; left alone rather than special-cased.
 * *Verified:* suite 166 green; height and baseline checked against two walk frames side by
   side. The turn itself is judged by eye — playtest item 47.
+
+## 2026-11-13 — Victory ends on the temple the pilgrimage set out for
+* **The magenta page** after the bow to Adinath Bhagwan was the Victory screen asking for
+  `transitions/digambar_garbhalaya.png`, which was never made (task C6, excused in the
+  portability test since v1). `AssetManager` answered with its pink placeholder, in a gold
+  frame. Level 4 is magenta for the same reason — no `level4_background.png` (C1, still open).
+* **Decision (designer):** use the title screen's own picture, the photograph of the Jain
+  Society of Toronto temple, rather than commission a Garbhalaya image. **This departs from
+  the spec** ("a high-quality image of the Digambar Garbhalaya"); the designer's call wins.
+  It also closes the journey where it opened, on the real building the children know.
+* **Full screen, not framed.** The photo is 4:3-ish; squeezed into the old 500px square it
+  would have been a thumbnail of a wide building. It is drawn as the title draws it, under a
+  veil that deepens toward the foot so the score reads over a bright daylight sky.
+* **Three faults on the page, fixed with it:**
+  * The button read "RESTART PILGRIMAGE" and opened the leaderboard. It now reads "SEE THE
+    LEADERBOARD". Behaviour unchanged: that is where the score just saved is shown.
+  * The focus score counted every unopened box, of any kind, as a distraction avoided, and
+    showed "of 18" when it had no data. Levels now record their distraction boxes on their
+    own (`shared["distractions"]`), reset wherever `boxes_opened` is. Pramad is the
+    distraction boxes; leaving a support box shut is not focus.
+  * "--- SACRED ARCADE STATS ---" became "YOUR PILGRIMAGE".
+* **Not changed:** the rank thresholds and the score formula. They differ from the spec's
+  scoring (gap A-24) and that is a separate decision.
+* *Verified:* `tests/test_victory_scene.py` (6 tests: picture exists and is the title's, no
+  placeholder pink on the drawn page, label, focus arithmetic, resets). Suite 172 green.
+  A headless capture of the page was shown to the designer.

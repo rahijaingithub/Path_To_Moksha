@@ -57,6 +57,7 @@ class SceneManager:
             "level_times": {},
             "monk_correct": {},
             "boxes_opened": {},
+            "distractions": {},     # per level: (opened, total) distraction boxes
         }
 
     def register(self, key, scene):

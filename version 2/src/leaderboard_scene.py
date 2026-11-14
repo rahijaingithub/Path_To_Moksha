@@ -145,6 +145,7 @@ class LeaderboardScene(Scene):
         self.manager.shared["level_times"] = {}
         self.manager.shared["monk_correct"] = {}
         self.manager.shared["boxes_opened"] = {}
+        self.manager.shared["distractions"] = {}
         starting_level = self.manager.shared.get("starting_level", 1)
         from settings import SCENE_LEVEL, SCENE_TRANSITION
         if starting_level < 0:

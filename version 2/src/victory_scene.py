@@ -1,6 +1,10 @@
 """
 victory_scene.py — The final screen displayed upon completing the game.
-Calculates final time, determines rank, and shows the Digambar Garbhalaya.
+Calculates final time, determines rank, and shows the score over the temple.
+
+The picture is the title screen's own: the Jain Society of Toronto temple the
+pilgrimage set out for (designer, 2026-11-13). The spec's separate Garbhalaya
+image was never made, and ending where the game began closes the journey.
 """
 import math
 import pygame
@@ -11,6 +15,12 @@ from settings import (
     COLOR_SAFFRON, COLOR_GOLD_DIM,
     GAME_FONT_SIZE_TITLE, GAME_FONT_SIZE_SUBTITLE, GAME_FONT_SIZE_BODY, GAME_FONT_SIZE_SMALL,
 )
+
+
+# The button once read "RESTART PILGRIMAGE" while opening the leaderboard, which
+# is where the score just saved is shown. It now says what it does.
+CONTINUE_LABEL = "SEE THE LEADERBOARD"
+STATS_HEADING = "YOUR PILGRIMAGE"
 
 
 class VictoryScene(Scene):
@@ -24,6 +34,7 @@ class VictoryScene(Scene):
         self.total_time = 0.0
         self.rank_title = ""
         self.bg_image = None
+        self.veil = None
         self.font_title = None
         self.font_sub = None
         self.font_body = None
@@ -70,14 +81,34 @@ class VictoryScene(Scene):
         self.font_body = self.assets.load_font(None, GAME_FONT_SIZE_BODY)
         self.font_small = self.assets.load_font(None, GAME_FONT_SIZE_SMALL)
 
-        # Load image (Garbhalaya)
+        # The temple, full screen, exactly as the title screen shows it.
         self.bg_image = self.assets.load_image(
-            "digambar_garbhalaya.png", "transitions",
-            scale=(500, 500)
+            "title_background.png", "backgrounds",
+            alpha=False, scale=(LOGICAL_WIDTH, LOGICAL_HEIGHT)
         )
+        # A veil so gold and cream text read over a bright daylight photograph:
+        # light over the temple itself, heavier toward the foot where the score sits.
+        self.veil = pygame.Surface((LOGICAL_WIDTH, LOGICAL_HEIGHT), pygame.SRCALPHA)
+        for y in range(LOGICAL_HEIGHT):
+            t = max(0.0, (y - LOGICAL_HEIGHT * 0.45) / (LOGICAL_HEIGHT * 0.55))
+            pygame.draw.line(self.veil, (8, 6, 20, int(60 + 120 * t)), (0, y), (LOGICAL_WIDTH, y))
 
         # Play peaceful victory music/drone loop
         self.assets.play_music("bgm_loop.ogg", volume=0.25)
+
+    def focus_line(self):
+        """Distraction boxes left alone, out of the distraction boxes met.
+
+        This used to count every unopened box of any kind as a distraction
+        avoided, so leaving a support box shut scored as focus, and a level
+        with no record at all was shown as "of 18".
+        """
+        met = self.manager.shared.get("distractions", {})
+        opened = sum(v[0] for v in met.values() if isinstance(v, tuple))
+        total = sum(v[1] for v in met.values() if isinstance(v, tuple))
+        if total <= 0:
+            return "Pilgrimage Focus Score: no distractions met"
+        return f"Pilgrimage Focus Score: Avoided {total - opened} / {total} Distractions"
 
     def handle_events(self, events, input_mgr):
         if self.elapsed > 1.0:
@@ -136,25 +167,10 @@ class VictoryScene(Scene):
     def draw(self, surface):
         surface.fill(COLOR_BG_DARK)
 
-        # Pulsing divine golden aura behind temple
-        glow_r = 280 + int(30 * math.sin(self.elapsed * 1.5))
-        glow = pygame.Surface((glow_r * 2, glow_r * 2), pygame.SRCALPHA)
-        pygame.draw.circle(glow, (255, 200, 60, 36), (glow_r, glow_r), glow_r)
-        surface.blit(glow, (LOGICAL_WIDTH // 2 - glow_r, 110))
-
-        # Main Garbhalaya Temple Image
+        # The temple fills the screen; the score is laid over its forecourt.
         if self.bg_image:
-            # Subtle breathing zoom on temple
-            zoom = 1.0 + 0.02 * math.sin(self.elapsed * 0.3)
-            w = int(500 * zoom)
-            h = int(500 * zoom)
-            zoomed_img = pygame.transform.smoothscale(self.bg_image, (w, h))
-            img_rect = zoomed_img.get_rect(center=(LOGICAL_WIDTH // 2, 380))
-            
-            # Gold frame around temple
-            frame_rect = img_rect.inflate(12, 12)
-            pygame.draw.rect(surface, COLOR_GOLD, frame_rect, width=3, border_radius=8)
-            surface.blit(zoomed_img, img_rect)
+            surface.blit(self.bg_image, (0, 0))
+            surface.blit(self.veil, (0, 0))
 
         # Draw falling lotus petals
         for p in self.particles:
@@ -189,7 +205,7 @@ class VictoryScene(Scene):
         surface.blit(panel_surf, (panel_x, panel_y))
 
         # Scorecard title
-        p_title = self.font_body.render("--- SACRED ARCADE STATS ---", True, COLOR_GOLD_BRIGHT)
+        p_title = self.font_body.render(STATS_HEADING, True, COLOR_GOLD_BRIGHT)
         surface.blit(p_title, p_title.get_rect(center=(LOGICAL_WIDTH // 2, panel_y + 24)))
 
         # 1. Time spent
@@ -207,12 +223,8 @@ class VictoryScene(Scene):
         wisdom_surf = self.font_body.render(wisdom_str, True, COLOR_SAFFRON)
         surface.blit(wisdom_surf, wisdom_surf.get_rect(center=(LOGICAL_WIDTH // 2, panel_y + 104)))
 
-        # 3. Focus score (Distractions Avoided)
-        boxes_dict = self.manager.shared.get("boxes_opened", {})
-        total_opened = sum(v[0] for v in boxes_dict.values() if isinstance(v, tuple))
-        total_boxes = sum(v[1] for v in boxes_dict.values() if isinstance(v, tuple))
-        avoided_count = total_boxes - total_opened
-        focus_str = f"Pilgrimage Focus Score: Avoided {avoided_count} / {total_boxes if total_boxes > 0 else 18} Distractions"
+        # 3. Focus score: distraction boxes left unopened (Pramad resisted).
+        focus_str = self.focus_line()
         focus_surf = self.font_body.render(focus_str, True, COLOR_WHITE)
         surface.blit(focus_surf, focus_surf.get_rect(center=(LOGICAL_WIDTH // 2, panel_y + 144)))
 
@@ -232,13 +244,13 @@ class VictoryScene(Scene):
         pygame.draw.rect(btn_surf, border_color, btn_surf.get_rect(), width=int(border_w), border_radius=16)
         surface.blit(btn_surf, draw_rect.topleft)
 
-        btn_text = self.font_body.render("RESTART PILGRIMAGE", True, COLOR_WHITE if hover else COLOR_CREAM)
+        btn_text = self.font_body.render(CONTINUE_LABEL, True, COLOR_WHITE if hover else COLOR_CREAM)
         tr = btn_text.get_rect(center=draw_rect.center)
         surface.blit(btn_text, tr)
 
         # Small continue prompt
         if self.elapsed > 2.0:
             alpha = int(120 + 100 * math.sin(self.elapsed * 4))
-            cont = self.font_small.render("Press ENTER or Click button to proceed", True, COLOR_GOLD_DIM)
+            cont = self.font_small.render("Press ENTER or Click button to proceed", True, COLOR_CREAM)
             cont.set_alpha(alpha)
             surface.blit(cont, cont.get_rect(center=(LOGICAL_WIDTH // 2, LOGICAL_HEIGHT - 12)))
