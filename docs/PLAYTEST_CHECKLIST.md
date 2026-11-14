@@ -119,6 +119,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         devotees, and that his clothes and height do not change when he stops walking.
         His legs should alternate as he walks (grey trousers, six frames), and when he
         stops he stands in the walk's own feet-together frame.
+        The opening line says who he is ("This is you in a life to come…") and stays long
+        enough for a child to read it.
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.

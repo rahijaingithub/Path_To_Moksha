@@ -1090,3 +1090,16 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* suite 165 green with the strips on disk; a headless capture of the real
   `BonusScene` shows him standing on the sidewalk line at the devotee's size. The walk
   itself was judged by eye from a clip at game speed — playtest item 47 is the standing check.
+
+## 2026-11-13 — The glimpse opens by saying who the man is
+* **Why (designer):** the devotee walks into the glimpse and is suddenly a grey-trousered
+  doctor. Flagged as open on 2026-10-26; now that the art is in, the face change needs its
+  one line or it reads as a bug.
+* **The line:** "This is you in a life to come: the compassion that saved the bird has made
+  you a doctor." Second person, because the child *is* him; it names the bird, so the cause
+  is the act they just did; and "a life to come" keeps the 2026-10-20 reading — a glimpse of
+  the punya's fruit, not the rebirth itself.
+* On a dark plate in the body font, above the existing clock line, and held 9 seconds rather
+  than 6 since there are now two lines to read (`INTRO_SECONDS`, `INTRO_DOCTOR_LINE`).
+* *Verified:* `test_the_opening_says_who_the_devotee_has_become` (wording present, fits the
+  screen); a headless capture of the scene's first seconds. Suite 166 green.

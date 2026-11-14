@@ -50,6 +50,12 @@ INJURED_START_X = 1150        # right of the hospital, so he is walked left
 LOST_START_X = 700            # left of the temple, so he is led right
 PLAYER_START_X = LOGICAL_WIDTH // 2
 
+# The opening lines, and how long they stay. Two lines to read now, so longer
+# than the six seconds one line had.
+INTRO_SECONDS = 9.0
+INTRO_DOCTOR_LINE = ("This is you in a life to come: the compassion that saved the bird "
+                     "has made you a doctor.")
+
 PLAYER_HALF_W = 32            # half the drawn sprite, for the walls
 DESTINATION_REACH = 120       # how close counts as "at" the hospital or the temple
 TREAT_SECONDS = 2.5           # tending to the injured man once he is at the hospital
@@ -505,11 +511,15 @@ class BonusScene(Scene):
                                     True, COLOR_CREAM)
         surface.blit(goal, goal.get_rect(center=(LOGICAL_WIDTH // 2, 36 + 36)))
 
-        if self.elapsed < 6.0:
+        if self.elapsed < INTRO_SECONDS:
+            # Who the man on screen is. Without this the devotee simply turns into
+            # a stranger; with it, the face change is the point of the level.
+            self._plate_text(surface, self.font_body.render(INTRO_DOCTOR_LINE, True, COLOR_GOLD_BRIGHT),
+                             (LOGICAL_WIDTH // 2, 36 + 96), pad=(22, 9))
             intro = self.font_small.render(
                 "Level 3 waits, its clock paused. Whatever time is left when both are saved comes back with you.",
                 True, COLOR_SAFFRON)
-            surface.blit(intro, intro.get_rect(center=(LOGICAL_WIDTH // 2, 36 + 72)))
+            surface.blit(intro, intro.get_rect(center=(LOGICAL_WIDTH // 2, 36 + 146)))
 
     def _draw_outcome(self, surface):
         """The closing card.

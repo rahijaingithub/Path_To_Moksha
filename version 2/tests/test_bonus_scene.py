@@ -261,6 +261,15 @@ class BonusSceneTests(unittest.TestCase):
         self.assertIn("player_girl_idle_right.png", names)
         self.assertFalse([n for n in names if n.startswith("doctor_")])
 
+    def test_the_opening_says_who_the_devotee_has_become(self) -> None:
+        """The face changes on entry, so the first thing read must say why."""
+        self.assertIn("doctor", self.bonus_scene.INTRO_DOCTOR_LINE)
+        self.assertIn("life to come", self.bonus_scene.INTRO_DOCTOR_LINE)
+        _, scene = self.enter()
+        font = scene.font_body
+        self.assertLess(font.size(self.bonus_scene.INTRO_DOCTOR_LINE)[0], 1920 - 120,
+                        "the line must fit the screen with a margin")
+
     def test_draws_without_crashing_while_playing_and_on_both_outcomes(self) -> None:
         surf = self.pygame.Surface((1920, 1080))
         for setup in (lambda s: None,
