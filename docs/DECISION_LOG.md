@@ -1103,3 +1103,19 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   than 6 since there are now two lines to read (`INTRO_SECONDS`, `INTRO_DOCTOR_LINE`).
 * *Verified:* `test_the_opening_says_who_the_devotee_has_become` (wording present, fits the
   screen); a headless capture of the scene's first seconds. Suite 166 green.
+
+## 2026-11-13 — Standing still, the doctor faces front
+* **Why (designer):** the idle was the walk's feet-together frame, chosen so nothing could
+  differ from the walk — but no frame of a walk is truly standing, and his feet were crossed
+  mid-step. The designer asked for him to face the viewer when he stops, as the lost man
+  does when he wonders.
+* **Art:** `_source/doctor_idle_front.jpg`, one front-view figure drawn from the walk sheet
+  (image edit) so the clothes and style carry over. `prepare_rescue_sprites.py` now builds
+  `doctor_idle_right.png` from it; a lone figure scales to the same height as the walk.
+* **Accepted differences:** his head is smaller and his jacket a brighter blue than in the
+  walk frames. Seen in a walk–stop–walk clip at game speed and passed by the designer. If it
+  ever grates, the fix is a re-edit asking for the walk's head size, not code.
+* **The game still mirrors the idle when he last walked left.** On a front view that only
+  swaps the side the stethoscope hangs on; left alone rather than special-cased.
+* *Verified:* suite 166 green; height and baseline checked against two walk frames side by
+  side. The turn itself is judged by eye — playtest item 47.

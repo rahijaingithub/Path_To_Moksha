@@ -118,7 +118,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         Dr. Mahendra Jain, with his consent), not the boy or the girl — check it with both
         devotees, and that his clothes and height do not change when he stops walking.
         His legs should alternate as he walks (grey trousers, six frames), and when he
-        stops he stands in the walk's own feet-together frame.
+        stops he turns to face you, the same height, feet side by side on the sidewalk line.
         The opening line says who he is ("This is you in a life to come…") and stays long
         enough for a child to read it.
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with

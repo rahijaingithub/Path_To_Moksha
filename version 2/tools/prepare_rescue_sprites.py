@@ -8,6 +8,8 @@ Input : assets/images/sprites/_source/lost_man_walk_right.jpg  — 6 frames, sid
         view, hand rising to the head and down again, on white.
         assets/images/sprites/_source/injured_man_limp_walk_rightV2.jpg — 6 frames,
         side view, limping, on white but with a frame border drawn per cell.
+        assets/images/sprites/_source/doctor_idle_front.jpg — the same doctor
+        standing, front view, one figure.
         assets/images/sprites/_source/doctor_walk_right.jpg — 6 figures: the
         doctor the devotee becomes in the glimpse, drawn into the lost man's
         walk cycle, side view facing right, on white, laid out by eye rather
@@ -15,7 +17,7 @@ Input : assets/images/sprites/_source/lost_man_walk_right.jpg  — 6 frames, sid
 Output: assets/images/sprites/lost_man_walk_right.png
         assets/images/sprites/lost_man_confused.png
         assets/images/sprites/injured_man_limp_walk_right.png
-        assets/images/sprites/doctor_walk_right.png, doctor_idle_right.png (both from the one sheet)
+        assets/images/sprites/doctor_walk_right.png, doctor_idle_right.png
 
 Three things have to be true of the result, and none of them are true of the
 sheets as supplied:
@@ -65,9 +67,12 @@ LOOSE_SHEETS = [
     # (image edit, 2026-11-13): three photo-real sheets all failed to alternate the
     # legs, and a navy suit hid them besides, hence the grey trousers.
     ("doctor_walk_right.jpg", "doctor_walk_right.png", 6, None),
-    # He stands still in the walk's own feet-together frame, so the idle cannot
-    # differ from the walk in clothes, style or size.
-    ("doctor_walk_right.jpg", "doctor_idle_right.png", 6, (4,)),
+    # Standing still he faces the viewer, as the lost man does when he wonders
+    # (designer, 2026-11-13): no frame of a walk is truly standing, and the
+    # feet-together one used at first had his feet crossed mid-step. A second
+    # image, drawn from the walk sheet so the clothes and style carry over; a
+    # lone figure's tallest pose is itself, so he comes out at the walk's height.
+    ("doctor_idle_front.jpg", "doctor_idle_right.png", 1, None),
 ]
 GHOST_LIGHTNESS = 150     # a figure whose mean darkest channel is above this is a ghost
 
