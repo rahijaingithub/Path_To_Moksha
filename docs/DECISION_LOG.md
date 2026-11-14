@@ -1064,3 +1064,29 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * **Sequenced after C1 and C2.** Level 4 has no background and an unrebuilt layout;
   validating geometry that is about to be redrawn is wasted work.
 
+## 2026-11-13 — The doctor's art is in: the lost man's walk, with the doctor drawn into it
+* **Delivered (designer):** `_source/doctor_walk_right.jpg`, a six-frame side-view sheet in
+  the lost man's illustrated style. Both game strips come from it.
+* **Why not the photo-real sheets.** Three were generated and previewed walking across the
+  real street (2026-10-26). None walked: with the photo attached the generator repeated one
+  stride six or eight times, the same leg leading throughout, and reordering, trimming and
+  a single edited mirror-stride frame could not hide it. Side by side with the lost man the
+  difference was plain to the designer — his legs cross; the doctor's stood together.
+* **Decision (designer):** take the walk that works. The sheet is an image edit of the lost
+  man's own cycle with the character swapped for the doctor, so the six poses are copied,
+  not invented. **Grey trousers, not the navy of his suit**: dark trousers made the two
+  strides one silhouette, and the jeans are half of why the lost man's legs read.
+* **Accepted trade:** it is a cartoon likeness, with a larger head than asked for, rather
+  than a portrait. It matches the lost man and the devotee, and outlines keep limbs
+  readable at 150px. The doctor's consent (2026-10-26 entry) covers a character based on
+  his picture.
+* **The idle is the walk's own feet-together frame**, not a second generation, so he cannot
+  change clothes, style or size when he stops — the fault flagged on the lost man's two
+  strips. `BonusScene` only ever shows the first idle frame, so one is enough.
+* **Tool:** the doctor sheets are laid out by eye, and one man's trailing foot reaches under
+  the next man's arm, so `prepare_rescue_sprites.py` cuts them by connected silhouette
+  (`figure_cells`) rather than by equal cells, and takes its scale from the whole sheet
+  before picking frames out of it.
+* *Verified:* suite 165 green with the strips on disk; a headless capture of the real
+  `BonusScene` shows him standing on the sidewalk line at the devotee's size. The walk
+  itself was judged by eye from a clip at game speed — playtest item 47 is the standing check.

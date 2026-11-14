@@ -340,6 +340,27 @@ devotee instead, so nothing is blocked on them.
     walking. The prep tool enforces the baseline and the size; it cannot fix the clothes.
     The game draws him 150px tall, as it does the devotee.
 
+### Delivered 2026-11-13 — the doctor, and what it took
+The two prompts above did **not** produce a usable walk, in three attempts. They are kept
+as a record, not as a recipe. What was learnt:
+
+*   **A reference photo pulls every frame back to one pose.** Photo-real sheets came back
+    as six or eight near-copies of a single stride, the same leg leading throughout —
+    whether the prompt said "one complete walking cycle" or named each frame's legs.
+*   **A navy suit hides the legs.** Even with the right frames, far-leg-forward and
+    near-leg-forward are the same silhouette in dark trousers at 150px.
+*   **"Breathing loop" was drawn as onion-skin** — faded ghost figures between the real ones.
+
+What worked was **borrowing a walk that already works**: an image *edit* of
+`_source/lost_man_walk_right.jpg` (pose guide) with the doctor's photo (identity).
+
+*   **Prompt:** `Edit the first image, the 6-frame walking sprite sheet. Replace the character in every frame with the man from the second image: an Indian doctor in his sixties with dark hair combed back and greying at the temples, and a warm smile. Dress him in a navy suit jacket, light blue shirt, burgundy striped tie, light grey trousers and brown leather shoes, with a stethoscope around his neck. Keep everything else exactly as it is: the same six frames, the same leg and arm positions in each frame, the same stride length, the same spacing, the same size, the same ground line, the same clean illustrated style with a thin dark outline, and the same pure white background. Adult proportions, not a child's: a smaller head relative to the body. No shadow, no text, no extra figures.`
+*   **Result:** `_source/doctor_walk_right.jpg`, six distinct poses matching the lost man's
+    cycle. The head stayed large despite the last line — a friendly caricature, accepted by
+    the designer. `tools/prepare_rescue_sprites.py` builds `doctor_walk_right.png` from all
+    six and `doctor_idle_right.png` from its feet-together frame, so walk and idle cannot
+    differ in clothes, style or size.
+
 ### Lesson: never put pixel coordinates in a prompt
 The street was asked for with "the sidewalk line runs at exactly 960 pixels from the
 top", "at roughly 300 pixels from the left", and so on. The generator drew those

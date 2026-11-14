@@ -117,7 +117,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         nothing lost. In the glimpse the player is drawn as **the doctor** (the community's
         Dr. Mahendra Jain, with his consent), not the boy or the girl — check it with both
         devotees, and that his clothes and height do not change when he stops walking.
-        Until his two strips are generated the chosen devotee is drawn instead.
+        His legs should alternate as he walks (grey trousers, six frames), and when he
+        stops he stands in the walk's own feet-together frame.
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.
