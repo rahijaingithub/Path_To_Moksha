@@ -121,6 +121,8 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         stops he turns to face you, the same height, feet side by side on the sidewalk line.
         The opening line says who he is ("This is you in a life to come…") and stays long
         enough for a child to read it.
+        *Doctor checks passed 2026-11-13 (designer, via `main.py`, as the boy and as the girl):
+        opening line, alternating walk, front-facing stop.*
 48. [ ] **Offering bow:** at the Monk's seat, ACTION plays the bow (down, hold, up) with
         light rising to Mahavir Bhagwan, then the level ends. The 3→4 transition then
         walks in and bows AGAIN (intended since 2026-10-20). Check the boy and the girl.
