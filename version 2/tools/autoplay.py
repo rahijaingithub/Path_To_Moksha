@@ -240,14 +240,27 @@ class Bot:
             while keep_going():
                 yield (key,), ()
 
-        def lead(npc, direction, arrived, max_lead):
-            """Walk ahead of a man who is following, and wait when he falls behind."""
+        def lead(npc, direction, arrived, max_lead, stop_x):
+            """Walk ahead of a man who is following, then stand until he catches up.
+
+            The devotee is faster than either man, so he walks in a few long
+            strides with a pause after each, as a person would. Letting go of the
+            key the moment the lead opens and pressing it again a frame later
+            made him stutter. He goes no further than `stop_x`, the door.
+            """
             key = inp.LEFT if direction < 0 else inp.RIGHT
+            gap = sys.modules["rescue_npc"].FOLLOW_GAP
+            striding = True
             for _ in range(120 * 60):
                 if arrived():
                     return
                 ahead = (bonus.player_x - npc.x) * direction
-                yield ((key,) if ahead < max_lead else ()), ()
+                at_door = (bonus.player_x - stop_x) * direction >= 0
+                if striding and (ahead >= max_lead or at_door):
+                    striding = False
+                elif not striding and not at_door and ahead <= gap + 4:
+                    striding = True
+                yield ((key,) if striding else ()), ()
             raise RunFailed("a rescue took far too long")
 
         # The injured man first: he is slow, so he is walked, and waited for.
@@ -260,7 +273,8 @@ class Bot:
         if injured.state != "following":
             raise RunFailed("the injured man was not picked up")
         reach = consts.DESTINATION_REACH - 25
-        yield from lead(injured, -1, lambda: abs(injured.x - consts.HOSPITAL_X) <= reach, 150)
+        yield from lead(injured, -1, lambda: abs(injured.x - consts.HOSPITAL_X) <= reach, 300,
+                        consts.HOSPITAL_X)
         yield from self.wait(0.8)
         yield from self.press(inp.ACTION)
         self.mark("treating at the hospital")
@@ -276,7 +290,7 @@ class Bot:
         self.mark("lost man picked up")
         if lost.state != "following":
             raise RunFailed("the lost man was not picked up")
-        yield from lead(lost, 1, lambda: bonus.lost_saved, 190)
+        yield from lead(lost, 1, lambda: bonus.lost_saved, 260, consts.TEMPLE_X)
         self.mark("both rescued")
         self.result["both_rescued"] = bonus.both_rescued
         # The closing card holds for its own five seconds and returns by itself.
