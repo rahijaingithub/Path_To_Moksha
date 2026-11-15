@@ -1220,3 +1220,27 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   `_source/level4_ledges_proposal.png` (not tracked) for the designer to correct.
 * *Verified:* the file loads and the suite is green. Ledge positions were read by eye off
   a grid, and jump reach is computed, not played — `_build_level4` is not rebuilt yet.
+
+## 2026-11-14 — Level 4: the picture slides down, and the valley floor is cold shock
+* **The summit was hidden.** `LevelScene` draws the world 80px up and puts the 48px clock
+  bar over it, so the top 128px of a background is never seen; the generated Kailash peaks
+  at y 135. A jump test with the real `Player` showed the devotee vanishing on the summit,
+  and the unseen ceiling stopping two jumps. **Decision (designer): slide the picture down.**
+  `tools/prepare_level4_background.py` moves it 150px and carries the top sky upward; the
+  floor line (y 1050) now lies on the frozen stream at the foot of the stream block.
+* **Cold shock (designer), replacing "a fall is only a fall" of 2026-11-13:** while the
+  devotee is on the valley floor the level clock runs at **twice** its pace; it returns to
+  normal the moment they stand on a proper ledge (the ten, or the start shelf). **No rescue:**
+  unlike Level 3's drowning, nobody is lifted to safety — they walk, run and jump out.
+  Reading: the cold is an emergency; find safe ground quickly. No fixed time penalty
+  (Claude's 15-second suggestion is dropped). Follows from it: the devotee starts on the
+  start shelf, and no boxes on the floor.
+* **Route, renumbered in climbing order (proposal, for the designer to correct):** start →
+  1 stream block → 2 ice shelf, then either left (3 great mesa → 5 high plateau → 10 summit,
+  with 4 the spire as a detour) or right (drop to 6 outcrop → 7 terrace → 8 ridge → 9 Monk's
+  shelf → 10). The ice shelf is the one way up, so it no longer crumbles; the proposed
+  crumbling ledges are the spire and the right ridge.
+* *Verified:* every arrow on the proposal is a single jump found by brute force with the
+  real `Player.update` at 1/60s on those rectangles (scratch script, not in the repo); the
+  floor reaches the start, 1, 2 and 6, so cold shock can always be escaped. Not yet built:
+  `_build_level4`, cold shock, crumbling, the gate. Suite green.
