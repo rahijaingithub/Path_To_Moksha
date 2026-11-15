@@ -19,6 +19,32 @@ LEVEL3_BHAGWAN_RECT = (883, 128, 150, 150)
 # Far from the pavilion on purpose: helping is a real detour.
 LEVEL3_BIRD_REST = (1815, LOGICAL_HEIGHT - 259)
 
+# Level 4 (Kailash): ledges as (x, top, width), read off level4_background.png
+# after tools/prepare_level4_background.py slid it down 150px, and confirmed by
+# the designer on the marked-up proposal (2026-11-14). Numbered in climbing order.
+LEVEL4_START_SHELF = (30, 965, 470)       # S: the snowy shelf, bottom left
+LEVEL4_MONK_SHELF = (1680, 430, 200)      # 9: the snow shelf beside Kailash
+LEVEL4_SUMMIT = (1340, 285, 140)          # 10: wider than the snow cap, so the gate has room
+LEVEL4_CRUMBLING = ((705, 460, 60),       # 4: the rock spire (the mesa catches a fall)
+                    (1500, 550, 260))     # 8: the right ridge (the terrace catches most)
+LEVEL4_LEDGES = (
+    LEVEL4_START_SHELF,
+    (685, 1000, 155),      # 1 stream block
+    (960, 755, 240),       # 2 ice shelf — the one way up from the valley, so it holds
+    (320, 645, 570),       # 3 great mesa
+    LEVEL4_CRUMBLING[0],   # 4 spire
+    (1010, 500, 290),      # 5 high plateau
+    (1120, 1000, 440),     # 6 rock outcrop
+    (1600, 805, 290),      # 7 right terrace
+    LEVEL4_CRUMBLING[1],   # 8 right ridge
+    LEVEL4_MONK_SHELF,
+    LEVEL4_SUMMIT,
+)
+# Boxes: the wide, lasting ledges only. Not the valley floor (cold shock), not a
+# ledge that crumbles, not the Monk's, not the summit where the gate appears.
+LEVEL4_BOX_LEDGES = tuple(l for l in LEVEL4_LEDGES
+                          if l not in LEVEL4_CRUMBLING + (LEVEL4_MONK_SHELF, LEVEL4_SUMMIT))
+
 
 def build_level_platforms(level):
     """Returns a list of pygame.Rect platforms for the given level."""
@@ -164,33 +190,8 @@ def _build_level3(p, W, H):
 
 
 def _build_level4(p, W, H):
-    """The Summit (Moksha) — Expert. Narrow, demanding path to the peak."""
-    # Ground level — very few footholds
-    p.append(pygame.Rect(200, H - 180, 120, PH))
-    p.append(pygame.Rect(500, H - 200, 120, PH))
-
-    # Narrow stepping stones
-    p.append(pygame.Rect(780, H - 300, 110, PH))
-    p.append(pygame.Rect(1050, H - 350, 110, PH))
-    p.append(pygame.Rect(1300, H - 280, 120, PH))
-
-    # Mid section — zigzag
-    p.append(pygame.Rect(1500, H - 430, 130, PH))
-    p.append(pygame.Rect(1250, H - 520, 120, PH))
-    p.append(pygame.Rect(950, H - 560, 130, PH))
-    p.append(pygame.Rect(650, H - 510, 120, PH))
-    p.append(pygame.Rect(350, H - 580, 130, PH))
-
-    # Upper zigzag
-    p.append(pygame.Rect(150, H - 680, 120, PH))
-    p.append(pygame.Rect(400, H - 740, 120, PH))
-    p.append(pygame.Rect(700, H - 780, 130, PH))
-    p.append(pygame.Rect(1000, H - 730, 120, PH))
-    p.append(pygame.Rect(1300, H - 800, 120, PH))
-
-    # Final narrow ascent
-    p.append(pygame.Rect(1550, H - 880, 120, PH))
-    p.append(pygame.Rect(1300, H - 940, 130, PH))
-
-    # Summit — goal (top-center-right)
-    p.append(pygame.Rect(1000, H - 980, 200, PH))
+    """The Summit (Moksha) — Kailash. Two ways up from the ice shelf: left over
+    the great mesa, right past the Monk. Every hop is checked with the real
+    Player in tests/test_level4_layout.py."""
+    for x, top, width in LEVEL4_LEDGES:
+        p.append(pygame.Rect(x, top, width, PH))

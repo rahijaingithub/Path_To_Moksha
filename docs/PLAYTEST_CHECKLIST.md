@@ -143,3 +143,24 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
 51. [ ] **No pad:** unplug the controller. The Options row still opens the screen, every
         row reads "Default: …", and selecting one shows "Connect a controller…" instead
         of listening. Keyboard controls are unchanged throughout.
+
+## Level 4: Kailash (added 2026-11-14; developer mode until it is opened)
+52. [ ] **Both ways up:** from the start shelf go stream block, ice shelf. Then climb once
+        by the left (great mesa, high plateau, summit) and once by the right (drop to the
+        rock outcrop, terrace, ridge, Monk's shelf, summit). Every jump is makeable without
+        pixel-perfect timing, and the devotee is always visible, including on the summit.
+53. [ ] **Crumbling:** stand on the spire's snow, and on the right ridge's. It cracks and
+        shakes for about a second, breaks into falling pieces, and drifts back about three
+        seconds later. A fall from the spire lands on the great mesa. It never reforms
+        around the devotee. Does a painted rock with snow that vanishes read as "this
+        ledge is gone"?
+54. [ ] **Cold shock:** step onto the valley floor. The clock turns icy blue, reads
+        "COLD x2" and loses two seconds a second; the goal line says why. Jumping on the
+        floor does not stop it. Nobody lifts the devotee out: climb to the start shelf,
+        the stream block or the rock outcrop and the clock is normal again. No box ever
+        sits on the valley floor.
+55. [ ] **The summit gate:** the summit is bare until the Akshat is found; then Level 1's
+        gate fades in, clear of the clock bar. UP or ACTION at the gate ends the level,
+        then the bow to Adinath Bhagwan and the Victory page follow. Before the Akshat,
+        ACTION on the summit does nothing.
+

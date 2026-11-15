@@ -226,11 +226,19 @@ class BoxSystem:
             candidates = [p for p in candidates[1:]
                           if not (p.top == bird_y and p.left <= bird_x <= p.right)]
 
-        for item_def in shuffled:
+        if self.level == 4:
+            # Kailash: the wide, lasting ledges only (see LEVEL4_BOX_LEDGES).
+            from level_layouts import LEVEL4_BOX_LEDGES
+            candidates = [p for p in platforms[4:] if (p.x, p.y, p.width) in LEVEL4_BOX_LEDGES]
+            random.shuffle(candidates)
+
+        for index, item_def in enumerate(shuffled):
             placed = False
             # Make up to 50 attempts to find a safe location for this box
             for _ in range(50):
                 plat = random.choice(candidates)
+                if self.level == 4:
+                    plat = candidates[index % len(candidates)]    # one box to a ledge
                 x_min = plat.x + 15
                 x_max = plat.x + plat.width - Box.SIZE - 15
 

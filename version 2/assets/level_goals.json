@@ -20,6 +20,8 @@
     ]
   },
   "4": {
-    "default": "Goal: Find the Akshat (Sacred Rice)!"
+    "default": "Goal: Find the Akshat (Sacred Rice)!",
+    "akshat_found": "Goal: Climb to the summit of Kailash and enter the gate!",
+    "cold_shock": "Cold shock! The clock runs double. Climb to a ledge!"
   }
 }

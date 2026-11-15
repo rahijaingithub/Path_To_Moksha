@@ -185,12 +185,10 @@ def create_hazards_for_level(level, platforms):
         pass
 
     elif level == 4:
-        # Water: sacred water channels
-        hazards.append(Hazard(200, H - WALL - 15, 160, 15, "water"))
-        hazards.append(Hazard(700, H - WALL - 15, 140, 15, "water"))
-        # Fire: ceremonial flame pillars
-        hazards.append(Hazard(500, H - 300, 30, 80, "fire"))
-        hazards.append(Hazard(1000, H - 500, 30, 90, "fire"))
-        hazards.append(Hazard(1500, H - 700, 30, 80, "fire"))
+        # No hazard blocks yet. The old water channels and flame pillars stood on
+        # the placeholder layout and would float in mid-air over Kailash. Water
+        # is now the valley floor itself (cold shock, level_scene); where fire
+        # (Kashaya) belongs on the mountain is an open design question.
+        pass
 
     return hazards

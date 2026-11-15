@@ -457,6 +457,14 @@ def create_monk(level, platforms, hazards, asked_questions, game_mode="kid"):
                 target_platform = p
                 break
 
+    elif level == 4:
+        from level_layouts import LEVEL4_MONK_SHELF
+        for p in platforms:
+            if (p.x, p.y, p.width) == LEVEL4_MONK_SHELF:
+                # Toward the right end: the devotee arrives from the ridge on the
+                # left, and his sacred column must leave them room to land.
+                return Monk(p.right - Monk.WIDTH - 24, p.y - Monk.HEIGHT, level, selected_q)
+
     if target_platform:
         mx = target_platform.x + (target_platform.width - Monk.WIDTH) // 2
         my = target_platform.y - Monk.HEIGHT

@@ -1244,3 +1244,38 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   real `Player.update` at 1/60s on those rectangles (scratch script, not in the repo); the
   floor reaches the start, 1, 2 and 6, so cold shock can always be escaped. Not yet built:
   `_build_level4`, cold shock, crumbling, the gate. Suite green.
+
+## 2026-11-14 — Level 4 is built: the confirmed ledges, cold shock, crumbling snow, the gate
+* **Layout (designer confirmed the marked-up proposal, both ways up kept):** ten ledges and
+  the start shelf in `level_layouts.LEVEL4_LEDGES`. `_build_level4` is now data, not the
+  placeholder zigzag.
+* **Cold shock, as the designer specified it:** on the valley floor the clock runs at
+  `COLD_SHOCK_CLOCK_RATE` (2x). It is latched: a jump from the floor that falls back is
+  still cold; only standing on a ledge ends it. **No rescue** — Level 3 lifts a drowned
+  devotee to safety, Level 4 does not. Shown on the clock itself ("COLD x2", icy blue), in
+  the goal line, and as frost lifting off the devotee.
+* **What crumbles is the snow, not the rock (Claude's call, to be judged in play).** The
+  spire and the ridge are painted into the background and cannot be removed, so each
+  carries a drawn slab of snow: it shakes and cracks for the second, falls in pieces, and
+  drifts back in the last second of the three. Faint dots mark the gap meanwhile. Reading:
+  snow looks like ground and is not — the spec's "illusions of permanence".
+* **Once cracking, it breaks even if the devotee steps off**, and it will not reform while
+  they are inside the gap.
+* **The gate** is Level 1's `temple_gate.png` at 171x140 (it must stand between the summit
+  at y 285 and the clock bar at y 128). It fades in over 1.5s once the Akshat is found;
+  UP or ACTION there ends the level. Opening the Akshat box no longer ends Level 4.
+* **Monk at the right end of his shelf**, not centred: the devotee arrives from the ridge
+  on the left and his sacred column must leave room to land.
+* **Hazard blocks removed from Level 4.** The old water channels and flame pillars were
+  placed for the placeholder layout and would hang in mid-air. Water is the valley floor
+  now. **Open: where fire (Kashaya) belongs on Kailash** — the 2026-11-13 idea was
+  ceremonial lamps on the terraces. Until decided, Level 4 has no fire.
+* **Not done on purpose:** Level 4 is still developer-only. Opening it to kid and standard
+  changes where those modes end, and waits for the designer to play it.
+* *Verified:* `tests/test_level4_layout.py` (19 tests): every jump of both routes and three
+  ways out of the valley with the real `Player`; the clock loses 4.0s in 2.0s on the floor
+  and 2.0s elsewhere; the spire leaves and rejoins the platform list; boxes one to a wide
+  ledge; the gate only after the Akshat. `tools/autoplay.py --level 4` plays the real level
+  to the gate (exit 0) and recorded `recordings/level4_boy.mp4`. How the crumbling reads
+  to a player is playtest item 53, not something a test can say.
+

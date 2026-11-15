@@ -1,8 +1,9 @@
 """
-autoplay.py — Let the game play Level 3 and its Karuna bonus level, and record it.
+autoplay.py — Let the game play Level 3 and its Karuna bonus level, or Level 4, and record it.
 
     venv\\Scripts\\python.exe tools\\autoplay.py --out recordings\\level3_boy.mp4
     venv\\Scripts\\python.exe tools\\autoplay.py --character girl --out recordings\\level3_girl.mp4
+    venv\\Scripts\\python.exe tools\\autoplay.py --level 4 --out recordings\\level4_boy.mp4
 
 It runs the real game — `main.Game.run`, every scene, the real physics — and
 presses the same abstract actions a player would (left, right, jump, action).
@@ -20,7 +21,8 @@ level is found by tools/route_planner.py for the errands scripted below. It does
 not check that a level is always finishable — H1-H3 are still unbuilt.
 
 Exit code 0 only when the bird was saved, both men were helped, and Level 3 was
-completed.
+completed — or, for Level 4, when a ledge crumbled underfoot, cold shock was
+caught and escaped, the Monk was answered and the summit gate was entered.
 """
 import argparse
 import os
@@ -94,17 +96,22 @@ class Bot:
             yield (), ()
         raise RunFailed(f"timed out waiting for {what}")
 
-    def go_to(self, is_goal, goal_x, what):
-        """Walk and jump to wherever `is_goal(player)` holds, replanning if thrown off."""
+    def go_to(self, is_goal, goal_x, what, floor_is_ground=False):
+        """Walk and jump to wherever `is_goal(player)` holds, replanning if thrown off.
+
+        The planner treats the level's floor as the lake and never touches it.
+        `floor_is_ground` lifts that, for Level 4's valley floor: cold, not fatal.
+        """
         planner = self.m.route_planner
         scene = self.level
-        for _attempt in range(4):
+        for _attempt in range(8):
             yield from self.wait_until(
                 lambda: scene.player.on_ground and scene.drown_timer <= 0
                 and not scene.player.frozen, what="the devotee to be standing")
             if is_goal(scene.player):
                 return
-            world = planner.World(scene.platforms, scene.slopes, scene.floor.top,
+            floor_top = scene.floor.top + (10000 if floor_is_ground else 0)
+            world = planner.World(scene.platforms, scene.slopes, floor_top,
                                   self.m.settings.LEVEL_JUMP_FORCES[scene.level], DT)
             route = planner.plan(scene.player, world, is_goal, goal_x)
             if route is None:
@@ -123,9 +130,105 @@ class Bot:
                 return
         raise RunFailed(f"could not reach {what}")
 
+    # ── Level 4 ──────────────────────────────────────────────────────────────
+
+    def to_ledge(self, ledge, what, floor_is_ground=False):
+        """Stand still on the Level 4 ledge given as (x, top, width)."""
+        x, top, width = ledge
+        yield from self.go_to(
+            lambda p: (p.on_ground and abs(p.y + p.height - top) < 2 and abs(p.vx) < 1
+                       and x - p.width / 2 < p.x < x + width - p.width / 2),
+            x + width / 2, what, floor_is_ground)
+
+    def answer_monk(self):
+        scene, inp, monk = self.level, self.inp, self.level.monk
+        yield from self.go_to(
+            lambda p: monk.interaction_zone.collidepoint(p.rect.center) and abs(p.vx) < 1,
+            monk.x + monk.WIDTH / 2, "the Monk")
+        self.mark("at the Monk")
+        yield from self.wait(0.8)
+        yield from self.press(inp.ACTION, then=4.0)    # time to read the question
+        if not monk.dialogue_active:
+            raise RunFailed("the Monk's question did not open")
+        for _ in range(monk.question_data["correct"]):
+            yield from self.press(inp.MENU_DOWN, then=0.6)
+        yield from self.wait(1.0)
+        yield from self.press(inp.ACTION, then=3.0)
+        if not monk.answered_correctly:
+            raise RunFailed("the Monk was answered wrongly")
+
+    def script_level4(self):
+        scene, inp = self.level, self.inp
+        L = self.m.level_layouts
+        ledges = L.LEVEL4_LEDGES
+        block, ice, mesa, spire, plateau, outcrop, terrace, ridge = ledges[1:9]
+        self.result = {"ledge_crumbled": False, "cold_shock_escaped": False,
+                       "monk_answered": False, "gate_entered": False}
+        yield from self.wait(2.5)                      # Kailash, before anyone moves
+
+        # 1. The left way: stream block, ice shelf, great mesa.
+        yield from self.to_ledge(block, "the stream block")
+        yield from self.to_ledge(ice, "the ice shelf")
+        yield from self.to_ledge(mesa, "the great mesa")
+        self.mark("on the great mesa")
+        yield from self.wait(1.0)
+
+        # 2. The spire: snow that looks like ground. Stand on it and it gives way.
+        yield from self.to_ledge(spire, "the spire")
+        self.mark("on the spire")
+        spire_ledge = next(c for c in scene.crumbling if c.rect.width == spire[2])
+        yield from self.wait_until(lambda: spire_ledge.state == "gone", timeout=5, what="the spire to crumble")
+        self.result["ledge_crumbled"] = True
+        self.mark("the spire crumbled")
+        yield from self.wait_until(lambda: scene.player.on_ground, timeout=5, what="the fall to end")
+        yield from self.wait_until(lambda: spire_ledge.state == "solid", timeout=6, what="the snow to drift back")
+        yield from self.wait(1.0)
+
+        # 3. Cold shock: step down to the valley floor, feel the clock race, climb out.
+        yield from self.to_ledge(ice, "the ice shelf again")
+        yield from self.go_to(lambda p: p.on_ground and abs(p.y + p.height - scene.floor.top) <= 2 and abs(p.vx) < 1
+                              and 860 < p.x < 1080, 960, "the valley floor", floor_is_ground=True)
+        if not scene.cold_shock:
+            raise RunFailed("the valley floor did not bring on cold shock")
+        self.mark("cold shock")
+        before = scene.time_remaining
+        yield from self.wait(3.0)
+        lost = before - scene.time_remaining
+        yield from self.to_ledge(outcrop, "the rock outcrop", floor_is_ground=True)
+        self.result["cold_shock_escaped"] = (not scene.cold_shock) and 5.9 < lost < 6.1
+        self.mark(f"out of the cold ({lost:.1f}s lost in 3.0s)")
+        yield from self.wait(1.0)
+
+        # 4. The right way, past the Monk: terrace, the crumbling ridge, his shelf.
+        yield from self.to_ledge(terrace, "the right terrace")
+        yield from self.answer_monk()
+        self.result["monk_answered"] = True
+
+        # 5. The Akshat, wherever this play hid it.
+        goal = next(b for b in scene.box_system.boxes if b.item["cat"] == "goal")
+        yield from self.open_box(goal)
+        if not scene.box_system.goal_found:
+            raise RunFailed("the Akshat was not found")
+        self.mark("Akshat found; the gate appears on the summit")
+        yield from self.wait(2.0)
+
+        # 6. The summit of Kailash, and the gate.
+        yield from self.go_to(lambda p: p.on_ground and p.rect.colliderect(scene._summit_gate_rect()) and abs(p.vx) < 1,
+                              L.LEVEL4_SUMMIT[0] + L.LEVEL4_SUMMIT[2] / 2, "the summit gate")
+        self.mark("at the summit gate")
+        yield from self.wait(2.0)
+        yield from self.press(inp.ACTION)
+        yield from self.wait_until(lambda: scene.level_complete, timeout=3, what="the gate to open")
+        self.result["gate_entered"] = True
+        self.mark("level complete")
+        yield from self.wait(6.0)                      # the completion banner
+
     # ── Level 3 ──────────────────────────────────────────────────────────────
 
     def script(self):
+        if self.level.level == 4:
+            yield from self.script_level4()
+            return
         scene = self.level
         inp = self.inp
         yield from self.wait(2.5)                      # the Hall, before anyone moves
@@ -301,6 +404,7 @@ def main(argv=None):
     parser.add_argument("--character", choices=("boy", "girl"), default="boy")
     parser.add_argument("--mode", choices=("kid", "standard"), default="kid")
     parser.add_argument("--seed", type=int, default=3)
+    parser.add_argument("--level", type=int, choices=(3, 4), default=3)
     parser.add_argument("--out", help="where to save the video (omit to play without recording)")
     parser.add_argument("--size", default="1920x1080", help="recorded size, e.g. 1280x720")
     args = parser.parse_args(argv)
@@ -316,6 +420,7 @@ def main(argv=None):
 
     import pygame
     import bonus_scene
+    import level_layouts
     import main as game_main
     import recorder
     import route_planner
@@ -325,6 +430,7 @@ def main(argv=None):
         pass
     modules = Modules()
     modules.bonus_scene, modules.settings, modules.route_planner = bonus_scene, settings, route_planner
+    modules.level_layouts = level_layouts
 
     random.seed(args.seed)
     game = game_main.Game()
@@ -334,10 +440,10 @@ def main(argv=None):
 
     shared = game.scene_mgr.shared
     shared.update({"character": args.character, "game_mode": args.mode,
-                   "player_name": "Pilgrim", "starting_level": 3, "current_level": 3,
+                   "player_name": "Pilgrim", "starting_level": args.level, "current_level": args.level,
                    "total_score": 0, "final_score": 0, "total_time": 0.0,
                    "level_times": {}, "monk_correct": {}, "boxes_opened": {}, "distractions": {}})
-    game.scene_mgr.switch_to(settings.SCENE_LEVEL, level=3, input_mgr=game.input_mgr)
+    game.scene_mgr.switch_to(settings.SCENE_LEVEL, level=args.level, input_mgr=game.input_mgr)
 
     bot = Bot(game, pygame, modules)
     script = bot.script()

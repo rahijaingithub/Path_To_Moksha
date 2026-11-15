@@ -12,7 +12,9 @@ from monk_system import create_monk, choice_rects
 from hazards import (create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION,
                      DROWN_TIME_PENALTY)
 from level_layouts import (build_level_platforms, build_level_slopes,
-                           LEVEL3_BHAGWAN_RECT, LEVEL3_BIRD_REST, WALL as WALL_THICKNESS)
+                           LEVEL3_BHAGWAN_RECT, LEVEL3_BIRD_REST, WALL as WALL_THICKNESS,
+                           LEVEL4_START_SHELF, LEVEL4_SUMMIT, LEVEL4_CRUMBLING)
+from crumbling import CrumblingLedge, CRACKING, GONE
 from bird import Bird
 from sprite_utils import extract_bow_frames
 from slopes import find_slope_contact, SLOPE_REACH
@@ -27,6 +29,18 @@ from settings import (
     DEFAULT_GAME_MODE, ASSETS_DIR, SCENE_BONUS,
 )
 
+
+# Level 4 cold shock (designer, 2026-11-14): on the valley floor of Kailash the
+# clock runs this many times faster, until the devotee stands on a ledge again.
+# Nobody lifts them out, unlike Level 3's lake: the cold is an emergency, and the
+# lesson is to find safe ground quickly. Water is attachment (Samsara) — the
+# longer one stays in it, the more of the journey it takes.
+COLD_SHOCK_CLOCK_RATE = 2.0
+# Level 4: the temple gate that appears on the summit once the Akshat is found.
+SUMMIT_GATE_SIZE = (171, 140)      # Level 1's gate, scaled to stand clear of the clock bar
+SUMMIT_GATE_APPEAR_SECONDS = 1.5
+SNOW = (244, 248, 255)
+SNOW_SHADE = (176, 196, 222)
 
 # Level 3 reveal timing (seconds): Monk fades out, then Mahavir Bhagwan fades in.
 MONK_FADE_SECONDS = 1.5
@@ -384,6 +398,14 @@ class LevelScene(Scene):
 
         # Goal Temple Gate for Level 1
         self.temple_gate_img = None
+        if self.level == 4:
+            # The same gate as Level 1 (designer), but it is not there until the
+            # Akshat is found: the door shows itself to one who carries the offering.
+            self.temple_gate_img = self.assets.load_image(
+                "temple_gate.png", "items", alpha=True, scale=SUMMIT_GATE_SIZE)
+            if self.temple_gate_img:
+                self.temple_gate_img.set_colorkey((0, 0, 0))
+        self.gate_appear_timer = 0.0
         if self.level == 1:
             # Scale of the Temple Gate can be adjusted here (Width, Height). Changed default to 220x280.
             self.temple_gate_img = self.assets.load_image("temple_gate.png", "items", alpha=True, scale=(220, 180))
@@ -402,6 +424,9 @@ class LevelScene(Scene):
         elif self.level == 3:
             # The floor is the lake, so start on lily pad 18 (x 137, w 169, H - 154).
             self.player = Player(137 + (169 - PLAYER_WIDTH) // 2, LOGICAL_HEIGHT - 154 - PLAYER_HEIGHT)
+        elif self.level == 4:
+            # On the start shelf, not the valley floor: the floor is cold shock.
+            self.player = Player(LEVEL4_START_SHELF[0] + 50, LEVEL4_START_SHELF[1] - PLAYER_HEIGHT)
         else:
             self.player = Player(80, LOGICAL_HEIGHT - 30 - PLAYER_HEIGHT - 10)
 
@@ -417,6 +442,13 @@ class LevelScene(Scene):
             name = f"player_{self.manager.shared.get('character', 'boy')}_drown.png"
             if os.path.exists(os.path.join(IMAGES_DIR, "sprites", name)):
                 self.drown_strip = self.assets.load_image(name, "sprites", alpha=True)
+
+        # Level 4: cold shock on the valley floor, and the ledges that give way.
+        self.cold_shock = False
+        self.crumbling = []
+        if self.level == 4:
+            self.crumbling = [CrumblingLedge(p) for p in self.platforms
+                              if (p.x, p.y, p.width) in LEVEL4_CRUMBLING]
 
         # Level 3 Jiv Daya twist: a bird crosses the sky; when the Akshat is found
         # it falls onto lotus 14. Helping it is optional: share the Akshat, then put
@@ -501,9 +533,9 @@ class LevelScene(Scene):
 
         Level 3 seats him in the centre arch of the pavilion (plinth H - 454):
         same 3px clearance, and only sky above, so his wall crosses no platform
-        (tests/test_level3_layout.py checks this). Level 4 still places the Monk
-        randomly, so this wall lands somewhere unpredictable there; see
-        PLAYTEST_CHECKLIST for the item that covers it.
+        (tests/test_level3_layout.py checks this). Level 4 seats him at the right
+        end of his snow shelf beside Kailash, with only sky above; the devotee
+        lands to his left (tests/test_level4_layout.py).
         """
         self.monk_column = None
         if not self.monk:
@@ -720,6 +752,15 @@ class LevelScene(Scene):
                         self.complete_timer = 3.0
                         return
 
+        # Level 4: the gate on the summit, once the Akshat has made it appear.
+        if (self.level == 4 and self._at_summit_gate() and not self.level_complete
+                and (input_mgr.just_pressed[input_mgr.ACTION] or input_mgr.just_pressed[input_mgr.UP])):
+            self.assets.play_sound("level_complete.wav")
+            self.assets.stop_music()
+            self.level_complete = True
+            self.complete_timer = 3.0
+            return
+
         # Level 3: while bowing, or while helping the bird, nothing else responds.
         if self.bow_timer > 0:
             return
@@ -866,6 +907,11 @@ class LevelScene(Scene):
                 self.assets.play_sound("correct.wav")
                 self.player.can_fly = True
                 self.box_system.akshat_found = True
+            elif self.level == 4:
+                # Akshat found: the gate appears on the summit. The level ends
+                # there, not here — see handle_events.
+                self.assets.play_sound("correct.wav")
+                self.gate_appear_timer = SUMMIT_GATE_APPEAR_SECONDS
             elif self.level == 3:
                 # Akshat found: the Monk fades away, then Mahavir Bhagwan appears
                 # on the shikhar. The level completes only when the Akshat is
@@ -948,7 +994,7 @@ class LevelScene(Scene):
 
         # Timer
         if not self.game_over:
-            self.time_remaining -= dt
+            self.time_remaining -= dt * (COLD_SHOCK_CLOCK_RATE if self.cold_shock else 1.0)
         if self.time_remaining <= 0 and not self.game_over:
             self.time_remaining = 0
             # Developer mode: timer shows 0 but never triggers game over
@@ -1034,6 +1080,8 @@ class LevelScene(Scene):
 
         was_on_ground = self.player.on_ground
         self.player.update(dt, self.platforms, self.slopes)
+        if self.level == 4:
+            self._update_level4(dt)
         if self.level == 3:
             self._update_level3_reveal(dt)
             if self._touching_lake():
@@ -1143,6 +1191,128 @@ class LevelScene(Scene):
                 self.assets.play_sound("hazard.wav")
                 self.time_remaining -= HAZARD_TIME_PENALTY
                 self.player.freeze(HAZARD_STUN_DURATION)
+
+    # ── Level 4: Kailash ─────────────────────────────────────────────────────
+
+    def _on_valley_floor(self):
+        p = self.player
+        return p.on_ground and abs(p.y + p.height - self.floor.top) <= 2
+
+    def _summit_gate_rect(self):
+        """Where the gate stands on the summit (world pixels), feet on the ledge."""
+        x, top, width = LEVEL4_SUMMIT
+        w, h = SUMMIT_GATE_SIZE
+        return pygame.Rect(x + (width - w) // 2, top - h, w, h)
+
+    def _at_summit_gate(self):
+        return (self.box_system.goal_found and self.gate_appear_timer <= 0
+                and self.player.on_ground and self.player.rect.colliderect(self._summit_gate_rect()))
+
+    def _update_level4(self, dt):
+        if self.gate_appear_timer > 0:
+            self.gate_appear_timer = max(0.0, self.gate_appear_timer - dt)
+
+        # Cold shock: it starts on touching the valley floor and lasts — through
+        # every jump that falls back — until the devotee stands on a real ledge.
+        if self._on_valley_floor():
+            if not self.cold_shock:
+                self.assets.play_sound("hazard.wav")
+            self.cold_shock = True
+        elif self.player.on_ground:
+            self.cold_shock = False
+        if self.cold_shock and random.random() < 0.5:
+            self.particles.append({     # breath and frost lifting off the devotee
+                "x": self.player.x + self.player.width / 2 + random.uniform(-18, 18),
+                "y": self.player.y + random.uniform(0, self.player.height),
+                "vx": random.uniform(-12, 12), "vy": random.uniform(-45, -15),
+                "color": random.choice([SNOW, (150, 205, 255)]), "size": random.randint(2, 4),
+                "lifetime": random.uniform(0.4, 0.8), "age": 0.0,
+            })
+
+        # Crumbling ledges: cracking from the first footfall, then gone, then back.
+        p = self.player
+        for ledge in self.crumbling:
+            r = ledge.rect
+            stood_on = (p.on_ground and abs(p.y + p.height - r.top) <= 2
+                        and p.x + p.width > r.left and p.x < r.right)
+            event = ledge.update(dt, stood_on, not p.rect.colliderect(r.inflate(0, 6)))
+            if ledge.state == CRACKING and random.random() < 0.3 + 0.5 * ledge.progress:
+                self.particles.append({     # snow shaken loose
+                    "x": random.uniform(r.left, r.right), "y": r.top + 4,
+                    "vx": random.uniform(-15, 15), "vy": random.uniform(60, 160),
+                    "color": SNOW, "size": random.randint(2, 4),
+                    "lifetime": random.uniform(0.3, 0.7), "age": 0.0,
+                })
+            if event == "broke":
+                self.platforms = [q for q in self.platforms if q is not r]
+                self.assets.play_sound("wrong.wav", volume=0.3)
+                for _ in range(10 + r.width // 6):   # the slab goes down in pieces
+                    self.particles.append({
+                        "x": random.uniform(r.left, r.right), "y": r.top + random.uniform(-8, 6),
+                        "vx": random.uniform(-70, 70), "vy": random.uniform(120, 420),
+                        "color": random.choice([SNOW, SNOW, SNOW_SHADE, (120, 110, 105)]),
+                        "size": random.randint(4, 9),
+                        "lifetime": random.uniform(0.5, 1.1), "age": 0.0,
+                    })
+            elif event == "returned":
+                self.platforms.append(r)
+
+    def _draw_crumbling(self, gameplay_surf):
+        """A slab of snow lying on each crumbling ledge: whole, cracking, gone, drifting back.
+
+        The rock beneath is part of the painted background and stays; what the
+        devotee stood on was the snow, and that is what gives way.
+        """
+        for ledge in self.crumbling:
+            r = ledge.rect
+            slab = pygame.Rect(r.left - 6, r.top - 12, r.width + 12, 18)
+            alpha, shake = 255, (0, 0)
+            if ledge.state == GONE:
+                # Faint dots mark where it was; the snow drifts back in the last third.
+                for x in range(r.left, r.right, 14):
+                    pygame.draw.circle(gameplay_surf, SNOW_SHADE, (x + 4, r.top + 2), 2)
+                alpha = int(255 * max(0.0, (ledge.progress - 0.67) / 0.33))
+                if alpha <= 0:
+                    continue
+            elif ledge.state == CRACKING:
+                reach = 1 + int(3 * ledge.progress)
+                shake = (random.randint(-reach, reach), random.randint(-reach // 2, reach // 2))
+            surf = pygame.Surface(slab.size, pygame.SRCALPHA)
+            pygame.draw.rect(surf, SNOW_SHADE, surf.get_rect(), border_radius=7)
+            pygame.draw.rect(surf, SNOW, (0, 0, slab.width, 12), border_radius=7)
+            if ledge.state == CRACKING:
+                # Cracks spread from the middle outward as the second runs out.
+                rng = random.Random(r.left)
+                cracks = 2 + r.width // 45
+                for i in range(int(cracks * ledge.progress) + 1):
+                    cx = slab.width * (0.5 + (rng.random() - 0.5) * (0.3 + 0.7 * ledge.progress))
+                    pts = [(cx + rng.uniform(-5, 5), 0), (cx + rng.uniform(-7, 7), 7),
+                           (cx + rng.uniform(-5, 5), 12), (cx + rng.uniform(-8, 8), 18)]
+                    pygame.draw.lines(surf, (70, 80, 105), False, pts, 2)
+            surf.set_alpha(alpha)
+            gameplay_surf.blit(surf, (slab.left + shake[0], slab.top + shake[1]))
+
+    def _draw_summit_gate(self, gameplay_surf):
+        if not (self.temple_gate_img and self.box_system.goal_found):
+            return
+        rect = self._summit_gate_rect()
+        shown = 1.0 - self.gate_appear_timer / SUMMIT_GATE_APPEAR_SECONDS
+        glow_alpha = int((40 + 20 * math.sin(self.elapsed * 5)) * shown)
+        glow = pygame.Surface((rect.width + 20, rect.height + 20), pygame.SRCALPHA)
+        pygame.draw.rect(glow, (*COLOR_GOLD[:3], glow_alpha), glow.get_rect(), border_radius=10)
+        pygame.draw.rect(glow, (*COLOR_GOLD_BRIGHT[:3], min(255, glow_alpha + 30)), glow.get_rect(),
+                         width=3, border_radius=10)
+        gameplay_surf.blit(glow, (rect.x - 10, rect.y - 10))
+        self.temple_gate_img.set_alpha(int(255 * shown))
+        gameplay_surf.blit(self.temple_gate_img, rect.topleft)
+        if self._at_summit_gate():
+            prompt = self.font_hud.render("[ Press UP or ACTION to enter the gate ]", True, COLOR_GOLD_BRIGHT)
+            px = min(rect.centerx - prompt.get_width() // 2, LOGICAL_WIDTH - 40 - prompt.get_width())
+            py = rect.bottom + 22        # below the summit line: above it is the clock bar
+            bg = pygame.Surface((prompt.get_width() + 20, prompt.get_height() + 10), pygame.SRCALPHA)
+            pygame.draw.rect(bg, (0, 0, 0, 180), bg.get_rect(), border_radius=6)
+            gameplay_surf.blit(bg, (px - 10, py - 5))
+            gameplay_surf.blit(prompt, (px, py))
 
     def _touching_lake(self):
         """Level 3: feet on the floor line, i.e. in the lake. Golden surfaces are the only footing."""
@@ -1590,6 +1760,10 @@ class LevelScene(Scene):
             gameplay_surf.blit(*cached)
 
 
+        if self.level == 4:
+            self._draw_crumbling(gameplay_surf)
+            self._draw_summit_gate(gameplay_surf)
+
         # Draw Temple Gate for Level 1
         if self.level == 1 and self.temple_gate_img:
             # ── TEMPLE GATE POSITION CALIBRATION ──
@@ -1773,6 +1947,10 @@ class LevelScene(Scene):
                 goal_text = lvl_goals.get("key_found", "Goal: Unlock and enter the Temple Gate!")
             elif self.level == 2 and getattr(self.box_system, "akshat_found", False):
                 goal_text = lvl_goals.get("akshat_found", "Goal: Fly to the Bhagwan and offer Akshat!")
+            elif self.level == 4 and self.cold_shock:
+                goal_text = lvl_goals.get("cold_shock", "Cold shock! The clock runs double. Climb to a ledge!")
+            elif self.level == 4 and self.box_system.goal_found:
+                goal_text = lvl_goals.get("akshat_found", "Goal: Climb to the summit of Kailash and enter the gate!")
             elif self.level == 3 and self.bird and self.bird.is_fallen and not self.bird_help_declined:
                 goal_text = lvl_goals.get("bird_fallen", "A bird has fallen! Help it, or offer the Akshat.")
             elif self.level == 3 and getattr(self.box_system, "akshat_found", False):
@@ -1867,6 +2045,10 @@ class LevelScene(Scene):
         low_time = self.time_remaining < 20
         scale = 1.0 + 0.12 * math.sin(self.elapsed * 6.5) if low_time else 1.0
         timer_text = f"Time: {mins:02d}:{secs:02d}"
+        if self.cold_shock and not low_time:
+            # Cold shock: the clock itself turns to ice and says why it is racing.
+            t_color = (120, 200, 255)
+            timer_text = f"COLD x{COLD_SHOCK_CLOCK_RATE:g}  " + timer_text
 
         if low_time:
             timer_surf = self.font_hud.render(timer_text, True, t_color)
