@@ -78,8 +78,8 @@ class StartLevelOptionTests(unittest.TestCase):
 
     # ── what each mode offers ────────────────────────────────────────────────
 
-    def test_kid_and_standard_can_start_on_level_3(self) -> None:
-        """The Karuna bonus level lives in Level 3, so they must be able to reach it."""
+    def test_kid_and_standard_can_start_on_any_level(self) -> None:
+        """All four: Level 4 opened to every mode on 2026-11-14."""
         for mode in ("kid", "standard"):
             with self.subTest(mode=mode):
                 s = self.scene(mode, 1)
@@ -87,16 +87,7 @@ class StartLevelOptionTests(unittest.TestCase):
                 for _ in range(6):
                     seen.add(s.starting_level)
                     s._cycle_start_level(1)
-                self.assertEqual(seen, {1, 2, 3}, "cycles 1, 2, 3 and wraps")
-
-    def test_level_4_is_not_offered_outside_developer_mode(self) -> None:
-        """It has no background yet — starting there would open on a placeholder."""
-        for mode in ("kid", "standard"):
-            with self.subTest(mode=mode):
-                s = self.scene(mode, 1)
-                for _ in range(12):
-                    s._cycle_start_level(1)
-                    self.assertNotEqual(s.starting_level, 4)
+                self.assertEqual(seen, {1, 2, 3, 4}, "cycles 1 to 4 and wraps")
 
     def test_developer_still_gets_the_whole_sequence(self) -> None:
         s = self.scene("developer", 1)
@@ -109,9 +100,9 @@ class StartLevelOptionTests(unittest.TestCase):
     def test_cycling_backwards_wraps_too(self) -> None:
         s = self.scene("standard", 1)
         s._cycle_start_level(-1)
-        self.assertEqual(s.starting_level, 3, "back from the first lands on the last")
+        self.assertEqual(s.starting_level, 4, "back from the first lands on the last")
         s._cycle_start_level(-1)
-        self.assertEqual(s.starting_level, 2)
+        self.assertEqual(s.starting_level, 3)
 
     # ── clamping when the mode changes ───────────────────────────────────────
 
@@ -128,11 +119,12 @@ class StartLevelOptionTests(unittest.TestCase):
         s._clamp_start_level()
         self.assertEqual(s.starting_level, 3)
 
-    def test_leaving_developer_mode_drops_level_4(self) -> None:
+    def test_leaving_developer_mode_keeps_level_4(self) -> None:
+        """It used to be thrown back to 1; every mode can play it now."""
         s = self.scene("developer", 4)
         s.game_mode = "kid"
         s._clamp_start_level()
-        self.assertEqual(s.starting_level, 1)
+        self.assertEqual(s.starting_level, 4)
 
 
 class CapMatchesTheGateTests(unittest.TestCase):
@@ -144,12 +136,13 @@ class CapMatchesTheGateTests(unittest.TestCase):
         self.assertIsNotNone(table, "HIGHEST_START_LEVEL not found")
         offered = dict(re.findall(r'"(\w+)":\s*(\d+)', table.group(1)))
 
+        # There is no to-be-continued gate any more (2026-11-14): the run ends
+        # after Level 4 for everyone. If a gate comes back, it sets the last level.
         level_scene = (SRC / "level_scene.py").read_text(encoding="utf-8")
         gate = re.search(
             r"if self\.level == (\d+) and self\.game_mode in \(\"kid\", \"standard\"\)",
             level_scene)
-        self.assertIsNotNone(gate, "the to-be-continued gate was not found")
-        last_level = int(gate.group(1))
+        last_level = int(gate.group(1)) if gate else 4
 
         for mode in ("kid", "standard"):
             self.assertEqual(int(offered[mode]), last_level,

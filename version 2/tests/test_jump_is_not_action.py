@@ -70,15 +70,13 @@ class JumpIsNotActionTests(unittest.TestCase):
 
 
 class ModeProgressionTests(unittest.TestCase):
-    """Kid and standard reach Level 3 and its bonus level (C7, part one)."""
+    """Every mode plays all four levels (Level 4 opened 2026-11-14)."""
 
-    def test_kid_and_standard_end_after_level_3(self) -> None:
+    def test_no_mode_ends_to_be_continued(self) -> None:
         src = function_source(SRC / "level_scene.py", "_advance_level")
-        found = re.search(r"if self\.level == (\d+) and self\.game_mode in \(\"kid\", \"standard\"\)",
-                          src)
-        self.assertIsNotNone(found, "the to-be-continued gate was not found")
-        self.assertEqual(int(found.group(1)), 3,
-                         "the run should continue through Level 3, bonus level included")
+        self.assertIsNone(re.search(r"if self\.level == \d+ and self\.game_mode in", src),
+                          "a mode is being stopped short of Level 4 again")
+        self.assertNotIn("tbc = True", src)
 
 
 if __name__ == "__main__":

@@ -19,15 +19,13 @@ from settings import (
 # level, so a dev can check a cutscene without playing to it.
 DEV_SEQ = [1, -1, 2, -2, 3, 4]
 
-# How far into the pilgrimage each mode can start. Kid and standard play through
-# Level 3 and its Karuna bonus level (C7, 2026-10-25); Level 4 stays developer-only
-# until it has a background and a rebuilt layout, or they would start on a
-# placeholder.
-HIGHEST_START_LEVEL = {"kid": 3, "standard": 3, "developer": 4}
+# How far into the pilgrimage each mode can start. Every mode plays all four
+# levels since Level 4 got its Kailash art and layout (designer, 2026-11-14).
+HIGHEST_START_LEVEL = {"kid": 4, "standard": 4, "developer": 4}
 
 
 def highest_start_level(game_mode):
-    return HIGHEST_START_LEVEL.get(game_mode, 3)
+    return HIGHEST_START_LEVEL.get(game_mode, 4)
 
 
 class OptionsScene(Scene):

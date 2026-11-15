@@ -144,7 +144,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         row reads "Default: …", and selecting one shows "Connect a controller…" instead
         of listening. Keyboard controls are unchanged throughout.
 
-## Level 4: Kailash (added 2026-11-14; developer mode until it is opened)
+## Level 4: Kailash (added 2026-11-14; open to every mode)
 52. [ ] **Both ways up:** from the start shelf go stream block, ice shelf. Then climb once
         by the left (great mesa, high plateau, summit) and once by the right (drop to the
         rock outcrop, terrace, ridge, Monk's shelf, summit). Every jump is makeable without
@@ -163,4 +163,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         gate fades in, clear of the clock bar. UP or ACTION at the gate ends the level,
         then the bow to Adinath Bhagwan and the Victory page follow. Before the Akshat,
         ACTION on the summit does nothing.
-
+56. [ ] **The whole pilgrimage in kid and in standard mode:** after Level 3 and its bow the
+        run goes on to Level 4, not to "to be continued". Finishing Level 4 leads to the
+        bow to Adinath Bhagwan, the Victory page, then the leaderboard with all four
+        levels scored. Options offers Starting Level 1 to 4 in every mode.

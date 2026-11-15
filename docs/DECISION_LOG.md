@@ -1292,3 +1292,17 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* `test_the_ice_shelf_crumbles_too_and_the_right_way_does_not_need_it`; suite
   green; `tools/autoplay.py --level 4` still reaches the gate (exit 0), re-recorded.
 
+## 2026-11-14 — Level 4 is open to kid and standard: the pilgrimage is whole
+* **Decision (designer):** kid and standard no longer end "to be continued" after Level 3.
+  Every mode plays The Commute, The Cave, The Hall and The Summit, then bows to Adinath
+  Bhagwan and reaches the Victory page. This is the v2 objective in CLAUDE.md.
+* **How:** the gate in `LevelScene._advance_level` is removed and
+  `options_scene.HIGHEST_START_LEVEL` is 4 for every mode. `TransitionScene` still knows
+  how to end a run early (`to_be_continued`); nothing sets it now, and it is left in place
+  rather than refactored out.
+* **Known and not changed here:** Level 4 has no fire hazard yet, and the same five-minute
+  clock in kid and standard. Its difficulty in kid mode — three crumbling ledges and cold
+  shock — has only been played by the bot, not by a child.
+* *Verified:* suite green; the tests that pinned the gate to Level 3 now assert there is
+  none and that the offered start matches. End to end in kid mode is playtest item 56.
+

@@ -268,7 +268,7 @@ class LevelScene(Scene):
         self.game_over_score_shown = False  # True after player confirms score
         self.level_goals = {}         # loaded from level_goals.json
         self.particles = []
-        self.to_be_continued = False   # True on Level 2 complete for kid/standard
+        self.to_be_continued = False   # unused since Level 4 opened to every mode (2026-11-14)
         self.item_popup = None         # Active box item pop-up dict
 
     def on_enter(self, **kwargs):
@@ -1666,12 +1666,10 @@ class LevelScene(Scene):
 
 
         next_level = self.level + 1
+        # Every mode plays all four levels (designer, 2026-11-14): Level 4 has its
+        # art and layout, so nothing ends "to be continued" any more. The flag and
+        # TransitionScene's handling of it are kept for a future early ending.
         tbc = False
-        # Kid and standard end after Level 3, which now includes the Karuna bonus
-        # level (C7, 2026-10-25). Level 4 stays developer-only until its own art
-        # and layout are finished — it has no background yet.
-        if self.level == 3 and self.game_mode in ("kid", "standard"):
-            tbc = True
 
         if next_level > 4:
             # Level 4 done: bow to Moolnayak Adinath Bhagwan first (transition 5),
