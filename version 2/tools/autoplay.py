@@ -200,6 +200,9 @@ class Bot:
         yield from self.wait(1.0)
 
         # 4. The right way, past the Monk: terrace, the crumbling ridge, his shelf.
+        # A waypoint: from under the ice shelf the search for the terrace can run out
+        # of its budget, so walk to the far end of the outcrop first.
+        yield from self.to_ledge((outcrop[0] + 280, outcrop[1], 160), "the far end of the outcrop")
         yield from self.to_ledge(terrace, "the right terrace")
         yield from self.answer_monk()
         self.result["monk_answered"] = True

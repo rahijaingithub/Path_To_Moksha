@@ -242,7 +242,7 @@ class Level4SceneTests(_PygameCase):
         self.assertFalse(self.scene.cold_shock)
 
     def test_the_spire_gives_way_and_comes_back(self) -> None:
-        x, top, width = self.layouts.LEVEL4_CRUMBLING[0]
+        x, top, width = self.layouts.LEVEL4_LEDGES[4]
         ledge = next(c for c in self.scene.crumbling if c.rect.width == width)
         self.put_on(x + 15, top)
         self.frames(0.9)
@@ -254,6 +254,18 @@ class Level4SceneTests(_PygameCase):
         self.assertFalse(self.scene.cold_shock, "the mesa caught the fall, not the valley")
         self.frames(3.0)
         self.assertTrue(any(p is ledge.rect for p in self.scene.platforms), "back after three more")
+
+    def test_the_ice_shelf_crumbles_too_and_the_right_way_does_not_need_it(self) -> None:
+        """Designer, 2026-11-14. With the shelf gone the left route waits three
+        seconds; the right route starts from the outcrop, reachable from the floor."""
+        x, top, width = self.layouts.LEVEL4_LEDGES[2]
+        ledge = next(c for c in self.scene.crumbling if c.rect.width == width)
+        self.put_on(x + 100, top)
+        self.frames(1.2)
+        self.assertFalse(any(p is ledge.rect for p in self.scene.platforms))
+        self.frames(3.2)
+        self.assertTrue(any(p is ledge.rect for p in self.scene.platforms))
+        self.assertEqual(len(self.scene.crumbling), 3)
 
     def test_no_box_on_the_floor_a_crumbling_ledge_the_monks_shelf_or_the_summit(self) -> None:
         allowed = {top for _, top, _ in self.layouts.LEVEL4_BOX_LEDGES}

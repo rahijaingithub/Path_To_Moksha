@@ -149,7 +149,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         by the left (great mesa, high plateau, summit) and once by the right (drop to the
         rock outcrop, terrace, ridge, Monk's shelf, summit). Every jump is makeable without
         pixel-perfect timing, and the devotee is always visible, including on the summit.
-53. [ ] **Crumbling:** stand on the spire's snow, and on the right ridge's. It cracks and
+53. [ ] **Crumbling:** stand on the ice shelf, the spire's snow, and the right ridge's. It cracks and
         shakes for about a second, breaks into falling pieces, and drifts back about three
         seconds later. A fall from the spire lands on the great mesa. It never reforms
         around the devotee. Does a painted rock with snow that vanishes read as "this

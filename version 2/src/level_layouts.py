@@ -25,18 +25,21 @@ LEVEL3_BIRD_REST = (1815, LOGICAL_HEIGHT - 259)
 LEVEL4_START_SHELF = (30, 965, 470)       # S: the snowy shelf, bottom left
 LEVEL4_MONK_SHELF = (1680, 430, 200)      # 9: the snow shelf beside Kailash
 LEVEL4_SUMMIT = (1340, 285, 140)          # 10: wider than the snow cap, so the gate has room
-LEVEL4_CRUMBLING = ((705, 460, 60),       # 4: the rock spire (the mesa catches a fall)
+LEVEL4_CRUMBLING = ((960, 755, 240),      # 2: the ice shelf (designer, 2026-11-14) — the way
+                                          #    onto the left route; the right route starts
+                                          #    from the outcrop and does not need it
+                    (705, 460, 60),       # 4: the rock spire (the mesa catches a fall)
                     (1500, 550, 260))     # 8: the right ridge (the terrace catches most)
 LEVEL4_LEDGES = (
     LEVEL4_START_SHELF,
     (685, 1000, 155),      # 1 stream block
-    (960, 755, 240),       # 2 ice shelf — the one way up from the valley, so it holds
+    LEVEL4_CRUMBLING[0],   # 2 ice shelf
     (320, 645, 570),       # 3 great mesa
-    LEVEL4_CRUMBLING[0],   # 4 spire
+    LEVEL4_CRUMBLING[1],   # 4 spire
     (1010, 500, 290),      # 5 high plateau
     (1120, 1000, 440),     # 6 rock outcrop
     (1600, 805, 290),      # 7 right terrace
-    LEVEL4_CRUMBLING[1],   # 8 right ridge
+    LEVEL4_CRUMBLING[2],   # 8 right ridge
     LEVEL4_MONK_SHELF,
     LEVEL4_SUMMIT,
 )

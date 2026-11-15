@@ -1279,3 +1279,16 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   to the gate (exit 0) and recorded `recordings/level4_boy.mp4`. How the crumbling reads
   to a player is playtest item 53, not something a test can say.
 
+## 2026-11-14 — The ice shelf crumbles too (designer)
+* **Decision (designer):** ledge 2, the ice shelf, crumbles like the spire and the ridge.
+  This reverses the proposal's "the one way up, so it holds".
+* **What it costs, checked:** the shelf is the only way onto the *left* route, so breaking
+  it means a three-second wait or the right route. It is not a trap: the right route starts
+  from the rock outcrop, which is reached from the valley floor. A fall from the shelf
+  lands on the outcrop at its right end and in the valley, in cold shock, elsewhere.
+* **Follows from it:** no box on the ice shelf (boxes never sit on crumbling ledges), which
+  leaves six wide ledges for Level 4's six boxes — exactly one each, with none to spare.
+  A seventh box would need a new rule.
+* *Verified:* `test_the_ice_shelf_crumbles_too_and_the_right_way_does_not_need_it`; suite
+  green; `tools/autoplay.py --level 4` still reaches the gate (exit 0), re-recorded.
+
