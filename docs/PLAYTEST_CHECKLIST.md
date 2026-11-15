@@ -167,3 +167,9 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         run goes on to Level 4, not to "to be continued". Finishing Level 4 leads to the
         bow to Adinath Bhagwan, the Victory page, then the leaderboard with all four
         levels scored. Options offers Starting Level 1 to 4 in every mode.
+57. [ ] **Snow ledges (Level 4 only):** no gold lines on Kailash. Every ledge is an uneven
+        drift of snow with a soft blue shadow; Levels 1 to 3 keep their gold. Can each
+        ledge be found at a glance, above all the start shelf and the stream block, which
+        lie on white ground? The spire, the ice shelf and the right ridge are thinner,
+        bluer ice with hairline cracks: does a player notice the difference after one
+        fall, and does a young child cope if they do not?

@@ -305,6 +305,29 @@ class Level4SceneTests(_PygameCase):
     def test_the_gate_stands_clear_of_the_clock_bar(self) -> None:
         self.assertGreaterEqual(self.scene._summit_gate_rect().top, 128)
 
+    def test_ledges_are_snow_and_the_crumbling_ones_are_bluer_ice(self) -> None:
+        """No gold on Kailash; the three that crumble can be told apart by colour."""
+        import pygame
+        self.input.draw_touch_controls = lambda *a, **k: None
+        self.frames(3.0)                                 # past the opening fade
+        screen = pygame.Surface((self.settings.LOGICAL_WIDTH, self.settings.LOGICAL_HEIGHT))
+        self.scene.draw(screen)
+
+        def colour_on(ledge):
+            x, top, width = ledge
+            return screen.get_at((x + width // 3, top - 80 - 3))   # the world is drawn 80px up
+
+        L = self.layouts
+        crumbling = set(L.LEVEL4_CRUMBLING)
+        for ledge in L.LEVEL4_LEDGES:
+            r, g, b = colour_on(ledge)[:3]
+            with self.subTest(ledge=ledge):
+                self.assertGreaterEqual(b, r, "gold has far more red than blue; snow and ice do not")
+                if ledge in crumbling:
+                    self.assertGreater(b - r, 25, "ice is plainly blue")
+                else:
+                    self.assertLess(b - r, 25, "snow is nearly white")
+
 
 if __name__ == "__main__":
     unittest.main()

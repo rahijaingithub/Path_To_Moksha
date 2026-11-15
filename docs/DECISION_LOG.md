@@ -1306,3 +1306,18 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* suite green; the tests that pinned the gate to Level 3 now assert there is
   none and that the offered start matches. End to end in kid mode is playtest item 56.
 
+## 2026-11-14 — Level 4 ledges are snow, with a quiet hint on the three that crumble
+* **Decision (designer):** the gold platform lines do not belong on a mountain. On Level 4
+  every ledge is drawn as snow. Levels 1 to 3 keep their gold.
+* **The quiet hint (designer chose it over "same look for all"):** the spire, the ice shelf
+  and the right ridge wear thinner, bluer ice with hairline cracks. It is not a warning
+  sign; it rewards looking closely, which is the discernment the level teaches.
+* **Uneven edge (designer, after the still preview):** straight slabs read as drawn bars, so
+  `LevelScene._snow_ledge` builds each drift from a seeded profile, thick in the middle and
+  thinning to the ends, rendered once and cached.
+* **Cost accepted:** white on a snowy photograph is lower contrast than gold. A blue shadow
+  under each ledge carries it. The start shelf and the stream block are the faintest.
+* *Verified:* `test_ledges_are_snow_and_the_crumbling_ones_are_bluer_ice` draws the real
+  scene and reads the colour on every ledge. Whether a child finds the ledges and reads
+  the hint is playtest item 57.
+

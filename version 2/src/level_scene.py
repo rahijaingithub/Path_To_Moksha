@@ -41,6 +41,13 @@ SUMMIT_GATE_SIZE = (171, 140)      # Level 1's gate, scaled to stand clear of th
 SUMMIT_GATE_APPEAR_SECONDS = 1.5
 SNOW = (244, 248, 255)
 SNOW_SHADE = (176, 196, 222)
+# Level 4 ledges are drawn as snow, not gold lines (designer, 2026-11-14). The three
+# that crumble wear thinner, bluer ice with hairline cracks: a quiet hint for the
+# observant, not a warning sign.
+ICE = (206, 230, 250)
+ICE_SHADE = (120, 160, 205)
+ICE_CRACK = (84, 110, 150)
+LEDGE_SHADOW = (40, 70, 120, 90)   # soft blue under a ledge, so white reads on white
 
 # Level 3 reveal timing (seconds): Monk fades out, then Mahavir Bhagwan fades in.
 MONK_FADE_SECONDS = 1.5
@@ -417,6 +424,7 @@ class LevelScene(Scene):
         self.platforms = build_level_platforms(self.level)
         self.slopes = build_level_slopes(self.level)
         self.slope_glow_cache = {}
+        self.snow_ledge_cache = {}
         # self.player = Player(80, LOGICAL_HEIGHT - 30 - PLAYER_HEIGHT - 10)
         if self.level == 2:
             # Change 150 and H - 250 to whatever starting X and Y coordinates you want
@@ -1257,15 +1265,63 @@ class LevelScene(Scene):
             elif event == "returned":
                 self.platforms.append(r)
 
+    def _snow_ledge(self, rect, icy=False):
+        """Pre-render one Level 4 ledge once; returns (surface, topleft).
+
+        Snow lies in an uneven drift, thick in the middle and thinning to nothing at
+        the ends. Ice (`icy`, the crumbling ledges) is thinner, flatter, bluer and
+        hairline-cracked. The shape is seeded by the ledge, so it never flickers.
+        """
+        key = (rect.left, rect.top, rect.width, icy)
+        cached = self.snow_ledge_cache.get(key)
+        if cached is not None:
+            return cached
+        pad, scale = 8, 2                       # drawn at 2x and smoothed down
+        rise, drop = (7, 6) if icy else (13, 9)  # above and below the line stood on
+        w, h = rect.width + 2 * pad, rise + drop + 8
+        rng = random.Random(rect.left * 31 + rect.top)
+        knots = max(4, w // (40 if icy else 24))
+        lift = [rng.uniform(0.9, 1.0) if icy else rng.uniform(0.5, 1.0) for _ in range(knots + 1)]
+        sag = [rng.uniform(0.6, 1.0) for _ in range(knots + 1)]
+
+        def wave(values, t):
+            # Cosine-eased between knots: drifts, not facets.
+            pos = t * knots
+            i = min(int(pos), knots - 1)
+            f = (1 - math.cos((pos - i) * math.pi)) / 2
+            return values[i] * (1 - f) + values[i + 1] * f
+
+        top, white, bottom = [], [], []
+        for px in range(0, w * scale + 1, 2):
+            t = px / (w * scale)
+            taper = math.sin(math.pi * t) ** 0.3
+            y_top = rise - rise * taper * wave(lift, t)
+            top.append((px, y_top * scale))
+            white.append((px, max(y_top, rise + 2 * taper) * scale))
+            bottom.append((px, (rise + drop * taper * wave(sag, t)) * scale))
+        big = pygame.Surface((w * scale, h * scale), pygame.SRCALPHA)
+        pygame.draw.ellipse(big, LEDGE_SHADOW, (0, (rise + drop - 5) * scale, w * scale, 12 * scale))
+        pygame.draw.polygon(big, ICE_SHADE if icy else SNOW_SHADE, top + bottom[::-1])
+        pygame.draw.polygon(big, ICE if icy else SNOW, top + white[::-1])
+        if icy:
+            for i in range(2 + rect.width // 70):
+                cx = w * (i + 1) / (3 + rect.width // 70) + rng.uniform(-6, 6)
+                pts = [((cx + dx) * scale, y * scale) for dx, y in
+                       ((0, 1), (rng.uniform(-4, 4), rise), (rng.uniform(-5, 5), rise + drop))]
+                pygame.draw.lines(big, ICE_CRACK, False, pts, 2)
+        cached = (pygame.transform.smoothscale(big, (w, h)), (rect.left - pad, rect.top - rise))
+        self.snow_ledge_cache[key] = cached
+        return cached
+
     def _draw_crumbling(self, gameplay_surf):
-        """A slab of snow lying on each crumbling ledge: whole, cracking, gone, drifting back.
+        """The ice lying on each crumbling ledge: whole, cracking, gone, drifting back.
 
         The rock beneath is part of the painted background and stays; what the
-        devotee stood on was the snow, and that is what gives way.
+        devotee stood on was the ice, and that is what gives way.
         """
         for ledge in self.crumbling:
             r = ledge.rect
-            slab = pygame.Rect(r.left - 6, r.top - 12, r.width + 12, 18)
+            ice, (left, top) = self._snow_ledge(r, icy=True)
             alpha, shake = 255, (0, 0)
             if ledge.state == GONE:
                 # Faint dots mark where it was; the snow drifts back in the last third.
@@ -1277,20 +1333,21 @@ class LevelScene(Scene):
             elif ledge.state == CRACKING:
                 reach = 1 + int(3 * ledge.progress)
                 shake = (random.randint(-reach, reach), random.randint(-reach // 2, reach // 2))
-            surf = pygame.Surface(slab.size, pygame.SRCALPHA)
-            pygame.draw.rect(surf, SNOW_SHADE, surf.get_rect(), border_radius=7)
-            pygame.draw.rect(surf, SNOW, (0, 0, slab.width, 12), border_radius=7)
+            if ledge.state != CRACKING and alpha == 255:
+                gameplay_surf.blit(ice, (left, top))
+                continue
+            surf = ice.copy()
             if ledge.state == CRACKING:
-                # Cracks spread from the middle outward as the second runs out.
+                # Dark cracks spread from the middle outward as the second runs out.
                 rng = random.Random(r.left)
                 cracks = 2 + r.width // 45
                 for i in range(int(cracks * ledge.progress) + 1):
-                    cx = slab.width * (0.5 + (rng.random() - 0.5) * (0.3 + 0.7 * ledge.progress))
-                    pts = [(cx + rng.uniform(-5, 5), 0), (cx + rng.uniform(-7, 7), 7),
-                           (cx + rng.uniform(-5, 5), 12), (cx + rng.uniform(-8, 8), 18)]
-                    pygame.draw.lines(surf, (70, 80, 105), False, pts, 2)
+                    cx = surf.get_width() * (0.5 + (rng.random() - 0.5) * (0.3 + 0.7 * ledge.progress))
+                    pts = [(cx + rng.uniform(-5, 5), 0), (cx + rng.uniform(-7, 7), 5),
+                           (cx + rng.uniform(-5, 5), 9), (cx + rng.uniform(-8, 8), 14)]
+                    pygame.draw.lines(surf, (50, 62, 92), False, pts, 2)
             surf.set_alpha(alpha)
-            gameplay_surf.blit(surf, (slab.left + shake[0], slab.top + shake[1]))
+            gameplay_surf.blit(surf, (left + shake[0], top + shake[1]))
 
     def _draw_summit_gate(self, gameplay_surf):
         if not (self.temple_gate_img and self.box_system.goal_found):
@@ -1730,6 +1787,13 @@ class LevelScene(Scene):
             # hardcoded left/top/width, so changing any of those made the block
             # start rendering as a platform.
             if plat in self.invisible_blockers:
+                continue
+
+            # Level 4: snow, not gold. The crumbling three are drawn as ice by
+            # _draw_crumbling, which also knows when they are cracking or gone.
+            if self.level == 4:
+                if not any(plat is c.rect for c in self.crumbling):
+                    gameplay_surf.blit(*self._snow_ledge(plat))
                 continue
 
             # All modes except Kid mode: draw a beautiful golden glow to the upper border of platforms
