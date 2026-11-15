@@ -11,7 +11,7 @@ from box_system import BoxSystem, CAT_GOAL, CAT_SUPPORT, CAT_DISTRACTION, CAT_NO
 from monk_system import create_monk, choice_rects
 from hazards import (create_hazards_for_level, HAZARD_TIME_PENALTY, HAZARD_STUN_DURATION,
                      DROWN_TIME_PENALTY)
-from level_layouts import (build_level_platforms, build_level_slopes,
+from level_layouts import (build_level_platforms, build_level_slopes, solid_platforms,
                            LEVEL3_BHAGWAN_RECT, LEVEL3_BIRD_REST, WALL as WALL_THICKNESS,
                            LEVEL4_START_SHELF, LEVEL4_SUMMIT, LEVEL4_CRUMBLING)
 from crumbling import CrumblingLedge, CRACKING, GONE
@@ -39,6 +39,12 @@ COLD_SHOCK_CLOCK_RATE = 2.0
 # Level 4: the temple gate that appears on the summit once the Akshat is found.
 SUMMIT_GATE_SIZE = (171, 140)      # Level 1's gate, scaled to stand clear of the clock bar
 SUMMIT_GATE_APPEAR_SECONDS = 1.5
+# Level 3 has no gold lines (designer, 2026-11-14). Flowers and lily pads carry a
+# faint pale light along the edge that holds, brighter for a moment on landing.
+# The rocks and the pavilion are solid and carry no marking at all.
+LOTUS_GLOW = (255, 246, 228)
+LOTUS_GLOW_ALPHA = 85
+LOTUS_PULSE_SECONDS = 0.6
 SNOW = (244, 248, 255)
 SNOW_SHADE = (176, 196, 222)
 # Level 4 ledges are drawn as snow, not gold lines (designer, 2026-11-14). The three
@@ -500,6 +506,11 @@ class LevelScene(Scene):
         
         # 3. Build box system third (passing hazards and monk so boxes don't overlap with them)
         self.box_system = BoxSystem(self.level, self.platforms, self.hazards, self.monk)
+        # Level 3: the flowers and lily pads were needed as rects to place the boxes.
+        # From here on they are one-way (self.slopes) and only the rocks, the
+        # pavilion and the boundaries block.
+        self.platforms = solid_platforms(self.level, self.platforms)
+        self.lotus_pulse = None    # [slope, seconds left]: the flower just landed on
         self.box_system.akshat_found = False  # Level 2: set True when Akshat box is opened
         self.bhagwan_platform_added = False
 
@@ -1087,7 +1098,16 @@ class LevelScene(Scene):
                 self.bhagwan_platform_added = True
 
         was_on_ground = self.player.on_ground
+        stood_on = self.player.slope
         self.player.update(dt, self.platforms, self.slopes)
+        if self.level == 3:
+            # A soft pulse of light where the devotee comes to rest on a flower.
+            if self.player.slope is not None and self.player.slope is not stood_on:
+                self.lotus_pulse = [self.player.slope, LOTUS_PULSE_SECONDS]
+            elif self.lotus_pulse:
+                self.lotus_pulse[1] -= dt
+                if self.lotus_pulse[1] <= 0:
+                    self.lotus_pulse = None
         if self.level == 4:
             self._update_level4(dt)
         if self.level == 3:
@@ -1489,6 +1509,8 @@ class LevelScene(Scene):
 
     def _build_slope_glow(self, slope):
         """Pre-render a slope's glow + core line once; returns (surface, topleft)."""
+        if self.level == 3:
+            return self._build_lotus_glow(slope)
         glow_ht = self.platform_glow_texture.get_height()
         ys = [y for _, y in slope.points]
         left, top = int(slope.left), int(min(ys)) - glow_ht
@@ -1499,6 +1521,27 @@ class LevelScene(Scene):
                 surf.blit(self.platform_glow_texture, (x - left, int(y) - glow_ht - top))
         points = [(x - left, y - top) for x, y in slope.points]
         pygame.draw.lines(surf, (255, 255, 200, 255), False, points, 2)
+        return surf, (left, top)
+
+    def _build_lotus_glow(self, slope):
+        """Level 3's quiet mark: a faint pale light on the edge that holds, no line."""
+        glow_ht = 9
+        column = pygame.Surface((1, glow_ht + 2), pygame.SRCALPHA)
+        for y in range(glow_ht + 2):
+            # Brightest on the edge itself, fading upward, gone just below it.
+            nearness = (y + 1) / glow_ht if y < glow_ht else 0.4 / (y - glow_ht + 1)
+            column.set_at((0, y), (*LOTUS_GLOW, int(LOTUS_GLOW_ALPHA * min(1.0, nearness) ** 2)))
+        ys = [y for _, y in slope.points]
+        left, top = int(slope.left), int(min(ys)) - glow_ht
+        width = int(slope.right) - left + 1
+        surf = pygame.Surface((width, int(max(ys)) - top + 3), pygame.SRCALPHA)
+        for x in range(left, int(slope.right) + 1):
+            y = slope.y_at(x)
+            if y is not None:
+                # Thin out toward both ends, so it reads as light and not as a bar.
+                ends = min(1.0, min(x - left, int(slope.right) - x) / 18)
+                column.set_alpha(int(255 * ends))
+                surf.blit(column, (x - left, int(y) - glow_ht - top))
         return surf, (left, top)
 
     def _at_fallen_bird(self):
@@ -1789,6 +1832,11 @@ class LevelScene(Scene):
             if plat in self.invisible_blockers:
                 continue
 
+            # Level 3: no gold. Only rocks and the pavilion are rects here, and the
+            # designer wants them unmarked; the flowers are slopes, drawn below.
+            if self.level == 3:
+                continue
+
             # Level 4: snow, not gold. The crumbling three are drawn as ice by
             # _draw_crumbling, which also knows when they are cracking or gone.
             if self.level == 4:
@@ -1820,6 +1868,11 @@ class LevelScene(Scene):
                 cached = self._build_slope_glow(slope)
                 self.slope_glow_cache[id(slope)] = cached
             gameplay_surf.blit(*cached)
+            if self.lotus_pulse and self.lotus_pulse[0] is slope:
+                pulse = cached[0].copy()
+                pulse.set_alpha(int(255 * self.lotus_pulse[1] / LOTUS_PULSE_SECONDS))
+                for _ in range(3):
+                    gameplay_surf.blit(pulse, cached[1])
 
 
         if self.level == 4:

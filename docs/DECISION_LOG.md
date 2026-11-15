@@ -1321,3 +1321,25 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   scene and reads the colour on every ledge. Whether a child finds the ledges and reads
   the hint is playtest item 57.
 
+## 2026-11-14 — Level 3: flowers hold only from above, and the gold lines are gone
+* **Decision (designer):** every lotus and lily pad is one-way. A jump passes up through
+  it; it holds whoever comes down onto it. The rocks and the pavilion stay solid.
+* **Decision (designer):** no gold lines in Level 3. Flowers get a quiet mark in their
+  place; rocks and the pavilion get no marking at all.
+* **How:** the four curved petals were already one-way `slopes.Slope`s, so the eleven flat
+  flowers become flat Slopes (`level_layouts.LEVEL3_FLOWERS`). No change to `Player`
+  physics. They stay in `build_level_platforms` because boxes are placed on them;
+  `solid_platforms()` is what the scene collides with after placement.
+* **Standing room kept (Claude):** a Slope holds by the devotee's centre, a rect by any
+  overlap, so each flat Slope reaches 13px past the flower at both ends.
+* **The quiet mark (Claude's choice between the two offered):** a faint pale light on the
+  holding edge, thinning to the ends, plus a 0.6s brighter pulse on landing.
+* **Costs accepted:** Level 3 is easier, since some climbs are now one hop; and the rocks
+  have nothing to show where one stands. Like the petals, a flower catches feet up to
+  16px below its edge at the top of a jump (`SLOPE_REACH`).
+* **Reading, not yet confirmed with the Paathshala:** the lotus never blocks the pilgrim
+  and holds whoever comes to rest on it. Not shown on screen.
+* *Verified:* `test_level3_layout.py`: a jump passes up through every flower and lands on
+  it, sideways is not blocked, standing room is unchanged, and every surface is still
+  reachable without the lake. How it reads to a player is playtest items 58 and 59.
+

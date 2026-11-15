@@ -3,7 +3,7 @@ level_layouts.py — Unique platform layouts for each of the 4 levels.
 Separated from level_scene.py for clarity and maintainability.
 """
 import pygame
-from settings import LOGICAL_WIDTH, LOGICAL_HEIGHT
+from settings import LOGICAL_WIDTH, LOGICAL_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT
 from slopes import Slope
 
 WALL = 30
@@ -18,6 +18,40 @@ LEVEL3_BHAGWAN_RECT = (883, 128, 150, 150)
 # top H - 259), toward its right end so the devotee walks up to it from the left.
 # Far from the pavilion on purpose: helping is a real detour.
 LEVEL3_BIRD_REST = (1815, LOGICAL_HEIGHT - 259)
+
+# Level 3: the flat lotus flowers and lily pads, as (x, top, width). Numbers are the
+# designer's line numbers. They are ONE-WAY (designer, 2026-11-14): a jump passes up
+# through them and they hold whoever comes down onto them, like the curved petals.
+# build_level_platforms still lists them as rects, because boxes are placed on
+# them; build_level_slopes turns each into a flat Slope for the physics, and
+# solid_platforms() is what the devotee actually collides with.
+_H = LOGICAL_HEIGHT
+# The island's rocks and the pavilion: solid from every side, as (x, top, width).
+LEVEL3_ROCKS = (
+    (790, _H - 454, 336),    # 2  Pavilion plinth (Monk sits centre)
+    (642, _H - 462, 83),     # 1  Top of the rock mound
+    (501, _H - 380, 139),    # 5a Left rock ledge
+    (1143, _H - 428, 139),   # 3  Right rocks, upper
+    (1292, _H - 398, 80),    # 4  Right rocks, lower
+)
+LEVEL3_FLOWERS = (
+    # Lotus flowers
+    (82, _H - 313, 119),     # 10 Pink lotus, far left
+    (248, _H - 274, 120),    # 13 White lotus, second from left
+    (419, _H - 339, 71),     # 8  Small white lotus, left
+    (1581, _H - 357, 56),    # 6  Small pink lotus, far right
+    (1704, _H - 259, 149),   # 14 White lotus, far right
+    # Lily pads (12, 15, 17 trimmed where they ran under a neighbour)
+    (370, _H - 249, 46),     # 15 Left
+    (137, _H - 154, 169),    # 18 Lower left
+    (633, _H - 198, 116),    # 16 Centre
+    (1268, _H - 196, 76),    # 17 Right of centre
+    (1362, _H - 292, 92),    # 11 Under the right-centre pink lotus
+    (1532, _H - 279, 46),    # 12 Right
+)
+# A rect holds the devotee while any part of them overlaps it; a Slope holds them
+# by their centre. Half a devotee-width each side keeps the standing room the same.
+LEVEL3_FLOWER_OVERHANG = 13
 
 # Level 4 (Kailash): ledges as (x, top, width), read off level4_background.png
 # after tools/prepare_level4_background.py slid it down 150px, and confirmed by
@@ -74,11 +108,37 @@ def build_level_platforms(level):
     return platforms
 
 
+def solid_platforms(level, platforms):
+    """The rects that block from every side: `platforms` without the one-way
+    flowers of Level 3, which are stood on through build_level_slopes instead."""
+    if level != 3:
+        return list(platforms)
+    flowers = set(LEVEL3_FLOWERS)
+    return [p for p in platforms if (p.x, p.y, p.width) not in flowers]
+
+
+def _flower_slope(x, top, width):
+    """A flat one-way Slope for a Level 3 flower, overhanging by
+    LEVEL3_FLOWER_OVERHANG at each end — less where a rock stands beside it, so no
+    spot on the flower puts the devotee's body inside solid stone."""
+    half = PLAYER_WIDTH / 2
+    left, right = x - LEVEL3_FLOWER_OVERHANG, x + width + LEVEL3_FLOWER_OVERHANG
+    for rx, rtop, rwidth in LEVEL3_ROCKS:
+        if not (rtop < top and rtop + PH > top - PLAYER_HEIGHT):
+            continue                                  # not at body height
+        if rx >= x + width:
+            right = min(right, rx - half - 1)
+        elif rx + rwidth <= x:
+            left = max(left, rx + rwidth + half + 1)
+    return Slope([(left, top), (right, top)])
+
+
 def build_level_slopes(level):
-    """Returns the one-way sloped surfaces (slopes.Slope) for the given level."""
+    """Returns the one-way surfaces (slopes.Slope) for the given level: the curved
+    petals, and every flat flower and lily pad of Level 3."""
     H = LOGICAL_HEIGHT
     if level == 3:
-        return [
+        return [_flower_slope(*flower) for flower in LEVEL3_FLOWERS] + [
             Slope([(707, H - 332), (752, H - 328), (823, H - 321)]),                   # 9  Pink lotus by the rock ledge
             # 20 and 19 start half a devotee-width (~13px) in from the traced tip,
             # so standing on the tip never overlaps lily pads 18 / 17 beside them.
@@ -169,27 +229,13 @@ def _build_level3(p, W, H):
     underside is at least PLAYER_HEIGHT above the lower one's top, so no spot
     exists where the devotee would stand inside a platform.
     """
-    # ── Island: rocks and the pavilion
-    p.append(pygame.Rect(790, H - 454, 336, PH))    # 2  Pavilion plinth (Monk sits centre)
-    p.append(pygame.Rect(642, H - 462, 83, PH))     # 1  Top of the rock mound
-    p.append(pygame.Rect(501, H - 380, 139, PH))    # 5a Left rock ledge
-    p.append(pygame.Rect(1143, H - 428, 139, PH))   # 3  Right rocks, upper
-    p.append(pygame.Rect(1292, H - 398, 80, PH))    # 4  Right rocks, lower
+    # ── Island: rocks and the pavilion, solid: see LEVEL3_ROCKS
+    for x, top, width in LEVEL3_ROCKS:
+        p.append(pygame.Rect(x, top, width, PH))
 
-    # ── Lotus flowers
-    p.append(pygame.Rect(82, H - 313, 119, PH))     # 10 Pink lotus, far left
-    p.append(pygame.Rect(248, H - 274, 120, PH))    # 13 White lotus, second from left
-    p.append(pygame.Rect(419, H - 339, 71, PH))     # 8  Small white lotus, left
-    p.append(pygame.Rect(1581, H - 357, 56, PH))    # 6  Small pink lotus, far right
-    p.append(pygame.Rect(1704, H - 259, 149, PH))   # 14 White lotus, far right
-
-    # ── Lily pads (12, 15, 17 trimmed where they ran under a neighbour)
-    p.append(pygame.Rect(370, H - 249, 46, PH))     # 15 Left
-    p.append(pygame.Rect(137, H - 154, 169, PH))    # 18 Lower left
-    p.append(pygame.Rect(633, H - 198, 116, PH))    # 16 Centre
-    p.append(pygame.Rect(1268, H - 196, 76, PH))    # 17 Right of centre
-    p.append(pygame.Rect(1362, H - 292, 92, PH))    # 11 Under the right-centre pink lotus
-    p.append(pygame.Rect(1532, H - 279, 46, PH))    # 12 Right
+    # ── Lotus flowers and lily pads: one-way, see LEVEL3_FLOWERS
+    for x, top, width in LEVEL3_FLOWERS:
+        p.append(pygame.Rect(x, top, width, PH))
 
 
 def _build_level4(p, W, H):

@@ -79,6 +79,7 @@ def _load_layouts():
     fake_settings = types.ModuleType("settings")
     fake_settings.LOGICAL_WIDTH = LOGICAL_WIDTH
     fake_settings.LOGICAL_HEIGHT = LOGICAL_HEIGHT
+    fake_settings.PLAYER_WIDTH, fake_settings.PLAYER_HEIGHT = PLAYER_WIDTH, PLAYER_HEIGHT
     modules = {"pygame": fake_pygame, "settings": fake_settings, "slopes": _load_slopes_module()}
     with mock.patch.dict(sys.modules, modules):
         return runpy.run_path(str(SRC / "level_layouts.py"))
@@ -134,6 +135,8 @@ class Level3GeometryTests(unittest.TestCase):
         cls.floor = platforms[0]
         cls.rects = platforms[4:]                      # 0-3 are the boundaries
         cls.slopes = layouts["build_level_slopes"](3)
+        # Only rocks and the pavilion block; the flowers are among the slopes.
+        cls.solid = layouts["solid_platforms"](3, platforms)[4:]
         cls.wall = layouts["WALL"]
         cls.bhagwan = _FakeRect(*layouts["LEVEL3_BHAGWAN_RECT"])
 
@@ -163,7 +166,7 @@ class Level3GeometryTests(unittest.TestCase):
             while x <= slope.right:
                 body = _FakeRect(x - PLAYER_WIDTH / 2, slope.y_at(x) - PLAYER_HEIGHT,
                                  PLAYER_WIDTH, PLAYER_HEIGHT)
-                for r in self.rects:
+                for r in self.solid:
                     with self.subTest(slope_left=slope.left, x=x, rect=(r.x, r.y)):
                         self.assertFalse(body.colliderect(r))
                 x += 4
@@ -218,8 +221,10 @@ class Level3RealPhysicsTests(unittest.TestCase):
         import level_layouts
         import settings
         cls.Player = level_scene.Player
-        cls.platforms = level_layouts.build_level_platforms(3)
+        # What the devotee collides with in play: the flowers are one-way slopes.
+        cls.platforms = level_layouts.solid_platforms(3, level_layouts.build_level_platforms(3))
         cls.slopes = level_layouts.build_level_slopes(3)
+        cls.flowers = level_layouts.LEVEL3_FLOWERS
         cls.jump = settings.LEVEL_JUMP_FORCES[3]
         cls.speed = settings.PLAYER_SPEED
 
@@ -250,7 +255,9 @@ class Level3RealPhysicsTests(unittest.TestCase):
     def test_jump_from_below_passes_up_through_a_petal_then_lands_on_it(self) -> None:
         petal = next(s for s in self.slopes if 300 < s.left < 330)  # 20, big pink lotus left
         floor_top = self.platforms[0].top
-        p = self.Player(400, floor_top - PLAYER_HEIGHT)
+        # x 520: under the petal with no flower overhead (at x 400 lily pad 15 is
+        # above, and a jump now passes through it and lands there instead).
+        p = self.Player(520, floor_top - PLAYER_HEIGHT)
         p.update(1 / 60, self.platforms, self.slopes)
         self.assertIsNone(p.slope, "standing on the floor under the petal, not on it")
         p.vy = self.jump
@@ -263,6 +270,50 @@ class Level3RealPhysicsTests(unittest.TestCase):
                 landed_on = p.slope
                 break
         self.assertIs(landed_on, petal)
+
+    def test_only_rocks_and_the_pavilion_are_solid(self) -> None:
+        solid = sorted(r.x for r in self.platforms[4:])
+        self.assertEqual(solid, [501, 642, 790, 1143, 1292])
+        self.assertEqual(len(self.slopes), 4 + len(self.flowers))
+
+    def test_a_jump_passes_up_through_every_flower_and_coming_down_it_holds(self) -> None:
+        """No head bump from below; solid the moment the devotee falls onto it."""
+        for x, top, width in self.flowers:
+            with self.subTest(flower=(x, top, width)):
+                centre = x + width / 2
+                # Feet 150px under the flower, rising at full jump speed.
+                p = self.Player(centre - PLAYER_WIDTH / 2, top + 150 - PLAYER_HEIGHT)
+                p.vy = self.jump
+                highest = p.y
+                for _ in range(120):
+                    p.update(1 / 60, self.platforms, self.slopes)
+                    highest = min(highest, p.y)
+                    if p.on_ground:
+                        break
+                self.assertLess(highest + PLAYER_HEIGHT, top - 50, "the jump was stopped from below")
+                self.assertTrue(p.on_ground)
+                self.assertAlmostEqual(p.y + PLAYER_HEIGHT, top, delta=0.5)
+
+    def test_walking_into_a_flower_from_the_side_is_not_blocked(self) -> None:
+        x, top, width = next(f for f in self.flowers if f[0] == 633)      # 16, centre pad
+        p = self.Player(x - 60, top - 40)          # body level with the pad, to its left
+        for _ in range(12):
+            p.vx = self.speed
+            p.vy = 0
+            p.y = top - 40
+            p.update(1 / 60, self.platforms, self.slopes)
+        self.assertGreater(p.x, x, "the pad stopped a devotee moving sideways through it")
+
+    def test_standing_room_on_a_flower_is_what_the_rect_gave(self) -> None:
+        """Feet may overhang by half a body at each end, and no further."""
+        x, top, width = next(f for f in self.flowers if f[0] == 1532)     # 12, the narrowest
+        for px, holds in ((x - PLAYER_WIDTH + 14, True), (x + width - 14, True),
+                          (x - PLAYER_WIDTH - 2, False), (x + width + 2, False)):
+            with self.subTest(x=px):
+                p = self.Player(px, top - PLAYER_HEIGHT)
+                for _ in range(5):
+                    p.update(1 / 60, self.platforms, self.slopes)
+                self.assertEqual(p.on_ground, holds)
 
     def test_walking_the_floor_passes_under_the_petals(self) -> None:
         floor_top = self.platforms[0].top
@@ -283,7 +334,7 @@ class Level3RealPhysicsTests(unittest.TestCase):
         names = {id(r): f"rect({r.x},{r.y})" for r in self.platforms[4:]}
         names.update({id(s): f"slope({int(s.left)})" for s in self.slopes})
         names[id(floor)] = "floor"
-        start = next(r for r in self.platforms[4:] if r.x == 137)       # 18, lower-left pad
+        start = next(s for s in self.slopes if s.points[0][1] == LOGICAL_HEIGHT - 154)  # 18, lower-left pad
         plinth = next(r for r in self.platforms[4:] if r.x == 790)
 
         def landing(p):
@@ -313,6 +364,13 @@ class Level3RealPhysicsTests(unittest.TestCase):
             for delay in (8, 16):
                 for steer in (-self.speed, self.speed):
                     yield 0, self.jump, (delay, steer)
+            # Step off an edge and let go, to drop onto what lies just below. With
+            # one-way flowers this is how lily pad 17 is reached from lotus 11: a
+            # jump from the petal beneath no longer bumps its head on 11 and falls
+            # short, it passes through and lands on 11.
+            for delay in (3, 6):
+                for vx in (-self.speed, self.speed):
+                    yield vx, 0, (delay, 0)
 
         def exits(key):
             """Surfaces reachable in one move from `key`. Landing in the lake does not count."""
@@ -349,7 +407,7 @@ class Level3RealPhysicsTests(unittest.TestCase):
                 seen.add(dest)
                 frontier.append(dest)
         everything = set(surfaces) | {id(s) for s in self.slopes}
-        self.assertGreaterEqual(len(everything), 20, "expected 16 platforms + 4 slopes")
+        self.assertGreaterEqual(len(everything), 20, "expected 5 rocks + 11 flowers + 4 petals")
         unreachable = sorted(names[k] for k in everything - seen)
         self.assertEqual(unreachable, [], f"unreachable Level 3 surfaces: {unreachable}")
 
@@ -535,9 +593,10 @@ class Level3SceneTests(unittest.TestCase):
         self.find_akshat()
         self.run_frames(2.0)
         self.assertTrue(s.bird.is_fallen)
-        lotus14 = next(r for r in s.platforms if r.x == 1704)
-        self.assertTrue(lotus14.left <= s.bird.rest_x <= lotus14.right)
-        self.assertEqual(s.bird.rest_y, lotus14.top)
+        import level_layouts
+        x, top, width = next(f for f in level_layouts.LEVEL3_FLOWERS if f[0] == 1704)
+        self.assertTrue(x <= s.bird.rest_x <= x + width)
+        self.assertEqual(s.bird.rest_y, top)
 
     def open_puzzle(self):
         """Find the Akshat, go to the bird, help it, and wait for the puzzle."""

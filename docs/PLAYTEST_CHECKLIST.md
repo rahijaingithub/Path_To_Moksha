@@ -89,7 +89,7 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         (fails until `mahavir_bhagwan.png` is added).
 42. [ ] **Level 3 lake:** you start on the lower-left lily pad. Drop into the water
         anywhere: you sink (splash + bubbles) with the red danger flicker, lose 30s,
-        and rise again on the last golden platform/petal you stood on — never back in
+        and rise again on the last rock, flower or petal you stood on — never back in
         the water. No box ever appears down in the lake, and there are no hazard
         blocks anywhere in Level 3.
 43. [ ] **Walk, boy AND girl (2026-09-23/26):** hold left/right as each character — the new 6-frame walk
@@ -173,3 +173,12 @@ machine that is *not* the dev machine at least once per release. Tick, date, ini
         lie on white ground? The spire, the ice shelf and the right ridge are thinner,
         bluer ice with hairline cracks: does a player notice the difference after one
         fall, and does a young child cope if they do not?
+58. [ ] **Level 3 flowers hold only from above:** jump straight up under any lotus or
+        lily pad: no head bump, you pass through and land on it. Walking sideways into
+        one does not stop you. The rocks and the pavilion still block from every side.
+        Is the level still hard enough now that some climbs are a single hop?
+59. [ ] **Level 3 has no gold lines:** each flower and lily pad carries only a faint pale
+        light on the edge that holds, with a short brighter pulse when you land. The
+        rocks and the pavilion carry no mark. Can a new player tell where to stand,
+        on the rocks above all? Does the devotee look as if they stand on the flower,
+        not above it or inside it?
