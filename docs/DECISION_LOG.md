@@ -1205,3 +1205,18 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   level complete — it did, for both devotees (seed 3, 98.5s of play each).
   `tests/test_route_planner.py` replays a planned route frame by frame against the real
   physics. Suite: 176 tests green. *Not verified:* seeds other than 3, and Levels 1, 2, 4.
+
+## 2026-11-14 — Level 4 background installed: a photograph-like Kailash, dome and all
+* **Installed (designer's go-ahead):** `level4_background.png` (1376x768, as Levels 1 and 3),
+  source kept in `backgrounds/_source/level4_background.jpg`. The first generation was
+  rejected by the designer: illustrated, with slabs floating in the sky. The prompt that
+  worked describes a landscape photograph of flat-topped terrain where nothing floats, and
+  drops the words "platformer", "places to stand" and "open air".
+* **The picture differs from the 2026-11-13 plan, so the plan bends to it:** ten ledges, not
+  eleven; Kailash ends in its real dome, not a flat crown, so the gate must be fitted to a
+  small summit; there is no cornice, so the proposed second crumbling ledge is the rock
+  spire above the great mesa (the mesa catches a fall); and the terrain offers two ways up,
+  left over the mesa and right over the ridge. **All of this is a proposal** drawn on
+  `_source/level4_ledges_proposal.png` (not tracked) for the designer to correct.
+* *Verified:* the file loads and the suite is green. Ledge positions were read by eye off
+  a grid, and jump reach is computed, not played — `_build_level4` is not rebuilt yet.
