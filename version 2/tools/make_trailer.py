@@ -14,7 +14,8 @@ It writes, into recordings\\ (git-ignored):
 
 The plan (designer, 2026-11-15): one trailer for kids and parents, built on four
 words in this order — Adventure, Fun, Gyan, Dharam — so it opens on what draws a
-child and closes on what a parent is looking for, then the invitation.
+child and closes on what a parent is looking for, then the invitation. It begins
+as the old trailer did, with temple doors opening on "Digamber Paathshala presents".
 
 The cut list below is in seconds of the recordings, which autoplay makes the same
 every time for a given seed (boy: 3, girl: 7). If the game changes so that a run
@@ -47,7 +48,7 @@ PILLARS = ("ADVENTURE", "FUN", "GYAN", "DHARAM")
 # (section, line under it, whose run, start, seconds, where the tall window looks)
 # "follow" tracks the devotee; "centre" holds the middle of the screen.
 CUTS = [
-    (None, None, "boy", 0.8, 3.2, "centre"),                       # the title screen
+    (None, None, "boy", 0.8, 2.6, "centre"),                       # the title screen
     (None, "Choose your pilgrim", "girl", 12.5, 2.2, "centre"),
     ("ADVENTURE", "The City", "boy", 16.5, 2.4, "follow"),
     ("ADVENTURE", "The Forest", "girl", 74.0, 2.4, "follow"),
@@ -68,6 +69,13 @@ CUTS = [
     (None, "Complete the pilgrimage", "boy", 294.5, 2.6, "centre"),
 ]
 END_CARD_SECONDS = 6.5
+DOOR_SECONDS = 2.4                  # the doors that open the trailer...
+DOOR_HOLD = 0.8                     # ...stand shut this long first
+# The door is the old trailer's own (a frame of its opening, two garbled painted
+# marks covered with the plank beside them), so the gate is wood, not a drawing.
+DOOR_ART = os.path.join(ROOT, "tools", "trailer_door.jpg")
+DOOR_SEAM = 945                     # where the two leaves meet in that picture
+DOOR_JAMB = 120                     # the stone jamb at each side, left out
 
 # Tall layout: a band of lettering, the game, a band of lettering.
 TALL = (1080, 1920)
@@ -132,21 +140,6 @@ def lettering():
             pygame.draw.line(surface, color, (0, y), (size[0], y))
         return surface
 
-    def pillars(surface, centre_y, current, size, gap):
-        """The four words in a row, the one being shown lit."""
-        f = font("segoeuib.ttf", size)
-        widths = [f.size(p)[0] for p in PILLARS]
-        x = (surface.get_width() - sum(widths) - gap * (len(PILLARS) - 1)) // 2
-        for word, width in zip(PILLARS, widths):
-            lit = word == current
-            img = f.render(word, True, GOLD if lit else GOLD_DIM)
-            if not lit:
-                img.set_alpha(150)
-            surface.blit(img, img.get_rect(midleft=(x, centre_y)))
-            if lit:
-                pygame.draw.rect(surface, GOLD, (x, centre_y + size // 2 + 8, width, 4), border_radius=2)
-            x += width + gap
-
     def tall_panel(section, line):
         w, h = TALL
         surface = gradient(TALL, INDIGO, INK)
@@ -165,8 +158,7 @@ def lettering():
                 text(surface, "DIGAMBER PAATHSHALA", "segoeuib.ttf", 64, GOLD, (w // 2, 118), spacing=4)
                 text(surface, "presents", "seguisb.ttf", 50, CREAM, (w // 2, 212))
         below = TALL_GAME_Y + TALL_GAME[1]
-        pillars(surface, below + 92, section, 40, 44)
-        text(surface, TITLE, "georgiab.ttf", 40, GOLD_DIM, (w // 2, below + 190), shadow=False)
+        text(surface, TITLE, "georgiab.ttf", 60, GOLD, (w // 2, below + (h - below) // 2))
         return surface
 
     def wide_overlay(section, line):
@@ -230,7 +222,64 @@ def lettering():
         put(INVITATION, "seguisb.ttf", 52, CREAM, 0)
         return surface
 
-    return pygame, tall_panel, wide_overlay, end_card
+    def door_leaves(w, h):
+        """The two leaves of the wooden temple door, sized to cover w x h, seam in the middle."""
+        art = pygame.image.load(DOOR_ART).convert()
+        reach = min(DOOR_SEAM, art.get_width() - DOOR_SEAM) - DOOR_JAMB       # one leaf, without the stone jamb
+        doors = art.subsurface((DOOR_SEAM - reach, 0, 2 * reach, art.get_height()))
+        sy = max(w / doors.get_width(), h / doors.get_height())
+        # A tall window would cut the carvings at the sides; narrow the door a little (under a tenth) to keep more.
+        sx = max(w / doors.get_width(), sy / 1.09)
+        doors = pygame.transform.smoothscale(doors, (int(doors.get_width() * sx) + 2, int(doors.get_height() * sy) + 2))
+        fitted = doors.subsurface(((doors.get_width() - w) // 2, (doors.get_height() - h) // 2, w, h))
+        half = w // 2
+        return fitted.subsurface((0, 0, half, h)).copy(), fitted.subsurface((half, 0, w - half, h)).copy()
+
+    def door_frames(behind, pattern, area=None, plaque=True):
+        """The opening: the temple doors part onto the trailer's first picture.
+        Writes DOOR_SECONDS of frames to `pattern` (a %03d file name). `area` is
+        the part of the picture the doors cover (default: all of it)."""
+        back = pygame.image.load(behind).convert()
+        area = pygame.Rect(area or back.get_rect())
+        w, h = area.size
+        half = w // 2
+        left, right = door_leaves(w, h)
+        edge = gradient((70, h), (0, 0, 0, 0), (0, 0, 0, 0))                # the shadow a leaf's edge casts
+        for x in range(70):
+            pygame.draw.line(edge, (0, 0, 0, int(150 * (1 - x / 70) ** 2)), (x, 0), (x, h))
+        words = pygame.Surface((w, h), pygame.SRCALPHA)
+        if plaque:
+            big = 84
+            mid_y = int(h * 0.47)
+            box = pygame.Rect(0, 0, min(w - 60, int(big * 15.2)), int(big * 3.9))
+            box.center = (half, mid_y)
+            pygame.draw.rect(words, (20, 10, 6, 215), box, border_radius=22)
+            pygame.draw.rect(words, GOLD, box, 5, border_radius=22)
+            text(words, "DIGAMBER PAATHSHALA", "segoeuib.ttf", big, GOLD, (half, mid_y - int(big * 0.55)), spacing=4)
+            text(words, "presents", "seguisb.ttf", int(big * 0.8), CREAM, (half, mid_y + int(big * 0.85)))
+        for i in range(int(DOOR_SECONDS * FPS)):
+            t = i / FPS
+            k = min(1.0, max(0.0, (t - DOOR_HOLD) / (DOOR_SECONDS - DOOR_HOLD - 0.15)))
+            k = k * k * (3 - 2 * k)                                  # ease in and out
+            shift = int(k * (half + 8))
+            frame = back.copy()
+            view = frame.subsurface(area)
+            if 0 < shift:                                            # light pours through the gap
+                light = pygame.Surface((min(w, 2 * shift), h))
+                light.fill((255, 238, 190))
+                light.set_alpha(int(235 * (1 - k) ** 1.5))
+                view.blit(light, (half - light.get_width() // 2, 0))
+                view.blit(edge, (half - shift, 0))
+                view.blit(pygame.transform.flip(edge, True, False), (half + shift - 70, 0))
+            view.blit(left, (-shift, 0))
+            view.blit(right, (half + shift, 0))
+            fade = 1.0 - min(1.0, max(0.0, (t - DOOR_HOLD) / 0.45))
+            if plaque and fade > 0:
+                words.set_alpha(int(255 * fade))
+                view.blit(words, (0, 0))
+            pygame.image.save(frame, pattern % i)
+
+    return pygame, tall_panel, wide_overlay, end_card, door_frames
 
 
 # ── the tall window: where to look ───────────────────────────────────────────
@@ -286,7 +335,7 @@ def main(argv=None):
         if not os.path.exists(path):
             raise SystemExit(f"missing {path}: record it with tools\\autoplay.py --game first")
 
-    pygame, tall_panel, wide_overlay, end_card = lettering()
+    pygame, tall_panel, wide_overlay, end_card, door_frames = lettering()
     encode = ["-r", str(FPS), "-c:v", "libx264", "-preset", "medium", "-crf", "14", "-pix_fmt", "yuv420p", "-an"]
 
     pieces = {"tall": [], "wide": []}
@@ -311,7 +360,20 @@ def main(argv=None):
         pieces["wide"].append(wide)
         print(f"[trailer] {n + 1:2d}/{len(CUTS)}  {section or 'opening/closing':10s} {line or ''}")
 
-    body = sum(c[4] for c in CUTS)
+    for shape in pieces:                 # the doors open onto the first picture of the cut
+        first = os.path.join(work, f"first_{shape}.png")
+        run(["-i", pieces[shape][0], "-frames:v", "1", first])
+        pattern = os.path.join(work, f"door_{shape}_%03d.png")
+        if shape == "tall":         # the doors fill the game's window; the band above says who presents
+            door_frames(first, pattern, (0, TALL_GAME_Y, *TALL_GAME), plaque=False)
+        else:
+            door_frames(first, pattern)
+        door = os.path.join(work, f"door_{shape}.mp4")
+        run(["-framerate", str(FPS), "-i", pattern, "-frames:v", str(int(DOOR_SECONDS * FPS)), *encode, door])
+        pieces[shape].insert(0, door)
+    print("[trailer] the doors")
+
+    body = DOOR_SECONDS + sum(c[4] for c in CUTS)
     total = body + END_CARD_SECONDS
     outputs = []
     for shape, size in (("tall", TALL), ("wide", (SRC_W, SRC_H))):
