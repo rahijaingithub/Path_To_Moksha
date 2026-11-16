@@ -94,6 +94,81 @@ class RoutePlannerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.planner.plan(player, self.world, self.on_the_plinth)
 
+    # ── hazards (Level 1) and flight (Level 2) ───────────────────────────────
+
+    def test_a_route_along_the_street_never_touches_the_water(self) -> None:
+        import hazards
+        import level_layouts
+        s = self.settings
+        platforms = level_layouts.build_level_platforms(1)
+        dangers = hazards.create_hazards_for_level(1, platforms)
+        water = next(h for h in dangers if h.hazard_type == "water")
+        world = self.planner.World(
+            platforms, [], platforms[0].top + 10000, s.LEVEL_JUMP_FORCES[1], DT,
+            self.planner.forecast(dangers, DT, 60 * 40))
+        player = self.level_scene.Player(80, s.LOGICAL_HEIGHT - 30 - s.PLAYER_HEIGHT - 10)
+        for _ in range(30):
+            self.planner.step(player, 0, False, world)
+        self.assertTrue(player.on_ground)
+
+        def past_the_water(p):
+            return p.on_ground and p.x > water.x + water.w + 100 and p.y + p.height >= platforms[0].top - 1
+
+        route = self.planner.plan(player, world, past_the_water, water.x + water.w + 200)
+        self.assertIsNotNone(route, "no way along the street past the water")
+        for move, jump in route[0]:
+            self.planner.step(player, move, jump, world)
+            self.assertFalse(player.rect.colliderect(water.rect), "the route stepped in the water")
+        self.assertTrue(past_the_water(player))
+
+    def test_a_forecast_follows_a_snake_along_its_beat(self) -> None:
+        import hazards
+        import level_layouts
+        snake = next(h for h in hazards.create_hazards_for_level(2, level_layouts.build_level_platforms(2))
+                     if h.patrol_range)
+        start_x = snake.x
+        ahead = self.planner.forecast([snake], DT, 120)
+        self.assertEqual(snake.x, start_x, "forecasting moved the real snake")
+        self.assertAlmostEqual(ahead[59][0].x, start_x + snake.move_speed, delta=2)
+
+    def test_a_flight_keeps_clear_of_every_ledge(self) -> None:
+        import level_layouts
+        s = self.settings
+        pygame = self.pygame
+        platforms = level_layouts.build_level_platforms(2)
+        ledge = next(p for p in platforms if (p.x, p.width) == (500, 380))
+        player = self.level_scene.Player(650, ledge.top - s.PLAYER_HEIGHT)   # standing on it
+        target = pygame.Rect(25, 315, 130, 70)                               # under the murti
+        bounds = pygame.Rect(30, 30, s.LOGICAL_WIDTH - 60, s.LOGICAL_HEIGHT - 60)
+        path = self.planner.plan_flight(player, platforms, target, bounds)
+        self.assertIsNotNone(path, "no way through the air to the murti")
+        body = lambda x, y: pygame.Rect(x, y, int(player.width), int(player.height))
+        for x, y in path:
+            self.assertLess(body(x, y).collidelist(platforms), 0, "a waypoint is inside a ledge")
+        self.assertTrue(body(*path[-1]).colliderect(target))
+
+    def test_a_flight_begins_from_under_a_snake_on_a_low_shelf(self) -> None:
+        """Where the Akshat once left the devotee: on the right low shelf, ten
+        pixels under the upper snake's beat. No cell of a fixed grid fitted."""
+        import level_layouts
+        s = self.settings
+        pygame = self.pygame
+        platforms = level_layouts.build_level_platforms(2)
+        beat = pygame.Rect(950, 760, 520, 24)
+        player = self.level_scene.Player(1294, 794)
+        bounds = pygame.Rect(30, 30, s.LOGICAL_WIDTH - 60, s.LOGICAL_HEIGHT - 60)
+        path = self.planner.plan_flight(player, platforms + [beat], pygame.Rect(25, 315, 130, 70), bounds)
+        self.assertIsNotNone(path, "no way out from under the snake")
+        self.assertEqual(path[0], (1294, 794))
+
+    def test_no_flight_into_a_sealed_place(self) -> None:
+        s = self.settings
+        pygame = self.pygame
+        player = self.level_scene.Player(400, 400)
+        bounds = pygame.Rect(30, 30, s.LOGICAL_WIDTH - 60, s.LOGICAL_HEIGHT - 60)
+        wall = pygame.Rect(900, 0, 40, s.LOGICAL_HEIGHT)                     # floor to ceiling
+        self.assertIsNone(self.planner.plan_flight(player, [wall], pygame.Rect(1500, 400, 60, 60), bounds))
+
 
 if __name__ == "__main__":
     unittest.main()

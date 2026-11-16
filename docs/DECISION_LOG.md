@@ -1343,3 +1343,33 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   it, sideways is not blocked, standing room is unchanged, and every surface is still
   reachable without the lake. How it reads to a player is playtest items 58 and 59.
 
+
+## 2026-11-15 — The autoplay plays the whole game, for the Kalyanak trailer
+* **Why (designer):** a new trailer for kids and parents, for Mallinath Bhagwan's Gyan
+  Kalyanak (25 Dec 2026 by the Jain Tithi Darpan; to be checked against JSOT's calendar),
+  WhatsApp first and YouTube after. The footage is to be the game playing itself, all of
+  it, "no shortcuts".
+* **What:** `tools/autoplay.py --game` starts at the title, types a name, picks the
+  devotee and plays Levels 1 to 4 with the bonus level and every scene between, through
+  Victory to the Hall of Fame. `--level 1` and `--level 2` now work on their own too.
+  Still tools only: no change under `src/`.
+* **Hazards are avoided by forecast (Claude).** `route_planner.forecast` runs copies of
+  the water, fire and snakes forward, and a frame of a route that would touch one is
+  treated like a frame in the lake. A route must also end where no hazard arrives for
+  three seconds. If the snakes leave no way through, the bot waits and looks again.
+* **Level 2's flight has its own planner (Claude).** After the Akshat there is no gravity,
+  so the walk-and-jump search does not apply. `plan_flight` finds a way through the air on
+  a grid laid from the devotee's exact position. A snake is avoided over its whole beat.
+* **One distraction is opened on purpose (Claude, to be confirmed by the designer):** in
+  Level 1 of a whole game the bot opens the nearest distraction box first, so a recording
+  shows what Pramad costs. Everywhere else it opens only what the Monk points to.
+* **Still not Epic H.** It plays the layouts it is given; it proves nothing about every
+  layout (H1-H3 unbuilt). Seeds tried: 3 (boy) and 7 (girl).
+* **Seen while building, not changed:** on the name screen the letter E also raises
+  ACTION, so a typist's "e" may press the highlighted on-screen key as well (the bot's
+  default name has no e, w, a, s or d); and Level 2's goal line says the Bhagwan is at the
+  "top-right" while the murti is top-left. Both to be checked in the real game.
+* *Verified:* a whole run exits 0 only with every level's errands done and Victory and the
+  Hall of Fame reached. `tests/test_route_planner.py`: a street route never touches the
+  water, a forecast follows a snake without moving it, a flight keeps clear of every
+  ledge and starts from under a snake's beat. Full suite green.
