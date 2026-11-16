@@ -387,7 +387,7 @@ class TutorialScene(Scene):
         """Tab 3: Level-by-level objective cards with scrolling."""
         levels = [
             {
-                "num": 1, "name": "The Commute", "subtitle": "Samsara",
+                "num": 1, "name": "The City", "subtitle": "Samsara",
                 "border": COLOR_GOLD_BRIGHT, "bg": (60, 45, 10),
                 "steps": [
                     "[!] Find the Temple Key box scattered on platforms.",
@@ -397,7 +397,7 @@ class TutorialScene(Scene):
                 ]
             },
             {
-                "num": 2, "name": "The Cave", "subtitle": "Resilience",
+                "num": 2, "name": "The Forest", "subtitle": "Resilience",
                 "border": COLOR_SAFFRON, "bg": (55, 20, 10),
                 "steps": [
                     "[!] Find the Akshat box to unlock 8-way flying power.",

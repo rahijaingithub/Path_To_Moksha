@@ -150,7 +150,7 @@ def build_level_slopes(level):
 
 
 def _build_level1(p, W, H):
-    """The Commute (Samsara) — Easy. Toronto cityscape.
+    """The City (Samsara) — Easy. Toronto cityscape.
     Platforms aligned to building rooftops in level1_background.png (1920x1080).
     Updated per user feedback: removed TTC step and rightmost row house,
     moved all Tier 2 platforms DOWN ~70px, moved Tier 3 DOWN ~65px.
@@ -191,7 +191,7 @@ def _build_level1(p, W, H):
 
 
 def _build_level2(p, W, H):
-    """The Cave (Resilience) — Medium. Stone cave with water channels."""
+    """The Forest (Resilience) — Medium. Forest ledges with water channels."""
     # Low shelves
     p.append(pygame.Rect(130, H - 160, 170, PH)) # Left
     p.append(pygame.Rect(730, H - 132, 120, PH)) #Middle
@@ -219,7 +219,7 @@ def _build_level2(p, W, H):
 
 
 def _build_level3(p, W, H):
-    """The Hall (Valor) — Hard. Jal Mandir: a marble pavilion on a lotus lake.
+    """The Lake (Valor) — Hard. Jal Mandir: a marble pavilion on a lotus lake.
     Platforms traced from the designer's blue lines on level3_background.png
     (1376x768, stretched to 1920x1080). Numbers in comments are the designer's
     line numbers. The curved petals (9, 19, 20, 21) are slopes — see
@@ -239,7 +239,7 @@ def _build_level3(p, W, H):
 
 
 def _build_level4(p, W, H):
-    """The Summit (Moksha) — Kailash. Two ways up from the ice shelf: left over
+    """The Mountain (Moksha) — Kailash. Two ways up from the ice shelf: left over
     the great mesa, right past the Monk. Every hop is checked with the real
     Player in tests/test_level4_layout.py."""
     for x, top, width in LEVEL4_LEDGES:

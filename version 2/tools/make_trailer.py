@@ -49,10 +49,10 @@ PILLARS = ("ADVENTURE", "FUN", "GYAN", "DHARAM")
 CUTS = [
     (None, None, "boy", 0.8, 3.2, "centre"),                       # the title screen
     (None, "Choose your pilgrim", "girl", 12.5, 2.2, "centre"),
-    ("ADVENTURE", "The Commute", "boy", 16.5, 2.4, "follow"),
-    ("ADVENTURE", "The Cave", "girl", 74.0, 2.4, "follow"),
-    ("ADVENTURE", "The Hall", "boy", 161.5, 2.4, "follow"),
-    ("ADVENTURE", "The Summit", "girl", 236.5, 2.4, "follow"),
+    ("ADVENTURE", "The City", "boy", 16.5, 2.4, "follow"),
+    ("ADVENTURE", "The Forest", "girl", 74.0, 2.4, "follow"),
+    ("ADVENTURE", "The Lake", "boy", 161.5, 2.4, "follow"),
+    ("ADVENTURE", "The Mountain", "girl", 236.5, 2.4, "follow"),
     ("FUN", "Leap across the rooftops", "boy", 28.0, 2.6, "follow"),
     ("FUN", "Fly!", "boy", 110.8, 3.0, "follow"),
     ("FUN", "Hop across the lotus lake", "girl", 157.6, 2.3, "follow"),

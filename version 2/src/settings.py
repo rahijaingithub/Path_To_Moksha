@@ -161,10 +161,10 @@ DEFAULT_GAME_MODE = "kid"
 
 # ─── Level Data ───────────────────────────────────────────────────────────────
 LEVEL_NAMES = {
-    1: "The Commute",
-    2: "The Cave",
-    3: "The Hall",
-    4: "The Summit",
+    1: "The City",
+    2: "The Forest",
+    3: "The Lake",
+    4: "The Mountain",
 }
 LEVEL_SUBTITLES = {
     1: "Samsara",

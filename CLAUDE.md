@@ -7,8 +7,8 @@ Detailed material lives in `docs/` (see map at the bottom).
 ## What this is
 A 2D arcade platformer (Python 3.11+, `pygame-ce`, packaged with PyInstaller) built for
 JSOT Digamber Paathshala. The player is a devotee (Shravak / Shravika) making a pilgrimage
-through four levels — The Commute (Samsara) → The Cave (Resilience) → The Hall (Valor) →
-The Summit (Moksha) — opening mystery boxes to find the Goal item, avoiding Water and Fire
+through four levels — The City (Samsara) → The Forest (Resilience) → The Lake (Valor) →
+The Mountain (Moksha) — opening mystery boxes to find the Goal item, avoiding Water and Fire
 hazards (Paap), and optionally seeking a Monk who rewards Jain knowledge with guidance.
 
 ## North star (never trade this away)

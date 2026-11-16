@@ -84,8 +84,8 @@ What the GDD gets RIGHT (retained in the refined version):
   (+) Title "The Path to Shikhar" — evocative, spiritually resonant.
   (+) Core Philosophy "Guidance over Gating" — perfectly captures the monk
       mechanic's intent and reward structure.
-  (+) Level thematic names: The Commute (Samsara), The Cave (Resilience),
-      The Hall (Valor), The Summit (Moksha) — each name reflects both the
+  (+) Level thematic names: The City (Samsara), The Forest (Resilience),
+      The Lake (Valor), The Mountain (Moksha) — each name reflects both the
       physical setting and a spiritual state the player must traverse.
   (+) Level settings (Toronto cityscape, stone cave, marble hall, mountain
       summit) — rich visual context that adds meaning without contradiction.
@@ -156,19 +156,19 @@ I. GAME FLOW
        |
   Character Select  -->  Choose your Devotee: BOY or GIRL
        |
-  Level 1: The Commute (Samsara)
+  Level 1: The City (Samsara)
        |
   [Transition: JSOT Temple Image + Character Walking Animation]
        |
-  Level 2: The Cave (Resilience)
+  Level 2: The Forest (Resilience)
        |
   [Transition: Parshvanath Bhagwan Image + Character Bowing Animation]
        |
-  Level 3: The Hall (Valor)
+  Level 3: The Lake (Valor)
        |
   [Transition: Mahavir Bhagwan Image + Character Bowing Animation]
        |
-  Level 4: The Summit (Moksha)
+  Level 4: The Mountain (Moksha)
        |
   [Transition: Adinath Bhagwan Image + Character Bowing Animation]
        |
@@ -533,16 +533,16 @@ V. REFERENCE — LEVEL COMPARISON TABLE
   +-------+------------------+--------------------------+---------------------+
   | Level | Name             | Support Items            | No-Effect Box       |
   +-------+------------------+--------------------------+---------------------+
-  |   1   | The Commute      | TTC Bus                  | N/A                 |
+  |   1   | The City         | TTC Bus                  | N/A                 |
   |       | (Samsara)        | Personal Car             |                     |
   +-------+------------------+--------------------------+---------------------+
-  |   2   | The Cave         | Ghanta                   | Wrong Lakshan       |
+  |   2   | The Forest       | Ghanta                   | Wrong Lakshan       |
   |       | (Resilience)     | Lakshan (Snake)          | (Bull)              |
   +-------+------------------+--------------------------+---------------------+
-  |   3   | The Hall         | Chanvar                  | Wrong Lakshan       |
+  |   3   | The Lake         | Chanvar                  | Wrong Lakshan       |
   |       | (Valor)          | Lakshan (Lion)           | (Bull)              |
   +-------+------------------+--------------------------+---------------------+
-  |   4   | The Summit       | Ghanta                   | Wrong Lakshan       |
+  |   4   | The Mountain     | Ghanta                   | Wrong Lakshan       |
   |       | (Moksha)         | Chanvar                  | (Lion)              |
   |       |                  | Lakshan (Bull)           |                     |
   +-------+------------------+--------------------------+---------------------+
@@ -703,3 +703,4 @@ UPDATE LOG (Level 3 — Jal Mandir, 2026-09-23):
 - Level 3 bird: the chant is now an ordering puzzle (green/red tabs, reds clear, Skip ends the bonus round). Mantra spelling confirmed.
 - Transitions: 3->4 shows Mahavir Bhagwan (no bow); new final transition 4->Victory shows Moolnayak Adinath Bhagwan with bow and golden glow, then Victory.
 - Level 3: disappearing tiles moved to Level 4 (C8); Level 3 Chanvar means "Who bows in humility, rises higher!".
+- 2026-11-16: Levels renamed after their places: The City, The Forest, The Lake, The Mountain (were The Commute, The Cave, The Hall, The Summit). Subtitles (Samsara, Resilience, Valor, Moksha) unchanged.

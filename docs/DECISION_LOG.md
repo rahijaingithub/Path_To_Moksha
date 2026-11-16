@@ -1445,3 +1445,14 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * *Verified:* `tests/test_game_font.py`: every non-ASCII character in the game's strings
   is checked against the font's own missing-glyph box; known symbols draw in the text's
   colour; plain text is pixel-identical to before. Seen on real screens in a recorded run.
+
+## 2026-11-16 — Levels are named after their places
+* **Decision (user):** the four levels are now The City, The Forest, The Lake, The Mountain
+  (were The Commute, The Cave, The Hall, The Summit). Subtitles stay: Samsara, Resilience,
+  Valor, Moksha.
+* **Why:** the names a child reads should be the places the child sees. Level 2's backdrop
+  is a forest, not a cave; Level 3 is a lotus lake; Level 4 is Kailash. The trailer's
+  Adventure captions use the same four names.
+* **Changed:** `settings.LEVEL_NAMES`, the tutorial's level cards, the spec
+  (`GDD_v2_refined.txt`) and `CLAUDE.md`. Old v1 reference docs keep the old names.
+* *Verified:* test suite; names seen on screen in the re-recorded autoplay runs.
