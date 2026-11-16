@@ -136,8 +136,19 @@ class PlayerSelectScene(Scene):
         enter_pressed = any(e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN
                             for e in events)
 
+        # A typed letter is text, never a command. InputManager cannot know a name
+        # is being typed, so on a keyboard E still raises ACTION and W/A/S/D the
+        # menu directions: "Dev" was saved as "DBev" (E pressed the highlighted
+        # key as well), and with the saved list in focus an "e" started whoever
+        # was highlighted. Arrows, Enter and a pad raise no letter, so they are
+        # untouched.
+        typing = any(e.type == pygame.KEYDOWN and e.key != pygame.K_RETURN and e.unicode
+                     and (e.unicode.isalnum() or e.unicode in " _-") for e in events)
+
         # ── Controller navigation ──
-        if self.focus == "back":
+        if typing:
+            pass
+        elif self.focus == "back":
             if input_mgr.just_pressed[input_mgr.MENU_DOWN]:
                 self.focus = "vkb"
                 self.vkb_row = 0

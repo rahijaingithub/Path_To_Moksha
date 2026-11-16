@@ -141,6 +141,38 @@ class NameEntryTests(unittest.TestCase):
         self.assertEqual(self.scene.input_name, "Karuna")
         self.assertEqual(len(self.manager.switches), 1)
 
+    # ── letters that are also commands (2026-11-15) ───────────────────────────
+
+    def type_as_a_keyboard_does(self, name):
+        """As InputManager really reports it: E raises ACTION and MENU_SELECT, and
+        W/A/S/D raise the menu directions, in the same frame the letter arrives."""
+        also = {"e": (self.input.ACTION, self.input.MENU_SELECT), "w": (self.input.MENU_UP,),
+                "s": (self.input.MENU_DOWN,), "a": (self.input.MENU_LEFT,), "d": (self.input.MENU_RIGHT,)}
+        for ch in name:
+            ev = self.pygame.event.Event(
+                self.pygame.KEYDOWN, {"key": ord(ch.lower()), "mod": 0, "unicode": ch})
+            self.input.tap(*also.get(ch.lower(), ()))
+            self.scene.handle_events([ev], self.input)
+
+    def test_a_typed_e_is_a_letter_and_presses_nothing(self) -> None:
+        """"Dev" came out as "DAev": E pressed the highlighted on-screen key too."""
+        self.type_as_a_keyboard_does("Dev")
+        self.assertEqual(self.scene.input_name, "Dev")
+        self.assertEqual(self.manager.switches, [])
+
+    def test_typed_w_a_s_d_do_not_move_the_highlight(self) -> None:
+        self.type_as_a_keyboard_does("Swadesh")
+        self.assertEqual(self.scene.input_name, "Swadesh")
+        self.assertEqual((self.scene.focus, self.scene.vkb_row, self.scene.vkb_col), ("vkb", 0, 0))
+
+    def test_a_typed_e_does_not_start_the_highlighted_saved_profile(self) -> None:
+        """With the list in focus, E used to launch whoever was highlighted."""
+        self.scene.profiles = [{"name": "Arham", "character": "girl"}]
+        self.scene.focus = "profile"
+        self.type_as_a_keyboard_does("e")
+        self.assertEqual(self.manager.switches, [], "typing a letter starts no game")
+        self.assertEqual(self.scene.input_name, "e")
+
     # ── what a pad must still be able to do ───────────────────────────────────
 
     def test_a_pad_confirm_still_types_the_highlighted_letter(self) -> None:

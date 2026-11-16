@@ -1373,3 +1373,21 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   Hall of Fame reached. `tests/test_route_planner.py`: a street route never touches the
   water, a forecast follows a snake without moving it, a flight keeps clear of every
   ledge and starts from under a snake's beat. Full suite green.
+
+## 2026-11-15 — Two bugs the autoplay showed: a typed E, and "top-right"
+* **Name screen: a typed letter is text, never a command.** `InputManager` maps E to
+  ACTION and W/A/S/D to the menu directions, and cannot know a name is being typed. So
+  "Dev" was saved as "DBev" (E also pressed the highlighted on-screen key), W/A/S/D moved
+  the highlight under the typist, and with the saved list in focus an "e" started whoever
+  was highlighted. `PlayerSelectScene` now ignores the pad/menu commands on a frame in
+  which a letter was typed. Fixed in the scene, not in `InputManager`: the mapping is
+  right everywhere else. The 2026-10-26 Enter fix missed it because its test name,
+  "Karuna", has no E.
+* **Level 2's goal line said "top-right"; the murti is top-left.** One word in
+  `assets/level_goals.json`. The tutorial already said top-left.
+* **Not changed, awaiting the designer:** Victory's "Accumulated Time Spent" is the clock
+  used (limit - time left), so it stops while the Monk and the popups are read, a
+  distraction adds 30s to it and a support box takes 15s off it. A 5-minute sitting read
+  1m 51s. Whether support should lower the recorded time is a scoring decision.
+* *Verified:* `test_name_entry.py` (three new cases, all failing before the fix) and
+  `test_level_goals.py` (the line names the side the murti's rect is on). Suite green.
