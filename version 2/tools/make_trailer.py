@@ -271,7 +271,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--recordings", default=os.path.join(ROOT, "recordings"))
     parser.add_argument("--work", help="folder for the pieces (default: recordings\\_trailer_work)")
-    parser.add_argument("--music", default=os.path.join(ROOT, "assets", "audio", "bgm", "bgm_loop.ogg"))
+    parser.add_argument("--music", default=os.path.join(ROOT, "assets", "audio", "bgm", "bgm_loop.ogg"),
+                        help="the track under it (default: the game's own music)")
+    parser.add_argument("--suffix", default="",
+                        help="added to the file names, to keep two cuts side by side (e.g. _high_impact)")
     args = parser.parse_args(argv)
 
     rec = args.recordings
@@ -322,7 +325,7 @@ def main(argv=None):
             with open(listing, "w", encoding="utf-8") as f:
                 for piece in pieces[shape] + [card]:
                     f.write("file '" + piece.replace("\\", "/") + "'\n")
-            out = os.path.join(rec, f"trailer_{shape}{'' if dated else '_undated'}.mp4")
+            out = os.path.join(rec, f"trailer_{shape}{'' if dated else '_undated'}{args.suffix}.mp4")
             run(["-f", "concat", "-safe", "0", "-i", listing, "-stream_loop", "-1", "-i", args.music,
                  "-filter_complex",
                  f"[0:v]fade=t=in:st=0:d=0.4,fade=t=out:st={total - 0.8:.2f}:d=0.8[v];"
@@ -333,8 +336,8 @@ def main(argv=None):
                  "-movflags", "+faststart", "-t", f"{total:.2f}", out])
             outputs.append(out)
 
-    send = os.path.join(rec, "trailer_tall_whatsapp.mp4")
-    run(["-i", os.path.join(rec, "trailer_tall.mp4"), "-vf", "scale=720:1280:flags=lanczos",
+    send = os.path.join(rec, f"trailer_tall_whatsapp{args.suffix}.mp4")
+    run(["-i", os.path.join(rec, f"trailer_tall{args.suffix}.mp4"), "-vf", "scale=720:1280:flags=lanczos",
          "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
          "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", send])
     outputs.append(send)

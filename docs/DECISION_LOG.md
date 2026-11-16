@@ -1424,3 +1424,24 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   Darpan's; check it against JSOT's calendar. The music is the game's own `bgm_loop.ogg`;
   its licence for YouTube has not been checked.
 * *Verified:* by eye, one frame a second of both cuts. Not by ear: the sound was not heard.
+
+## 2026-11-15 — Symbols the font lacks are drawn, not boxed
+* **Bug (found cutting the trailer, confirmed by rendering each character):** the game's
+  strings use about 35 symbols — ▲ ► ◄ ▶ ★ ✔ ✘ ⚠ ◈ ⌫ ⚙ ⏱ ➔ and picture emoji such as 🎮 🏠
+  🥇 — and pygame's default font (FreeSans Bold), the only font the game uses, has none of
+  them. Each was drawn as an empty box: the box popups' headings, the mark beside the
+  Monk's chosen answer, "Press UP to speak", the backspace key of the name keyboard, the
+  level-complete banner, the title, Options and Hall of Fame buttons. It is the same on
+  every machine, because the font travels inside the executable.
+* **Fix (Claude):** `src/game_font.py` adds `GameFont`, a `pygame.font.Font` that draws the
+  symbols it knows as simple shapes in the text's own colour and size, and leaves out a
+  symbol it does not know together with the space after it. `AssetManager.load_font`
+  returns it, so no scene changed and no string was rewritten.
+* **Why not a second font file:** no symbol font is in the project, one with all of these
+  would need a licence check and a place in the PyInstaller bundle, and emoji fonts differ
+  between Windows and macOS. Shapes are a few lines each and look the same everywhere.
+* **Cost accepted:** the picture emoji (🎮 🧒 🧘 🛠 📖 🚪 🏛 🙏 👤 🥇🥈🥉 ⌨) are not drawn at all;
+  their labels read without them. Drawing more of them is a few lines each if wanted.
+* *Verified:* `tests/test_game_font.py`: every non-ASCII character in the game's strings
+  is checked against the font's own missing-glyph box; known symbols draw in the text's
+  colour; plain text is pixel-identical to before. Seen on real screens in a recorded run.

@@ -3,6 +3,7 @@ asset_manager.py — Centralised loader and cache for images, sounds, and fonts.
 """
 import os
 import pygame
+from game_font import GameFont
 from settings import IMAGES_DIR, AUDIO_DIR, FONTS_DIR
 
 
@@ -121,16 +122,19 @@ class AssetManager:
     # ── Fonts ─────────────────────────────────────────────────────────────────
 
     def load_font(self, name, size):
-        """Load a font. If name is None, uses the default pygame font."""
+        """Load a font. If name is None, uses the default pygame font.
+
+        Always a GameFont, so a symbol the font lacks is drawn or left out
+        instead of showing as an empty box (see game_font.py)."""
         key = (name, size)
         if key not in self._fonts:
             if name is None:
-                self._fonts[key] = pygame.font.Font(None, size)
+                self._fonts[key] = GameFont(None, size)
             else:
                 path = os.path.join(FONTS_DIR, name)
                 if os.path.exists(path):
-                    self._fonts[key] = pygame.font.Font(path, size)
+                    self._fonts[key] = GameFont(path, size)
                 else:
                     print(f"[AssetManager] WARNING: Missing font: {path}, using default.")
-                    self._fonts[key] = pygame.font.Font(None, size)
+                    self._fonts[key] = GameFont(None, size)
         return self._fonts[key]

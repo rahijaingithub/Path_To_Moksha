@@ -310,6 +310,8 @@ class Bot:
         yield (), ()
         pygame.event.post(pygame.event.Event(pygame.KEYUP, key=pygame.K_RETURN, mod=0))
         yield from self.wait_until(lambda: mgr.active_key == s.SCENE_CHARACTER_SELECT, what="the devotee screen")
+        if mgr.shared.get("player_name") != name:
+            raise RunFailed(f"typed {name!r} but the game took {mgr.shared.get('player_name')!r}")
         self.mark("choose your pilgrim")
         yield from self.wait(2.5)
         if character == "girl":
