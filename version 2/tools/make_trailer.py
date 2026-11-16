@@ -330,7 +330,7 @@ def main(argv=None):
                  "-filter_complex",
                  f"[0:v]fade=t=in:st=0:d=0.4,fade=t=out:st={total - 0.8:.2f}:d=0.8[v];"
                  f"[1:a]atrim=0:{total:.2f},afade=t=in:st=0:d=0.6,afade=t=out:st={total - 2.5:.2f}:d=2.5,"
-                 "volume=0.9[a]",
+                 "volume=0.9,alimiter=limit=0.84:level=disabled[a]",   # a mastered track peaks at full scale
                  "-map", "[v]", "-map", "[a]", "-r", str(FPS), "-c:v", "libx264", "-preset", "slow",
                  "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
                  "-movflags", "+faststart", "-t", f"{total:.2f}", out])
