@@ -236,6 +236,35 @@ class BankedBonusTimeTests(_SceneSetup, unittest.TestCase):
         self.assertAlmostEqual(recorded, 90.0, delta=0.01, msg="1:30 is recorded as 1:30")
         self.assertGreater(recorded, 0, "and never negative")
 
+    def test_support_boxes_cannot_take_the_recorded_time_below_zero(self) -> None:
+        """Level 4 holds three support boxes (+45s). Open them all within 30
+        seconds of clock and the level used to record -15s."""
+        from unittest import mock
+
+        manager, scene = self.fresh_scene(4)
+        limit = float(self.settings.LEVEL_TIME_LIMIT[4])
+        scene.time_remaining = limit - 30.0 + 3 * self.settings.SUPPORT_TIME_BONUS
+
+        with mock.patch("profile_manager.ProfileManager"),                 mock.patch.object(manager, "switch_to"):
+            scene._advance_level()
+
+        self.assertEqual(manager.shared["level_times"][4], 0.0)
+        self.assertGreaterEqual(manager.shared["total_time"], 0.0)
+
+    def test_a_support_box_still_lowers_the_recorded_time(self) -> None:
+        """The rule itself is kept: the bus gets you there sooner."""
+        from unittest import mock
+
+        manager, scene = self.fresh_scene(4)
+        limit = float(self.settings.LEVEL_TIME_LIMIT[4])
+        scene.time_remaining = limit - 60.0 + self.settings.SUPPORT_TIME_BONUS
+
+        with mock.patch("profile_manager.ProfileManager"),                 mock.patch.object(manager, "switch_to"):
+            scene._advance_level()
+
+        self.assertAlmostEqual(manager.shared["level_times"][4],
+                               60.0 - self.settings.SUPPORT_TIME_BONUS, delta=0.01)
+
     def test_the_bank_raises_the_level_score(self) -> None:
         """Score follows the clock, so Karuna is worth points as well as time."""
         manager, scene = self.fresh_scene(3)

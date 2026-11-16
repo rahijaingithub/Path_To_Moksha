@@ -1734,7 +1734,11 @@ class LevelScene(Scene):
         # The Jiv Daya bonus extends the clock and the score, but it is not time
         # the devotee took: add it back so the recorded time is never understated
         # (without this, finishing Level 3 in 1:30 after saving the bird recorded -2:30).
-        time_spent = LEVEL_TIME_LIMIT.get(self.level, 120) - self.time_remaining + self.jiv_daya_bonus
+        # Support boxes do lower the time taken (the bus gets you there sooner) and
+        # distractions raise it — the designer's rule, kept on 2026-11-15. But a
+        # level cannot take less than no time: three support boxes opened inside
+        # 45 clock-seconds would otherwise record a negative time.
+        time_spent = max(0.0, LEVEL_TIME_LIMIT.get(self.level, 120) - self.time_remaining + self.jiv_daya_bonus)
         self.manager.shared["level_times"][self.level] = time_spent
         self.manager.shared["total_time"] = self.manager.shared.get("total_time", 0.0) + time_spent
         self.manager.shared["monk_correct"][self.level] = (

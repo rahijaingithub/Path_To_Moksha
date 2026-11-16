@@ -1391,3 +1391,14 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   1m 51s. Whether support should lower the recorded time is a scoring decision.
 * *Verified:* `test_name_entry.py` (three new cases, all failing before the fix) and
   `test_level_goals.py` (the line names the side the murti's rect is on). Suite green.
+
+## 2026-11-15 — "Time spent" stays the clock used, and cannot go below zero
+* **Decision (designer):** keep the rule. A level's recorded time is its limit minus the
+  time left: the clock stops while the Monk and the popups are read, a distraction adds
+  30s and a support box takes 15s off. It matches what the boxes say on screen, and the
+  bus getting you there sooner is the meaning.
+* **One guard added (Claude, offered with the choice):** a level's recorded time is never
+  below zero. Level 4's three support boxes opened inside 45 clock-seconds would have
+  recorded a negative time, and so a Victory score above its ceiling.
+* *Verified:* `test_level_resume.py`: the floor holds at zero, and one support box still
+  lowers the recorded time by 15s.
