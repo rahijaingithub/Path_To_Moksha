@@ -1402,3 +1402,25 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   recorded a negative time, and so a Victory score above its ceiling.
 * *Verified:* `test_level_resume.py`: the floor holds at zero, and one support box still
   lowers the recorded time by 15s.
+
+## 2026-11-15 — The Kalyanak trailer: Adventure, Fun, Gyan, Dharam
+* **Decision (designer):** one trailer for kids and parents, WhatsApp on phones first and
+  YouTube after, English only. Four words carry it, in this order: Adventure, Fun, Gyan,
+  Dharam. It opens on what draws a child and closes on what a parent looks for, then the
+  invitation to play on Mallinath Bhagwan's Gyan Kalyanak.
+* **How:** `tools/make_trailer.py` cuts it from the two `autoplay --game` recordings
+  (boy seed 3, girl seed 7). The cut list is a table at the top of the file, in seconds of
+  those recordings. It writes a tall cut (1080x1920), a small copy to send, a wide cut
+  (1920x1080), and an undated pair to use after the day.
+* **The tall cut follows the devotee (Claude).** The game is 16:9; shrunk onto a phone it
+  is a strip. So the tall cut crops a window that tracks the devotee, from the
+  `.track.csv` autoplay writes, and keeps full height only for a question or the mantra.
+* **Left out on purpose (Claude):** the box popups. Their headings use the symbols
+  ★ ✔ ⚠, which the game's font does not have, so they draw as empty boxes — in the real
+  game too, as far as the code shows. To be fixed in the game before they are filmed.
+* **Likeness:** the doctor in the bonus level appears with his approval (designer,
+  2026-11-15).
+* **Before publishing:** the date on the last card (25 December 2026) is the Jain Tithi
+  Darpan's; check it against JSOT's calendar. The music is the game's own `bgm_loop.ogg`;
+  its licence for YouTube has not been checked.
+* *Verified:* by eye, one frame a second of both cuts. Not by ear: the sound was not heard.
