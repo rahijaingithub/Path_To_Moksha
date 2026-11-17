@@ -1456,3 +1456,15 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * **Changed:** `settings.LEVEL_NAMES`, the tutorial's level cards, the spec
   (`GDD_v2_refined.txt`) and `CLAUDE.md`. Old v1 reference docs keep the old names.
 * *Verified:* test suite; names seen on screen in the re-recorded autoplay runs.
+
+## 2026-11-16 — The trailer credits its music
+* **Found:** the game's `bgm_loop.ogg` is "Epic Indian Orchestral Fusion" by vjgalaxy, from
+  Pixabay (track 570933, labelled AI-generated there), under the Pixabay Content License:
+  free to use in a new work, credit not required. `assets/audio/Old` holds the download
+  under its original name; the two files are byte-identical.
+* **Decision (user):** the trailer's end card carries a small credit line at its foot; the
+  source link goes in the YouTube description. The credit shows only when the trailer is
+  cut with the game's own music.
+* **Still to do:** keep Pixabay's licence certificate for the track in the project (it needs
+  a logged-in Pixabay account). A YouTube Content ID claim remains possible; the
+  certificate is the proof to dispute it with.

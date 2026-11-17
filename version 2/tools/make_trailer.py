@@ -43,6 +43,10 @@ OCCASION = "Mallinath Bhagwan Gyan Kalyanak"
 DATE = "25 December 2026"
 PLACE = "JSOT Digamber Paathshala"
 INVITATION = "Kids and parents, come and play!"
+# The game's music, bgm_loop.ogg, is this Pixabay track (Pixabay Content License;
+# credit is not required but is given). Shown only when the default music is used.
+GAME_MUSIC = os.path.join(ROOT, "assets", "audio", "bgm", "bgm_loop.ogg")
+MUSIC_CREDIT = 'Music: "Epic Indian Orchestral Fusion" by vjgalaxy (Pixabay)'
 PILLARS = ("ADVENTURE", "FUN", "GYAN", "DHARAM")
 
 # (section, line under it, whose run, start, seconds, where the tall window looks)
@@ -181,7 +185,7 @@ def lettering():
             text(surface, words, "seguisb.ttf", 48, CREAM, (92 + lf.size(words)[0] // 2, h - 58))
         return surface
 
-    def end_card(size, dated):
+    def end_card(size, dated, credit=None):
         w, h = size
         tall = h > w
         surface = pygame.Surface(size)
@@ -220,6 +224,8 @@ def lettering():
             put("Play it at", "seguisb.ttf", 50, CREAM, 110)
         put(PLACE, "segoeuib.ttf", 60, GOLD, 110)
         put(INVITATION, "seguisb.ttf", 52, CREAM, 0)
+        if credit:                  # small, at the foot of the card
+            text(surface, credit, "segoeui.ttf", int(30 * k), (190, 182, 166), (mid, h - int(64 * k)), shadow=False)
         return surface
 
     def door_leaves(w, h):
@@ -320,7 +326,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--recordings", default=os.path.join(ROOT, "recordings"))
     parser.add_argument("--work", help="folder for the pieces (default: recordings\\_trailer_work)")
-    parser.add_argument("--music", default=os.path.join(ROOT, "assets", "audio", "bgm", "bgm_loop.ogg"),
+    parser.add_argument("--music", default=GAME_MUSIC,
                         help="the track under it (default: the game's own music)")
     parser.add_argument("--suffix", default="",
                         help="added to the file names, to keep two cuts side by side (e.g. _high_impact)")
@@ -380,7 +386,8 @@ def main(argv=None):
         for dated in (True, False):
             card_png = os.path.join(work, f"end_{shape}_{'dated' if dated else 'undated'}.png")
             card = card_png.replace(".png", ".mp4")
-            pygame.image.save(end_card(size, dated), card_png)
+            credit = MUSIC_CREDIT if os.path.abspath(args.music) == os.path.abspath(GAME_MUSIC) else None
+            pygame.image.save(end_card(size, dated, credit), card_png)
             run(["-loop", "1", "-t", f"{END_CARD_SECONDS}", "-i", card_png,
                  "-vf", "fade=t=in:st=0:d=0.5", *encode, card])
             listing = os.path.join(work, f"list_{shape}.txt")
