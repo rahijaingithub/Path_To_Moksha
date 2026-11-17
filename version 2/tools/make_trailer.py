@@ -11,6 +11,8 @@ It writes, into recordings\\ (git-ignored):
     trailer_tall_whatsapp.mp4   the same, smaller, to send
     trailer_wide.mp4            1920x1080, for YouTube, with the date
     trailer_tall_undated.mp4, trailer_wide_undated.mp4   to use after the day
+    trailer_tall_soon.mp4, trailer_wide_soon.mp4, trailer_tall_soon_whatsapp.mp4
+                                "Coming soon": no day and no place, to post before they are fixed
 
 The plan (designer, 2026-11-15): one trailer for kids and parents, built on four
 words in this order — Adventure, Fun, Gyan, Dharam — so it opens on what draws a
@@ -43,6 +45,7 @@ OCCASION = "Mallinath Bhagwan Gyan Kalyanak"
 DATE = "25 December 2026"
 PLACE = "JSOT Digamber Paathshala"
 INVITATION = "Kids and parents, come and play!"
+COMING_SOON = "Coming Soon"
 # The game's music, bgm_loop.ogg, is this Pixabay track (Pixabay Content License;
 # credit is not required but is given). Shown only when the default music is used.
 GAME_MUSIC = os.path.join(ROOT, "assets", "audio", "bgm", "bgm_loop.ogg")
@@ -185,7 +188,8 @@ def lettering():
             text(surface, words, "seguisb.ttf", 48, CREAM, (92 + lf.size(words)[0] // 2, h - 58))
         return surface
 
-    def end_card(size, dated, credit=None):
+    def end_card(size, kind, credit=None):
+        """kind: 'dated' (occasion, day, place), 'undated' (place only) or 'soon' (neither)."""
         w, h = size
         tall = h > w
         surface = pygame.Surface(size)
@@ -216,13 +220,17 @@ def lettering():
         row.blit(img, img.get_rect(center=(w // 2, 45)))
         surface.blit(row, (0, pillars_y - 45))
         y += int((250 if tall else 150) * k)
-        if dated:
+        if kind == "soon":
+            y += int((90 if tall else 40) * k)
+            put(COMING_SOON, "georgiab.ttf", 120, GOLD, 230 if tall else 170)
+        elif kind == "dated":
             put("Play it on", "seguisb.ttf", 50, CREAM, 100)
             put(OCCASION, "georgiab.ttf", 76, GOLD, 120)
             put(DATE, "segoeuib.ttf", 96, CREAM, 190 if tall else 150)
         else:
             put("Play it at", "seguisb.ttf", 50, CREAM, 110)
-        put(PLACE, "segoeuib.ttf", 60, GOLD, 110)
+        if kind != "soon":
+            put(PLACE, "segoeuib.ttf", 60, GOLD, 110)
         put(INVITATION, "seguisb.ttf", 52, CREAM, 0)
         if credit:                  # small, at the foot of the card
             text(surface, credit, "segoeui.ttf", int(30 * k), (190, 182, 166), (mid, h - int(64 * k)), shadow=False)
@@ -383,18 +391,18 @@ def main(argv=None):
     total = body + END_CARD_SECONDS
     outputs = []
     for shape, size in (("tall", TALL), ("wide", (SRC_W, SRC_H))):
-        for dated in (True, False):
-            card_png = os.path.join(work, f"end_{shape}_{'dated' if dated else 'undated'}.png")
+        for kind, tail in (("dated", ""), ("undated", "_undated"), ("soon", "_soon")):
+            card_png = os.path.join(work, f"end_{shape}_{kind}.png")
             card = card_png.replace(".png", ".mp4")
             credit = MUSIC_CREDIT if os.path.abspath(args.music) == os.path.abspath(GAME_MUSIC) else None
-            pygame.image.save(end_card(size, dated, credit), card_png)
+            pygame.image.save(end_card(size, kind, credit), card_png)
             run(["-loop", "1", "-t", f"{END_CARD_SECONDS}", "-i", card_png,
                  "-vf", "fade=t=in:st=0:d=0.5", *encode, card])
             listing = os.path.join(work, f"list_{shape}.txt")
             with open(listing, "w", encoding="utf-8") as f:
                 for piece in pieces[shape] + [card]:
                     f.write("file '" + piece.replace("\\", "/") + "'\n")
-            out = os.path.join(rec, f"trailer_{shape}{'' if dated else '_undated'}{args.suffix}.mp4")
+            out = os.path.join(rec, f"trailer_{shape}{tail}{args.suffix}.mp4")
             run(["-f", "concat", "-safe", "0", "-i", listing, "-stream_loop", "-1", "-i", args.music,
                  "-filter_complex",
                  f"[0:v]fade=t=in:st=0:d=0.4,fade=t=out:st={total - 0.8:.2f}:d=0.8[v];"
@@ -405,11 +413,12 @@ def main(argv=None):
                  "-movflags", "+faststart", "-t", f"{total:.2f}", out])
             outputs.append(out)
 
-    send = os.path.join(rec, f"trailer_tall_whatsapp{args.suffix}.mp4")
-    run(["-i", os.path.join(rec, f"trailer_tall{args.suffix}.mp4"), "-vf", "scale=720:1280:flags=lanczos",
-         "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
-         "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", send])
-    outputs.append(send)
+    for tail in ("", "_soon"):                 # smaller copies to send
+        send = os.path.join(rec, f"trailer_tall{tail}_whatsapp{args.suffix}.mp4")
+        run(["-i", os.path.join(rec, f"trailer_tall{tail}{args.suffix}.mp4"), "-vf", "scale=720:1280:flags=lanczos",
+             "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-pix_fmt", "yuv420p",
+             "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", send])
+        outputs.append(send)
 
     print(f"[trailer] {total:.1f}s")
     for out in outputs:

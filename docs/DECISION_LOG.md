@@ -1484,3 +1484,10 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
   sparrow.
 * *Verified:* test suite; the sparrow seen flying and resting on the lotus in the
   re-recorded autoplay runs.
+
+## 2026-11-17 — A "Coming Soon" trailer
+* **Decision (user):** a third end card that names no day, time or place, only "Coming
+  Soon", to post before those are fixed. `make_trailer.py` now writes
+  `trailer_{tall,wide}_soon.mp4` and a small `trailer_tall_soon_whatsapp.mp4` beside the
+  dated and undated cuts; the rest of the trailer is identical.
+* *Verified:* end-card frame checked in both shapes.
