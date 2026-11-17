@@ -1468,3 +1468,19 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * **Still to do:** keep Pixabay's licence certificate for the track in the project (it needs
   a logged-in Pixabay account). A YouTube Content ID claim remains possible; the
   certificate is the proof to dispute it with.
+
+## 2026-11-17 — The bird is a sparrow drawn in code (closes the bird half of BL3)
+* **Found:** the Level 3 bird was a Gemini sheet that followed a third-party robin sprite
+  sheet. Its original could not be traced: nothing recorded in the repo, and a reverse
+  image search (TinEye, Yandex; Google refused the automated request) found no match. So
+  its licence could not be cleared before the trailer goes on YouTube.
+* **Decision (user, after seeing a preview):** replace it with a house sparrow drawn by
+  `tools/draw_bird_sprites.py` — every shape and colour written in the script, with no
+  reference image, no image generator and no downloaded art. Nothing to license.
+* **Changed:** `sprites/bird_fly_left.png` / `bird_fly_right.png` (same format: ten square
+  frames, wings tucked on frame 3 for `bird.FOLDED_FRAME`). The old sheet, its cleaned
+  strip and its two tools (`bird_sprite_cleanup.py`, `prepare_bird_sprites.py`) are removed
+  from the tree; they remain in git history. The tired-bird prompt (§7) now describes a
+  sparrow.
+* *Verified:* test suite; the sparrow seen flying and resting on the lotus in the
+  re-recorded autoplay runs.

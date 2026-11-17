@@ -43,7 +43,7 @@ class Bird:
 
     @staticmethod
     def _cut(strip):
-        """Square frames (see tools/prepare_bird_sprites.py), scaled to BIRD_SIZE."""
+        """Square frames (see tools/draw_bird_sprites.py), scaled to BIRD_SIZE."""
         side = strip.get_height()
         return [pygame.transform.smoothscale(strip.subsurface((i * side, 0, side, side)),
                                              (BIRD_SIZE, BIRD_SIZE))

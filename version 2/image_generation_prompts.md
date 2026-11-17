@@ -257,7 +257,7 @@ In Level 3 the floor is the lake: touching it sinks the devotee for 1.5s before 
 The bird that falls onto the lotus in Level 3. **Optional** — until it exists the game tilts a wings-folded flight frame onto the lotus.
 
 *   **File:** `assets/images/sprites/bird_fallen.png` — one image, **square**, bird facing **right**, transparent background (the game mirrors it when needed and scales it to 84×84).
-*   **Prompt:** `A single 2D game sprite of a small songbird matching this style: dark brown-grey wings and back, warm orange breast, dark head, small yellow beak, flat colours with a clean dark-brown outline. The bird is resting tired on its side on a flat surface, wings folded, eyes half closed, facing right. Gentle and kid-friendly: tired, not injured — no blood, no wounds, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
+*   **Prompt:** `A single 2D game sprite of a house sparrow matching this style: warm brown back and wings with a white wing bar, chestnut nape, grey crown, pale cheek, small black bib, pale buff belly, dark grey beak, flat colours with a clean dark-brown outline. The bird is resting tired on its side on a flat surface, wings folded, eyes half closed, facing right. Gentle and kid-friendly: tired, not injured — no blood, no wounds, no distress. Centred on a square canvas, isolated on a pure white background, no shadow, no text.`
 *   **Negative prompt:** use the standard block from Section 5, Part C.
 
 ## 8. Level 3 Karuna Bonus Level — the two souls helped (Epic G5)
