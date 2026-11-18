@@ -1465,9 +1465,11 @@ TypeError. **v2's bracket is correct.** Two other faults on the same two lines w
 * **Decision (user):** the trailer's end card carries a small credit line at its foot; the
   source link goes in the YouTube description. The credit shows only when the trailer is
   cut with the game's own music.
-* **Still to do:** keep Pixabay's licence certificate for the track in the project (it needs
-  a logged-in Pixabay account). A YouTube Content ID claim remains possible; the
-  certificate is the proof to dispute it with.
+* **Licence on file (2026-11-17):** Pixabay offered no per-track certificate for this track
+  (checked signed in: Download button, its menu, the pop-up after downloading). Kept
+  instead, in `version 2/docs/licenses/`: a screenshot of the track page and Pixabay's
+  licence summary as printed that day. A YouTube Content ID claim remains possible; these
+  and the track link are the proof to dispute it with.
 
 ## 2026-11-17 — The bird is a sparrow drawn in code (closes the bird half of BL3)
 * **Found:** the Level 3 bird was a Gemini sheet that followed a third-party robin sprite
