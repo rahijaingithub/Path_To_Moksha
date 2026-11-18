@@ -170,6 +170,8 @@ class DevTransitionStartTests(unittest.TestCase):
         self.assertEqual(dev_transition_next_level(-1), 2, "Jyot, then Level 2")
         self.assertEqual(dev_transition_next_level(-2), 3, "Parshvanath, then Level 3")
 
+    @unittest.skipUnless(importlib.util.find_spec("pygame") is not None,
+                         "needs pygame (runs locally in the venv, skipped on CI)")
     def test_every_dev_start_matches_the_label_options_shows(self) -> None:
         """-1 is labelled Jyot and -2 Parshvanath; the transitions must agree."""
         sys.path.insert(0, str(SRC))
